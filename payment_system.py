@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 India Social Panel - Advanced Payment System
@@ -7,14 +6,12 @@ Professional Payment Gateway with Multiple Methods
 
 import qrcode
 import io
-import base64
-import uuid
+import os
 import time
 import random
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
 from aiogram import F
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from typing import Optional
 
 async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup: Optional[InlineKeyboardMarkup] = None) -> bool:
     """Safely edit callback message with comprehensive error handling"""
@@ -22,32 +19,55 @@ async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup: Op
         return False
 
     try:
-        # Check if message is accessible and editable
-        if hasattr(callback.message, 'edit_text'):
+        # Check if message is editable (not InaccessibleMessage)
+        if (hasattr(callback.message, 'edit_text') and 
+            hasattr(callback.message, 'message_id') and 
+            hasattr(callback.message, 'text') and
+            not callback.message.__class__.__name__ == 'InaccessibleMessage'):
             if reply_markup:
-                await callback.message.edit_text(text, reply_markup=reply_markup)  # type: ignore
+                await callback.message.edit_text(text, reply_markup=reply_markup, parse_mode="HTML")  # type: ignore
             else:
-                await callback.message.edit_text(text)  # type: ignore
+                await callback.message.edit_text(text, parse_mode="HTML")  # type: ignore
             return True
-        return False
+        else:
+            # Message is inaccessible, send new message
+            if hasattr(callback.message, 'chat') and hasattr(callback.message.chat, 'id'):
+                from main import bot
+                if reply_markup:
+                    await bot.send_message(callback.message.chat.id, text, reply_markup=reply_markup, parse_mode="HTML")
+                else:
+                    await bot.send_message(callback.message.chat.id, text, parse_mode="HTML")
+                return True
+            return False
     except Exception as e:
         print(f"Error editing message: {e}")
+        # Try sending new message as fallback
+        try:
+            if hasattr(callback.message, 'chat') and hasattr(callback.message.chat, 'id'):
+                from main import bot
+                if reply_markup:
+                    await bot.send_message(callback.message.chat.id, text, reply_markup=reply_markup, parse_mode="HTML")
+                else:
+                    await bot.send_message(callback.message.chat.id, text, parse_mode="HTML")
+                return True
+        except Exception as fallback_error:
+            print(f"Fallback message send failed: {fallback_error}")
         return False
 
-# Payment configuration
+# Payment configuration - SECURE PRODUCTION SETTINGS
 PAYMENT_CONFIG = {
-    "upi_id": "0m12vx8@jio",
-    "upi_name": "India Social Panel",
-    "bank_name": "State Bank of India", 
-    "account_number": "1234567890",
-    "ifsc_code": "SBIN0001234",
-    "min_amount": 100,
-    "max_amount": 50000,
+    "upi_id": os.getenv("PAYMENT_UPI_ID", "business@paytm"),  # Use environment variable
+    "upi_name": os.getenv("BUSINESS_NAME", "India Social Panel"),
+    "bank_name": os.getenv("BANK_NAME", "Please contact admin for bank details"),
+    "account_number": os.getenv("ACCOUNT_NUMBER", "Contact admin for account details"),
+    "ifsc_code": os.getenv("IFSC_CODE", "Contact admin for IFSC"),
+    "min_amount": int(os.getenv("MIN_PAYMENT", "100")),
+    "max_amount": int(os.getenv("MAX_PAYMENT", "50000")),
     "processing_fee": {
-        "upi": 0,
-        "netbanking": 2.5,
-        "card": 3.0,
-        "wallet": 1.5
+        "upi": float(os.getenv("UPI_FEE", "0")),
+        "netbanking": float(os.getenv("NETBANKING_FEE", "2.5")),
+        "card": float(os.getenv("CARD_FEE", "3.0")),
+        "wallet": float(os.getenv("WALLET_FEE", "1.5"))
     }
 }
 
@@ -383,7 +403,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 🏦 <b>Complete Bank Information:</b>
 
 • 🏛️ <b>Bank Name:</b> {PAYMENT_CONFIG['bank_name']}
-• 🔢 <b>Account Number:</b> <code>{PAYMENT_CONFIG['account_number']}</code>  
+• 🔢 <b>Account Number:</b> <code>{PAYMENT_CONFIG['account_number']}</code>
 • 🔑 <b>IFSC Code:</b> <code>{PAYMENT_CONFIG['ifsc_code']}</code>
 • 👤 <b>Account Holder:</b> {PAYMENT_CONFIG['upi_name']}
 • 🏦 <b>Account Type:</b> Current Account
@@ -395,7 +415,6 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 4. Verify details carefully
 5. Transfer required amount
 6. Save transaction reference
-7. Send proof to admin
 
 ⚠️ <b>Important:</b>
 • Double check IFSC code
@@ -440,7 +459,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 3. Balance automatically add हो जाएगा
 4. Confirmation notification आएगी
 
-📱 <b>Send screenshot to:</b> @achal_parvat
+📸 <b>Send screenshot to admin:</b> @tech_support_admin
 
 ⏰ <b>Processing Time:</b> 5-10 minutes
 🔔 <b>आपको notification मिल जाएगी जब balance add होगा</b>
@@ -449,7 +468,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📞 Send Screenshot", url="https://t.me/achal_parvat")],
+            [InlineKeyboardButton(text="📞 Send Screenshot", url="https://t.me/tech_support_admin")],
             [InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")]
         ])
 
@@ -534,7 +553,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 • RTGS: 1-2 hours (₹2L+)
 
 📞 <b>After transfer:</b>
-Send transaction screenshot to @achal_parvat
+Send transaction screenshot to @tech_support_admin
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -587,7 +606,7 @@ Send transaction screenshot to @achal_parvat
 🆘 <b>24/7 Payment Assistance</b>
 
 💬 <b>Contact Options:</b>
-• 📱 <b>Main Admin:</b> @achal_parvat
+• 📱 <b>Main Admin:</b> @tech_support_admin
 • ⚡ <b>Quick Support:</b> @ISP_PaymentSupport
 • 📞 <b>Emergency:</b> @ISP_Emergency
 
@@ -614,7 +633,7 @@ Send transaction screenshot to @achal_parvat
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="📱 Contact Admin", url="https://t.me/achal_parvat"),
+                InlineKeyboardButton(text="📱 Contact Admin", url="https://t.me/tech_support_admin"),
                 InlineKeyboardButton(text="⚡ Quick Support", url="https://t.me/ISP_PaymentSupport")
             ],
             [InlineKeyboardButton(text="⬅️ Back to Payment", callback_data="add_funds")]
@@ -656,7 +675,7 @@ Send transaction screenshot to @achal_parvat
 
 ⚡ <b>Payment Options:</b>
 • Copy UPI ID और manually transfer करें
-• QR Code scan करके pay करें  
+• QR Code scan करके pay करें
 • UPI app directly open करें (with amount)
 
 💡 <b>सबसे fast और secure method है!</b>
@@ -692,7 +711,7 @@ Send transaction screenshot to @achal_parvat
 
 📝 <b>Next Steps:</b>
 1. Open any UPI app (Google Pay, PhonePe, Paytm, JioMoney)
-2. Select "Send Money" या "Pay to Contact" 
+2. Select "Send Money" या "Pay to Contact"
 3. UPI ID paste करें: <code>{PAYMENT_CONFIG['upi_id']}</code>
 4. Amount enter करें: ₹{amount:,}
 5. Payment complete करें
@@ -702,7 +721,7 @@ Send transaction screenshot to @achal_parvat
 
         try:
             await safe_edit_message(callback, text, get_upi_payment_menu(amount, transaction_id))
-        except Exception as e:
+        except Exception:
             # If edit fails, send new message
             await callback.message.answer(text, reply_markup=get_upi_payment_menu(amount, transaction_id))
 
@@ -726,9 +745,9 @@ Send transaction screenshot to @achal_parvat
 
         # Generate QR code
         qr_data = generate_payment_qr(
-            amount, 
-            PAYMENT_CONFIG['upi_id'], 
-            PAYMENT_CONFIG['upi_name'], 
+            amount,
+            PAYMENT_CONFIG['upi_id'],
+            PAYMENT_CONFIG['upi_name'],
             transaction_id
         )
 
@@ -768,7 +787,7 @@ Send transaction screenshot to @achal_parvat
                 try:
                     if hasattr(callback.message, 'delete'):
                         await callback.message.delete()  # type: ignore
-                except:
+                except Exception:
                     pass
 
             except Exception as e:
@@ -795,7 +814,7 @@ Send transaction screenshot to @achal_parvat
 
                 try:
                     await callback.message.edit_text(fallback_text, reply_markup=get_upi_payment_menu(amount, transaction_id))
-                except:
+                except Exception:
                     await callback.message.answer(fallback_text, reply_markup=get_upi_payment_menu(amount, transaction_id))
         else:
             await callback.answer("❌ QR Code generation failed! Manual payment use करें.", show_alert=True)
@@ -819,7 +838,7 @@ Send transaction screenshot to @achal_parvat
 
             try:
                 await callback.message.edit_text(manual_text, reply_markup=get_upi_payment_menu(amount, transaction_id))
-            except:
+            except Exception:
                 await callback.message.answer(manual_text, reply_markup=get_upi_payment_menu(amount, transaction_id))
 
     @main_dp.callback_query(F.data.startswith("open_upi_"))
@@ -837,9 +856,9 @@ Send transaction screenshot to @achal_parvat
 
         # Generate UPI payment link
         upi_link = generate_upi_payment_link(
-            amount, 
-            PAYMENT_CONFIG['upi_id'], 
-            PAYMENT_CONFIG['upi_name'], 
+            amount,
+            PAYMENT_CONFIG['upi_id'],
+            PAYMENT_CONFIG['upi_name'],
             transaction_id
         )
 
@@ -887,7 +906,7 @@ Send transaction screenshot to @achal_parvat
 
         try:
             await safe_edit_message(callback, text, payment_keyboard)
-        except:
+        except Exception:
             await callback.message.answer(text, reply_markup=payment_keyboard)
 
         await callback.answer("💡 UPI ID copied! ₹{amount:,} transfer करें")
@@ -965,7 +984,7 @@ async def show_payment_methods(callback: CallbackQuery, amount: int):
     # Calculate processing fees for different methods
     upi_total = amount
     netbanking_fee = amount * PAYMENT_CONFIG["processing_fee"]["netbanking"] / 100
-    netbanking_total = amount + netbanking_fee
+    # netbanking_total = amount + netbanking_fee  # Not used in current display
     card_fee = amount * PAYMENT_CONFIG["processing_fee"]["card"] / 100
     card_total = amount + card_fee
 
@@ -1010,7 +1029,7 @@ async def show_payment_methods(callback: CallbackQuery, amount: int):
 
     await safe_edit_message(callback, text, get_payment_main_menu())
 
-# Export function for main.py  
+# Export function for main.py
 def setup_payment_system(dp, users_data, user_state, format_currency):
     """Setup payment system - called from main.py"""
     register_payment_handlers(dp, users_data, user_state, format_currency)
