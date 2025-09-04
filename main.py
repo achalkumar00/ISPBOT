@@ -45,10 +45,10 @@ if not BASE_WEBHOOK_URL:
         print("⚠️ BASE_WEBHOOK_URL not set. Bot will run in polling mode.")
 
 OWNER_NAME = os.getenv("OWNER_NAME", "Achal Parvat")
-OWNER_USERNAME = os.getenv("OWNER_USERNAME", "achal_parvat")
+OWNER_USERNAME = os.getenv("OWNER_USERNAME", "tech_support_admin")
 
 # Webhook settings
-WEBHOOK_PATH = f"/webhook"
+WEBHOOK_PATH = "/webhook"
 WEBHOOK_SECRET = "india_social_panel_secret_2025"
 WEBHOOK_URL = f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}" if BASE_WEBHOOK_URL else None
 WEBHOOK_MODE = bool(BASE_WEBHOOK_URL)  # True if webhook URL available, False for polling
@@ -73,7 +73,7 @@ webhook_requests_handler = SimpleRequestHandler(
 BOT_RESTART_TIME = datetime.now()
 # Simple admin notification on startup
 # Simple admin notification on startup
-ADMIN_USER_ID = 7437014244
+ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "7437014244"))  # Consistent admin ID
 
 # Set to store users to be notified after a restart
 users_to_notify = set()
@@ -85,7 +85,10 @@ orders_data: Dict[str, Dict[str, Any]] = {}
 tickets_data: Dict[str, Dict[str, Any]] = {}
 user_state: Dict[int, Dict[str, Any]] = {}  # For tracking user input states
 order_temp: Dict[int, Dict[str, Any]] = {}  # For temporary order data
-admin_users = {5987654321, 1234567890}  # Add your admin user IDs here
+admin_users = {ADMIN_USER_ID}  # Use consistent admin user ID
+
+# Handler registration flag - not needed
+# _handlers_registered = False
 
 # ========== CORE FUNCTIONS ==========
 def init_user(user_id: int, username: Optional[str] = None, first_name: Optional[str] = None) -> None:
@@ -187,7 +190,7 @@ def format_time(timestamp: str) -> str:
     try:
         dt = datetime.fromisoformat(timestamp)
         return dt.strftime("%d %b %Y, %I:%M %p")
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         return "N/A"
 
 async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup: Optional[InlineKeyboardMarkup] = None) -> bool:
@@ -505,7 +508,7 @@ async def cmd_menu(message: Message):
         return  # Ignore old messages
 
     print(f"✅ Sending menu to user {user.id}")
-    await message.answer("🏠 <b>Main Menu</b>\nअपनी जरूरत के अनुसार option चुनें:", reply_markup=get_main_menu())
+    await message.answer("🏠 <b>Main Menu</b>\n अपनी जरूरत के अनुसार option चुनें:", reply_markup=get_main_menu())
 
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
@@ -530,9 +533,10 @@ async def cmd_help(message: Message):
 • /start - Main menu
 • /menu - Show menu
 • /help - Show this help
+• /description - Package details (during ordering)
 
 📞 <b>Support:</b>
-• Contact: @achal_parvat
+• Contact: @tech_support_admin
 • Response: 2-6 hours
 
 💡 <b>Bot working perfectly!</b>
@@ -540,6 +544,107 @@ async def cmd_help(message: Message):
 
     print(f"✅ Sending help to user {user.id}")
     await message.answer(help_text, reply_markup=get_main_menu())
+
+@dp.message(Command("description"))
+async def cmd_description(message: Message):
+    """Handle /description command during order process"""
+    print(f"📨 Received /description command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return  # Ignore old messages
+
+    user_id = user.id
+
+    # Check if user is in order process
+    current_step = user_state.get(user_id, {}).get("current_step")
+
+    if current_step in ["waiting_link", "waiting_quantity", "waiting_coupon"]:
+        # User is in order process, show package description
+        platform = user_state[user_id]["data"].get("platform", "")
+        service_id = user_state[user_id]["data"].get("service_id", "")
+        package_name = user_state[user_id]["data"].get("package_name", "Unknown Package")
+        package_rate = user_state[user_id]["data"].get("package_rate", "₹1.00 per unit")
+
+        # Get detailed package description from services.py
+        from services import get_package_description
+        description = get_package_description(platform, service_id)
+
+        description_text = f"""
+📋 <b>Detailed Package Description</b>
+
+📦 <b>Package:</b> {package_name}
+🆔 <b>ID:</b> {service_id}
+💰 <b>Rate:</b> {package_rate}
+🎯 <b>Platform:</b> {platform.title()}
+
+{description['text']}
+
+💡 <b>Order process में वापस जाने के लिए link/quantity/coupon भेजते रहें</b>
+"""
+
+        await message.answer(description_text)
+    else:
+        # User is not in order process
+        text = """
+⚠️ <b>Description Command</b>
+
+📋 <b>/description command केवल order process के दौरान available है</b>
+
+💡 <b>Package description देखने के लिए:</b>
+1. पहले /start करें
+2. New Order पर click करें  
+3. कोई service select करें
+4. Package choose करें
+5. फिर /description use करें
+
+🚀 <b>अभी order शुरू करने के लिए /start करें</b>
+"""
+        await message.answer(text, reply_markup=get_main_menu())
+
+# ========== PHOTO HANDLERS ==========
+@dp.message(F.photo)
+async def handle_photo_message(message: Message):
+    """Handle photo uploads (for screenshots, etc.)"""
+    if not message.from_user:
+        return
+
+    user_id = message.from_user.id
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        mark_user_for_notification(user_id)
+        return  # Ignore old messages
+
+    # Try to handle as screenshot upload
+    from text_input_handler import handle_screenshot_upload
+    screenshot_handled = await handle_screenshot_upload(
+        message, user_state, order_temp, generate_order_id, format_currency, get_main_menu
+    )
+
+    if not screenshot_handled:
+        # Photo not related to order process
+        text = """
+📸 <b>Photo Received</b>
+
+💡 <b>यह photo किसी order process के लिए नहीं है</b>
+
+📋 <b>Photo का use करने के लिए:</b>
+• पहले order process शुरू करें
+• Payment method choose करें
+• QR code generate करें
+• फिर screenshot भेजें
+
+🏠 <b>Main menu के लिए /start दबाएं</b>
+"""
+        await message.answer(text, reply_markup=get_main_menu())
 
 # ========== ACCOUNT CREATION AND LOGIN HANDLERS (MOVED TO account_creation.py) ==========
 # All account creation handlers have been moved to account_creation.py for better code organization
@@ -967,6 +1072,234 @@ async def cb_back_main(callback: CallbackQuery):
 """
 
     await safe_edit_message(callback, text, get_main_menu())
+    await callback.answer()
+
+@dp.callback_query(F.data == "skip_coupon")
+async def cb_skip_coupon(callback: CallbackQuery):
+    """Handle skip coupon and show confirmation"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state or user_state[user_id].get("current_step") != "waiting_coupon":
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get all order details
+    order_data = user_state[user_id]["data"]
+    package_name = order_data.get("package_name", "Unknown Package")
+    service_id = order_data.get("service_id", "")
+    platform = order_data.get("platform", "")
+    package_rate = order_data.get("package_rate", "₹1.00 per unit")
+    link = order_data.get("link", "")
+    quantity = order_data.get("quantity", 0)
+
+    # Calculate total price (simplified calculation for demo)
+    # Extract numeric part from rate for calculation
+    rate_num = 1.0  # Default
+    if "₹" in package_rate:
+        try:
+            rate_str = package_rate.replace("₹", "").split()[0]
+            rate_num = float(rate_str)
+        except (ValueError, IndexError):
+            rate_num = 1.0
+
+    total_price = rate_num * quantity
+
+    # Show confirmation page
+    confirmation_text = f"""
+✅ <b>Order Confirmation</b>
+
+📦 <b>Package Details:</b>
+• Name: {package_name}
+• ID: {service_id}
+• Platform: {platform.title()}
+• Rate: {package_rate}
+
+🔗 <b>Target Link:</b>
+{link}
+
+📊 <b>Order Summary:</b>
+• Quantity: {quantity:,}
+• Total Price: ₹{total_price:,.2f}
+
+📋 <b>Description Command:</b> /description
+
+🎯 <b>सभी details correct हैं?</b>
+
+💡 <b>Confirm करने पर payment method select करना होगा</b>
+⚠️ <b>Cancel करने पर main menu पर वापस चले जाएंगे</b>
+"""
+
+    # Store total price in order data
+    user_state[user_id]["data"]["total_price"] = total_price
+    user_state[user_id]["current_step"] = "confirming_order"
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Confirm Order", callback_data="final_confirm_order"),
+            InlineKeyboardButton(text="❌ Cancel", callback_data="back_main")
+        ]
+    ])
+
+    await safe_edit_message(callback, confirmation_text, keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "final_confirm_order")
+async def cb_final_confirm_order(callback: CallbackQuery):
+    """Handle final order confirmation and show payment methods"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state or user_state[user_id].get("current_step") != "confirming_order":
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state[user_id]["data"]
+    package_name = order_data.get("package_name", "Unknown Package")
+    # service_id = order_data.get("service_id", "")  # Not used in this function
+    link = order_data.get("link", "")
+    quantity = order_data.get("quantity", 0)
+    total_price = order_data.get("total_price", 0.0)
+
+    from datetime import datetime
+    current_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    payment_text = f"""
+💳 <b>Payment Method Selection</b>
+
+📅 <b>Date:</b> {current_date}
+📦 <b>Package:</b> {package_name}
+🔗 <b>Link:</b> {link}
+📊 <b>Quantity:</b> {quantity:,}
+💰 <b>Total Amount:</b> ₹{total_price:,.2f}
+
+💳 <b>Available Payment Methods:</b>
+
+💡 <b>अपना payment method चुनें:</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr"),
+            InlineKeyboardButton(text="💳 UPI ID", callback_data="payment_upi")
+        ],
+        [
+            InlineKeyboardButton(text="📲 UPI App", callback_data="payment_app"),
+            InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back", callback_data="skip_coupon")
+        ]
+    ])
+
+    user_state[user_id]["current_step"] = "selecting_payment"
+
+    await safe_edit_message(callback, payment_text, keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "payment_qr")
+async def cb_payment_qr(callback: CallbackQuery):
+    """Handle QR code payment method"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state or user_state[user_id].get("current_step") != "selecting_payment":
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state[user_id]["data"]
+    total_price = order_data.get("total_price", 0.0)
+
+    # Show QR code generation message
+    qr_text = f"""
+📱 <b>QR Code Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+⚡ <b>QR Code Generated Successfully!</b>
+
+📋 <b>Payment Instructions:</b>
+1. Scan QR code with any UPI app
+2. Pay the exact amount ₹{total_price:,.2f}
+3. Take screenshot of payment confirmation
+4. Share the screenshot here
+
+⚠️ <b>Important:</b>
+• Pay exact amount only
+• Don't add extra charges
+• Screenshot must be clear and visible
+
+💡 <b>QR Code और payment instructions next message में आ रहे हैं...</b>
+"""
+
+    # Send the QR instructions
+    await safe_edit_message(callback, qr_text)
+    await callback.answer()
+
+    # Send QR code in next message (simulating QR code generation)
+    qr_code_message = f"""
+📱 <b>UPI QR Code</b>
+
+💳 <b>Pay: ₹{total_price:,.2f}</b>
+📞 <b>Merchant: India Social Panel</b>
+🆔 <b>UPI ID: achal@paytm</b>
+
+[QR CODE PLACEHOLDER - In real implementation, generate actual QR code image]
+
+📸 <b>Scan QR Code and Share Screenshot</b>
+
+💡 <b>Payment के बाद screenshot share करने के लिए नीचे button दबाएं</b>
+"""
+
+    qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📸 Share Screenshot", callback_data="share_screenshot")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Payment Methods", callback_data="final_confirm_order")
+        ]
+    ])
+
+    user_state[user_id]["current_step"] = "waiting_screenshot"
+
+    await bot.send_message(user_id, qr_code_message, reply_markup=qr_keyboard)
+
+@dp.callback_query(F.data == "share_screenshot")
+async def cb_share_screenshot(callback: CallbackQuery):
+    """Handle screenshot sharing request"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    screenshot_text = """
+📸 <b>Screenshot Upload</b>
+
+💡 <b>कृपया payment का screenshot भेजें</b>
+
+📋 <b>Screenshot Requirements:</b>
+• Clear और readable हो
+• Payment amount दिखना चाहिए
+• Transaction status "Success" हो
+• Date और time visible हो
+
+💬 <b>Screenshot को image के रूप में send करें...</b>
+"""
+
+    user_state[user_id]["current_step"] = "waiting_screenshot_upload"
+
+    await safe_edit_message(callback, screenshot_text)
     await callback.answer()
 
 @dp.callback_query(F.data == "main_menu")
@@ -1859,23 +2192,6 @@ async def cb_view_tickets(callback: CallbackQuery):
 
 # No more code here - moved to respective modules
 
-# Rest of handlers at end of file...
-
-# ========== MAIN EXECUTION ==========
-# Main execution section is at the very end of this file
-
-# [All duplicate code removed successfully]
-
-# End of cleaned section
-
-# ========== PAYMENT & SERVICE HANDLERS ==========
-# (These are located at the end of this file)
-
-# ========== WEBHOOK CONFIGURATION ==========
-# (Webhook setup is at the very end of this file)
-
-# [Skipping to clean code section at end of file...]
-
 # ========== REAL HANDLERS START AROUND LINE 2000+ ==========
 # All handlers are properly organized at the end of this file
 
@@ -1897,7 +2213,24 @@ async def cb_view_tickets(callback: CallbackQuery):
 # ========== INPUT HANDLERS ==========
 @dp.message(F.text)
 async def handle_text_input_wrapper(message: Message):
-    """Wrapper for text input handler - calls external handler with dependencies"""
+    """Wrapper for text input handler - first check account creation, then other handlers"""
+    if not message.from_user:
+        return
+
+    # Check if user is in account creation flow
+    user_id = message.from_user.id
+    current_step = user_state.get(user_id, {}).get("current_step")
+
+    # Account creation steps that should be handled by account_creation.py
+    account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token"]
+
+    if current_step in account_creation_steps:
+        # Let account_creation.py handle this
+        from account_creation import handle_text_input
+        await handle_text_input(message)
+        return
+
+    # Otherwise use regular text input handler
     await text_input_handler.handle_text_input(
         message, user_state, users_data, order_temp, tickets_data,
         is_message_old, mark_user_for_notification, is_account_created, 
@@ -2001,20 +2334,20 @@ async def handle_contact_input(message: Message):
 # ========== STARTUP FUNCTIONS ==========
 async def on_startup():
     """Initialize bot on startup"""
-    print("🔄 Registering payment handlers...")
+    print("🔄 Initializing payment system...")
     payment_system.register_payment_handlers(dp, users_data, user_state, format_currency)
-    
-    print("🔄 Registering service handlers...")
+
+    print("🔄 Initializing service system...")
     services.register_service_handlers(dp, require_account)
-    
+
     print("🚀 India Social Panel Bot starting...")
-    
+
     # Initialize account creation handlers
     account_creation.init_account_creation_handlers(
         dp, users_data, user_state, safe_edit_message, init_user, 
         mark_user_for_notification, is_message_old, bot, START_TIME
     )
-    
+
     # Initialize account handlers
     account_handlers.init_account_handlers(
         dp, users_data, orders_data, require_account, format_currency, 
@@ -2061,6 +2394,13 @@ async def on_startup():
 
 # ========== WEBHOOK SETUP ==========
 
+async def health_check(request):
+    """Health check endpoint to show bot is alive"""
+    return web.Response(
+        text="✅ I'm alive! India Social Panel Bot is running successfully.\n\n🤖 All systems operational\n📱 Ready to serve users\n🔄 Last updated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        content_type="text/plain"
+    )
+
 async def main():
     """Main function to start the bot with webhook"""
     await on_startup()
@@ -2068,6 +2408,11 @@ async def main():
     if WEBHOOK_MODE:
         # Webhook mode for deployment
         app = Application()
+        
+        # Add health check route - shows "I'm alive" instead of 404
+        app.router.add_get('/', health_check)
+        app.router.add_get('/health', health_check)
+        app.router.add_get('/status', health_check)
 
         # Set the dispatcher for webhook handler
         # Note: _dispatcher is internal attribute but needed for webhook functionality
