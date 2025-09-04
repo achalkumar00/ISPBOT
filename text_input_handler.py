@@ -39,6 +39,80 @@ def get_order_confirm_menu(price: float):
         ]
     ])
 
+async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[str, Any]], 
+                                  order_temp: Dict[int, Dict[str, Any]], generate_order_id,
+                                  format_currency, get_main_menu):
+    """Handle screenshot upload for payment verification"""
+    if not message.from_user or not message.photo:
+        return False
+
+    user_id = message.from_user.id
+    current_step = user_state.get(user_id, {}).get("current_step")
+
+    if current_step == "waiting_screenshot_upload":
+        # Get order details
+        order_data = user_state[user_id]["data"]
+        package_name = order_data.get("package_name", "Unknown Package")
+        service_id = order_data.get("service_id", "")
+        link = order_data.get("link", "")
+        quantity = order_data.get("quantity", 0)
+        total_price = order_data.get("total_price", 0.0)
+        platform = order_data.get("platform", "")
+
+        # Generate order ID
+        order_id = generate_order_id()
+
+        # Create order record
+        order_record = {
+            'order_id': order_id,
+            'user_id': user_id,
+            'package_name': package_name,
+            'service_id': service_id,
+            'platform': platform,
+            'link': link,
+            'quantity': quantity,
+            'total_price': total_price,
+            'status': 'processing',
+            'created_at': datetime.now().isoformat(),
+            'payment_method': 'QR Code',
+            'payment_status': 'pending_verification'
+        }
+
+        # Store order
+        order_temp[user_id] = order_record
+
+        # Clear user state
+        user_state[user_id]["current_step"] = None
+        user_state[user_id]["data"] = {}
+
+        # Send success message
+        success_text = f"""
+✅ <b>Screenshot Received Successfully!</b>
+
+📦 <b>Order Details:</b>
+• Order ID: {order_id}
+• Package: {package_name}
+• Platform: {platform.title()}
+• Quantity: {quantity:,}
+• Amount: {format_currency(total_price)}
+
+⏰ <b>Processing Time:</b>
+जल्दी ही आपका order process हो जाएगा। Package description में जो time दिया गया है उतने समय में complete हो जाएगा।
+
+📋 <b>Order Status:</b> Processing
+🔄 <b>Payment Verification:</b> In Progress
+
+💡 <b>आपका order successfully receive हो गया है!</b>
+📈 <b>Order history में भी add हो गया है</b>
+
+🎯 <b>Thank you for choosing India Social Panel!</b>
+"""
+
+        await message.answer(success_text, reply_markup=get_main_menu())
+        return True
+
+    return False
+
 async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, Any]], 
                            users_data: Dict[int, Dict[str, Any]], order_temp: Dict[int, Dict[str, Any]],
                            tickets_data: Dict[str, Dict[str, Any]], is_message_old, 
@@ -55,8 +129,21 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
     user_id = message.from_user.id
 
-    # Check if user is in account creation flow
+    # Handle admin broadcast message input first
+    from services import handle_admin_broadcast_message, is_admin
+    if is_admin(user_id):
+        current_step = user_state.get(user_id, {}).get("current_step")
+        if current_step == "admin_broadcast_message":
+            await handle_admin_broadcast_message(message, user_id)
+            return
+
+    # DEBUG: Log current state
+    print(f"🔍 DEBUG: User {user_id} sent text: '{message.text}'")
     current_step = user_state.get(user_id, {}).get("current_step")
+    print(f"🔍 DEBUG: User {user_id} current_step: {current_step}")
+    print(f"🔍 DEBUG: Full user_state for {user_id}: {user_state.get(user_id, {})}")
+
+    # Check if user is in account creation flow
 
     if current_step == "waiting_login_phone":
         # Handle login phone verification
@@ -117,7 +204,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
                     InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
                 ],
                 [
-                    InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/{OWNER_USERNAME}")
+                    InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
                 ]
             ])
 
@@ -146,7 +233,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
                     InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
                 ],
                 [
-                    InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/{OWNER_USERNAME}")
+                    InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
                 ]
             ])
 
@@ -443,8 +530,48 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
             )
             return
 
-        # [All email validation code continues here...]
-        # All email validation logic from original function
+        # Advanced email validation
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email_cleaned):
+            await message.answer(
+                "⚠️ <b>Invalid Email Format!</b>\n\n"
+                "📧 <b>Email format proper नहीं है</b>\n"
+                "💡 <b>Example:</b> yourname@gmail.com\n"
+                "🔄 <b>Correct format में email भेजें</b>"
+            )
+            return
+
+        # Check for common invalid domains
+        invalid_domains = ['test.com', 'example.com', 'fake.com', '123.com', 'temp.com']
+        domain_part = email_cleaned.split('@')[1]
+        if domain_part in invalid_domains:
+            await message.answer(
+                "⚠️ <b>Invalid Email Domain!</b>\n\n"
+                "🚫 <b>Fake या test email domains allowed नहीं हैं</b>\n"
+                "💡 <b>Valid domains:</b> gmail.com, yahoo.com, outlook.com etc.\n"
+                "🔄 <b>Real email address use करें</b>"
+            )
+            return
+
+        # Check email length
+        if len(email_cleaned) < 5 or len(email_cleaned) > 254:
+            await message.answer(
+                "⚠️ <b>Email Length Invalid!</b>\n\n"
+                "📏 <b>Email बहुत छोटा या बहुत लंबा है</b>\n"
+                "💡 <b>Valid length: 5-254 characters</b>\n"
+                "🔄 <b>Proper email address enter करें</b>"
+            )
+            return
+
+        # Check for spaces or invalid characters
+        if ' ' in email_cleaned or '\t' in email_cleaned:
+            await message.answer(
+                "⚠️ <b>Spaces Not Allowed!</b>\n\n"
+                "🚫 <b>Email में spaces allowed नहीं हैं</b>\n"
+                "💡 <b>Example:</b> myname@gmail.com (no spaces)\n"
+                "🔄 <b>Spaces remove करके भेजें</b>"
+            )
+            return
 
         # Store email and complete account creation
         validated_email = email_cleaned
@@ -479,9 +606,256 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
         await message.answer(success_text, reply_markup=get_main_menu())
 
+    elif current_step == "waiting_link":
+        # Handle link input for order processing
+        link_input = message.text.strip()
+
+        # Validate link format
+        if not link_input.startswith(('http://', 'https://', 'www.')):
+            await message.answer(
+                "⚠️ <b>Invalid Link Format!</b>\n\n"
+                "🔗 <b>Link proper format में नहीं है</b>\n"
+                "💡 <b>Link https:// या http:// से start होना चाहिए</b>\n"
+                "💡 <b>Example:</b> https://instagram.com/username\n\n"
+                "🔄 <b>Correct format में link भेजें</b>"
+            )
+            return
+
+        # Get platform from user state
+        platform = user_state[user_id]["data"].get("platform", "")
+        service_id = user_state[user_id]["data"].get("service_id", "")
+        package_name = user_state[user_id]["data"].get("package_name", "")
+        package_rate = user_state[user_id]["data"].get("package_rate", "")
+
+        # Validate link belongs to correct platform
+        platform_domains = {
+            "instagram": ["instagram.com", "www.instagram.com"],
+            "youtube": ["youtube.com", "www.youtube.com", "youtu.be"],
+            "facebook": ["facebook.com", "www.facebook.com", "fb.com"],
+            "telegram": ["t.me", "telegram.me"],
+            "tiktok": ["tiktok.com", "www.tiktok.com"],
+            "twitter": ["twitter.com", "www.twitter.com", "x.com"],
+            "linkedin": ["linkedin.com", "www.linkedin.com"],
+            "whatsapp": ["chat.whatsapp.com", "wa.me"]
+        }
+
+        valid_domains = platform_domains.get(platform, [])
+        is_valid_platform = any(domain in link_input.lower() for domain in valid_domains)
+
+        if not is_valid_platform:
+            await message.answer(
+                f"⚠️ <b>Wrong Platform Link!</b>\n\n"
+                f"🚫 <b>आपने {platform.title()} के लिए order किया है</b>\n"
+                f"🔗 <b>लेकिन link किसी और platform का है</b>\n"
+                f"💡 <b>Valid domains for {platform.title()}:</b> {', '.join(valid_domains)}\n\n"
+                f"🔄 <b>Correct {platform.title()} link भेजें</b>"
+            )
+            return
+
+        # Store link and move to quantity step
+        user_state[user_id]["data"]["link"] = link_input
+        user_state[user_id]["current_step"] = "waiting_quantity"
+
+        # First message - Link received confirmation
+        success_text = f"""
+✅ <b>Your Link Successfully Received!</b>
+
+🔗 <b>Received Link:</b> {link_input}
+
+📦 <b>Package Info:</b>
+• Name: {package_name}
+• ID: {service_id}
+• Rate: {package_rate}
+• Platform: {platform.title()}
+
+💡 <b>Link verification successful! Moving to next step...</b>
+"""
+
+        await message.answer(success_text)
+
+        # Second message - Quantity input page
+        quantity_text = f"""
+📊 <b>Step 3: Enter Quantity</b>
+
+💡 <b>कितनी quantity चाहिए?</b>
+
+📋 <b>Order Details:</b>
+• Package: {package_name}
+• Rate: {package_rate}
+• Target: {platform.title()}
+
+⚠️ <b>Quantity Guidelines:</b>
+• केवल numbers में भेजें
+• Minimum: 100
+• Maximum: 1,000,000
+• Example: 1000, 5000, 10000
+
+💬 <b>अपनी quantity type करके send करें:</b>
+
+🔢 <b>Example Messages:</b>
+• 1000
+• 5000
+• 10000
+"""
+
+        await message.answer(quantity_text)
+
+    elif current_step == "waiting_quantity":
+        # Handle quantity input
+        quantity_input = message.text.strip()
+
+        # Validate quantity is a number
+        try:
+            quantity = int(quantity_input)
+            if quantity <= 0:
+                await message.answer(
+                    "⚠️ <b>Invalid Quantity!</b>\n\n"
+                    "🔢 <b>Quantity 0 से ज्यादा होनी चाहिए</b>\n"
+                    "💡 <b>Example:</b> 1000\n\n"
+                    "🔄 <b>Valid quantity number भेजें</b>"
+                )
+                return
+        except ValueError:
+            await message.answer(
+                "⚠️ <b>Invalid Number!</b>\n\n"
+                "🔢 <b>केवल numbers allowed हैं</b>\n"
+                "💡 <b>Example:</b> 1000\n\n"
+                "🔄 <b>Number format में quantity भेजें</b>"
+            )
+            return
+
+        # Store quantity and move to coupon step
+        user_state[user_id]["data"]["quantity"] = quantity
+        user_state[user_id]["current_step"] = "waiting_coupon"
+
+        package_name = user_state[user_id]["data"].get("package_name", "")
+        service_id = user_state[user_id]["data"].get("service_id", "")
+        package_rate = user_state[user_id]["data"].get("package_rate", "")
+        link = user_state[user_id]["data"].get("link", "")
+
+        text = f"""
+✅ <b>Quantity Successfully Selected!</b>
+
+📦 <b>Package:</b> {package_name}
+🆔 <b>ID:</b> {service_id}
+💰 <b>Rate:</b> {package_rate}
+🔗 <b>Link:</b> {link}
+📊 <b>Quantity:</b> {quantity:,}
+
+🎟️ <b>Coupon Code (Optional)</b>
+
+💡 <b>कोई coupon code है तो भेजें, नहीं तो Skip करें</b>
+
+⚠️ <b>Note:</b> अभी कोई active coupons नहीं हैं
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="⏭️ Skip Coupon", callback_data="skip_coupon")
+            ]
+        ])
+
+        await message.answer(text, reply_markup=keyboard)
+
+    elif current_step == "waiting_coupon":
+        # Handle coupon input - reject any coupon for now
+        coupon_input = message.text.strip()
+
+        await message.answer(
+            "❌ <b>Invalid Coupon Code!</b>\n\n"
+            "🎟️ <b>यह coupon code valid नहीं है</b>\n"
+            "💡 <b>अभी कोई active coupons नहीं हैं</b>\n\n"
+            "⏭️ <b>Skip button दबाकर आगे बढ़ें</b>"
+        )
+
     else:
         # Handle unknown messages for users with completed accounts
         if is_account_created(user_id):
+            # Check if this is actually a link - treat any link as order continuation
+            if message.text and ("http" in message.text or "www." in message.text or "t.me" in message.text or "instagram.com" in message.text or "youtube.com" in message.text or "facebook.com" in message.text):
+                # This might be a link for ordering - check if we can detect platform
+                link_input = message.text.strip()
+                detected_platform = None
+
+                # Detect platform from link
+                if "instagram.com" in link_input.lower():
+                    detected_platform = "instagram"
+                elif "youtube.com" in link_input.lower() or "youtu.be" in link_input.lower():
+                    detected_platform = "youtube"
+                elif "facebook.com" in link_input.lower() or "fb.com" in link_input.lower():
+                    detected_platform = "facebook"
+                elif "t.me" in link_input.lower() or "telegram.me" in link_input.lower():
+                    detected_platform = "telegram"
+                elif "tiktok.com" in link_input.lower():
+                    detected_platform = "tiktok"
+                elif "twitter.com" in link_input.lower() or "x.com" in link_input.lower():
+                    detected_platform = "twitter"
+                elif "linkedin.com" in link_input.lower():
+                    detected_platform = "linkedin"
+                elif "chat.whatsapp.com" in link_input.lower() or "wa.me" in link_input.lower():
+                    detected_platform = "whatsapp"
+
+                if detected_platform:
+                    # Set up a basic order state with detected platform
+                    user_state[user_id] = {
+                        "current_step": "waiting_quantity",
+                        "data": {
+                            "platform": detected_platform,
+                            "service_id": "AUTO_DETECTED",
+                            "package_name": f"{detected_platform.title()} Service Package",
+                            "package_rate": "₹1.00 per unit",
+                            "link": link_input
+                        }
+                    }
+
+                    # First message - Link received confirmation
+                    success_text = f"""
+✅ <b>Your Link Successfully Received!</b>
+
+🔗 <b>Received Link:</b> {link_input}
+
+📦 <b>Package Info:</b>
+• Platform: {detected_platform.title()}
+• Auto-detected service
+• Standard pricing applicable
+
+💡 <b>Link verification successful! Moving to next step...</b>
+"""
+
+                    await message.answer(success_text)
+
+                    # Second message - Quantity input page
+                    quantity_text = f"""
+📊 <b>Step 3: Enter Quantity</b>
+
+💡 <b>कितनी quantity चाहिए?</b>
+
+📋 <b>Order Details:</b>
+• Package: {package_name}
+• Rate: {package_rate}
+• Target: {detected_platform.title()}
+
+⚠️ <b>Quantity Guidelines:</b>
+• केवल numbers में भेजें
+• Minimum: 100
+• Maximum: 1,000,000
+• Example: 1000, 5000, 10000
+
+💬 <b>अपनी quantity type करके send करें:</b>
+
+🔢 <b>Example Messages:</b>
+• 1000
+• 5000
+• 10000
+"""
+
+                    await message.answer(quantity_text)
+                    return
+                else:
+                    # Unknown link platform
+                    await message.answer("🔗 <b>Link received but platform not recognized!</b>\n\n💡 Please start a new order first by clicking 🚀 New Order button to select the correct platform.", reply_markup=get_main_menu())
+                    return
+
             text = """
 ❓ <b>Unknown Command</b>
 
@@ -490,6 +864,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 💡 <b>Available Commands:</b>
 /start - Main menu
 /menu - Show menu
+/description - Package details (if ordering)
 """
             await message.answer(text, reply_markup=get_main_menu())
         else:
