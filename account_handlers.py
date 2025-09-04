@@ -18,7 +18,7 @@ from typing import Dict, Any, Callable, Optional, Union
 dp: Any = None
 users_data: Dict[int, Dict[str, Any]] = {}
 orders_data: Dict[str, Dict[str, Any]] = {}
-user_state: Dict[int, str] = {}
+user_state: Dict[int, Dict[str, Any]] = {}  # Fixed type to match main.py
 format_currency: Optional[Callable[[float], str]] = None
 format_time: Optional[Callable[[str], str]] = None
 safe_edit_message: Optional[Callable] = None
@@ -227,8 +227,8 @@ async def cb_my_account(callback: CallbackQuery):
 📱 <b>Phone:</b> {user_data.get('phone_number', 'Not set')}
 📧 <b>Email:</b> {user_data.get('email', 'Not set')}
 
-💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0))}
-📊 <b>Total Spent:</b> {format_currency(user_data.get('total_spent', 0.0))}
+💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}
+📊 <b>Total Spent:</b> {format_currency(user_data.get('total_spent', 0.0)) if format_currency else f"₹{user_data.get('total_spent', 0.0):.2f}"}
 🛒 <b>Total Orders:</b> {user_data.get('orders_count', 0)}
 📅 <b>Member Since:</b> {join_date_formatted}
 🌍 <b>Your Timezone:</b> {timezone_info['name']} ({timezone_info['offset']})
@@ -240,7 +240,8 @@ async def cb_my_account(callback: CallbackQuery):
 💡 <b>Choose an option below to manage your account:</b>
 """
 
-    await safe_edit_message(callback, text, get_account_menu())
+    if safe_edit_message:
+        await safe_edit_message(callback, text, get_account_menu())
     await callback.answer()
 
 # ========== ORDER HISTORY ==========
@@ -728,7 +729,7 @@ async def cb_delete_api_key(callback: CallbackQuery):
 • Require creating new key for future use
 
 💡 <b>API key deletion feature coming soon!</b>
-📞 <b>For now, contact support for deletion:</b> @achal_parvat
+📞 <b>For now, contact support for deletion:</b> @tech_support_admin
 """
 
     back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
