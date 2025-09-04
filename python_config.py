@@ -710,7 +710,7 @@ def generate_dynamic_description(platform: str, service_info: dict, quality_conf
     service_name = service_info['name']
     quality_name = quality_config['quality_name']
     quality_emoji = quality_config['quality_emoji']
-     = list(get_quality_config.__defaults__ or [])[0] if hasattr(get_quality_config, '__defaults__') else 'standard'
+    # default_quality = 'standard'  # Removed broken line
 
     # Platform-specific intro
     platform_intros = {
@@ -799,27 +799,6 @@ def get_platform_services(platform: str):
         'linkedin': ['8001', '8002', '8003', '8004', '8005', '8006', '8007', '8008', '8009', '8010']
     }
     return services_db.get(platform, [])
-# -*- coding: utf-8 -*-
-"""
-India Social Panel - Package Configuration
-Dynamic package configuration for all services
-"""
-
-import random
-
-def get_package_config(platform: str, service_id: str, quality: str) -> dict:
-    """
-    Get dynamic package configuration based on platform, service and quality
-    """
-
-    # Base configurations for different qualities
-    quality_multipliers = {
-        "premium": {"rate_mult": 3.0, "retention": "95%+", "speed": "0-2 hours"},
-        "high": {"rate_mult": 2.2, "retention": "85-95%", "speed": "1-4 hours"},
-        "medium": {"rate_mult": 1.5, "retention": "70-85%", "speed": "2-8 hours"},
-        "standard": {"rate_mult": 1.0, "retention": "60-75%", "speed": "4-12 hours"},
-        "basic": {"rate_mult": 0.7, "retention": "50-65%", "speed": "6-24 hours"}
-    }
 
     # Base rates per platform (per unit in rupees)
     base_rates = {
