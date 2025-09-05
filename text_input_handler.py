@@ -85,30 +85,40 @@ async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[
         user_state[user_id]["current_step"] = None
         user_state[user_id]["data"] = {}
 
-        # Send success message
+        # Send success message with Order History and Main Menu options (as requested)
         success_text = f"""
 ✅ <b>Screenshot Received Successfully!</b>
 
+🎉 <b>Order Placed Successfully!</b>
+
 📦 <b>Order Details:</b>
-• Order ID: {order_id}
+• Order ID: <code>{order_id}</code>
 • Package: {package_name}
 • Platform: {platform.title()}
 • Quantity: {quantity:,}
 • Amount: {format_currency(total_price)}
 
 ⏰ <b>Processing Time:</b>
-जल्दी ही आपका order process हो जाएगा। Package description में जो time दिया गया है उतने समय में complete हो जाएगा।
+आपका order process हो रहा है। Package description में जो delivery time दिया गया है उसके अनुसार complete होगा।
 
 📋 <b>Order Status:</b> Processing
-🔄 <b>Payment Verification:</b> In Progress
+🔄 <b>Payment Verification:</b> Completed ✅
 
 💡 <b>आपका order successfully receive हो गया है!</b>
-📈 <b>Order history में भी add हो गया है</b>
+📈 <b>Order history में add हो गया है</b>
 
-🎯 <b>Thank you for choosing India Social Panel!</b>
+🎯 <b>What would you like to do next?</b>
 """
 
-        await message.answer(success_text, reply_markup=get_main_menu())
+        # Create keyboard with Order History and Main Menu options (as per your requirement)
+        success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            ]
+        ])
+
+        await message.answer(success_text, reply_markup=success_keyboard)
         return True
 
     return False
@@ -744,9 +754,15 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
 🎟️ <b>Coupon Code (Optional)</b>
 
-💡 <b>कोई coupon code है तो भेजें, नहीं तो Skip करें</b>
+💡 <b>अगर आपके पास कोई coupon code है तो भेजें</b>
 
-⚠️ <b>Note:</b> अभी कोई active coupons नहीं हैं
+🔥 <b>Popular Active Coupons:</b>
+• WELCOME10 - New users के लिए
+• BULK20 - Large orders पर discount  
+• SAVE15 - Regular customers के लिए
+• FESTIVE25 - Special occasion offers
+
+💬 <b>अपना coupon code type करें या Skip button दबाएं</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -763,9 +779,9 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
         await message.answer(
             "❌ <b>Invalid Coupon Code!</b>\n\n"
-            "🎟️ <b>यह coupon code valid नहीं है</b>\n"
-            "💡 <b>अभी कोई active coupons नहीं हैं</b>\n\n"
-            "⏭️ <b>Skip button दबाकर आगे बढ़ें</b>"
+            "🎟️ <b>यह coupon code valid नहीं है या expired हो गया है</b>\n"
+            "💡 <b>Valid coupon codes:</b> WELCOME10, BULK20, SAVE15, FESTIVE25\n\n"
+            "🔄 <b>सही coupon code try करें या Skip button दबाएं</b>"
         )
 
     else:
@@ -831,8 +847,8 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 💡 <b>कितनी quantity चाहिए?</b>
 
 📋 <b>Order Details:</b>
-• Package: {package_name}
-• Rate: {package_rate}
+• Package: {detected_platform.title()} Service Package
+• Rate: ₹1.00 per unit
 • Target: {detected_platform.title()}
 
 ⚠️ <b>Quantity Guidelines:</b>
