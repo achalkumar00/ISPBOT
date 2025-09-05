@@ -109,7 +109,8 @@ def init_user(user_id: int, username: Optional[str] = None, first_name: Optional
             "account_created": False,
             "full_name": "",
             "phone_number": "",
-            "email": ""
+            "email": "",
+            "profile_photo": None # Added for profile photo
         }
 
     # Initialize user state for input tracking
@@ -200,8 +201,8 @@ async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup: Op
 
     try:
         # Check if message is editable (not InaccessibleMessage)
-        if (hasattr(callback.message, 'edit_text') and 
-            hasattr(callback.message, 'message_id') and 
+        if (hasattr(callback.message, 'edit_text') and
+            hasattr(callback.message, 'message_id') and
             hasattr(callback.message, 'text') and
             not callback.message.__class__.__name__ == 'InaccessibleMessage'):
             if reply_markup:
@@ -469,10 +470,9 @@ Instagram • YouTube • Facebook • Twitter • TikTok • LinkedIn
 """
         await message.answer(welcome_text, reply_markup=get_main_menu())
     else:
-        # Get user's actual username or first name for new users
+        # New user - show both create account and login options
         user_display_name = f"@{user.username}" if user.username else user.first_name or 'Friend'
 
-        # New user - show both create account and login options
         welcome_text = f"""
 🇮🇳 <b>स्वागत है India Social Panel में!</b>
 
@@ -489,6 +489,8 @@ Instagram • YouTube • Facebook • Twitter • TikTok • LinkedIn
 
 💡 <b>अपना option चुनें:</b>
 """
+        # Import required functions from account_creation for dynamic use
+        # Import get_main_menu dynamically to avoid circular imports
         await message.answer(welcome_text, reply_markup=account_creation.get_initial_options_menu())
 
 @dp.message(Command("menu"))
@@ -728,23 +730,8 @@ def require_account(handler):
 
     return wrapper
 
-# Initialize account handlers now that all variables are defined
-account_handlers.init_account_handlers(
-    dp, users_data, orders_data, require_account,
-    format_currency, format_time, is_account_created, user_state, is_admin, safe_edit_message
-)
-
-# Initialize account creation handlers
-account_creation.init_account_creation_handlers(
-    dp, users_data, user_state, safe_edit_message,
-    init_user, mark_user_for_notification, is_message_old, bot, START_TIME
-)
-
-# Initialize payment system
-payment_system.register_payment_handlers(dp, users_data, user_state, format_currency)
-
-# Initialize services system
-services.register_service_handlers(dp, require_account)
+# Initialize all handlers after bot and dp are created
+# This ensures dp is not None when handlers are registered
 
 # Import account menu function
 get_account_menu = account_handlers.get_account_menu
@@ -860,7 +847,7 @@ async def cb_services_tools(callback: CallbackQuery):
 • Growth strategies
 • Market analysis
 
-💡 <b>अपनी जरूरत के अनुसार tool चुनें:</b>
+💡 <b> अपनी जरूरत के अनुसार tool चुनें:</b>
 """
 
     await safe_edit_message(callback, text, get_services_tools_menu())
@@ -896,7 +883,7 @@ async def cb_offers_rewards(callback: CallbackQuery):
 • Bulk order discounts
 • Premium memberships
 
-✨ <b>अपना reward claim करें:</b>
+✨ <b> अपना reward claim करें:</b>
 """
 
     await safe_edit_message(callback, text, get_offers_rewards_menu())
@@ -1149,7 +1136,7 @@ async def cb_skip_coupon(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "final_confirm_order")
 async def cb_final_confirm_order(callback: CallbackQuery):
-    """Handle final order confirmation and show payment methods"""
+    """Handle final order confirmation with balance check and payment options"""
     if not callback.message or not callback.from_user:
         return
 
@@ -1163,15 +1150,22 @@ async def cb_final_confirm_order(callback: CallbackQuery):
     # Get order details
     order_data = user_state[user_id]["data"]
     package_name = order_data.get("package_name", "Unknown Package")
-    # service_id = order_data.get("service_id", "")  # Not used in this function
+    service_id = order_data.get("service_id", "")
     link = order_data.get("link", "")
     quantity = order_data.get("quantity", 0)
     total_price = order_data.get("total_price", 0.0)
+    platform = order_data.get("platform", "")
+
+    # Get user's current balance
+    current_balance = users_data.get(user_id, {}).get("balance", 0.0)
 
     from datetime import datetime
     current_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
-    payment_text = f"""
+    # Check if user has sufficient balance
+    if current_balance >= total_price:
+        # User has sufficient balance - show normal payment methods
+        payment_text = f"""
 💳 <b>Payment Method Selection</b>
 
 📅 <b>Date:</b> {current_date}
@@ -1179,29 +1173,75 @@ async def cb_final_confirm_order(callback: CallbackQuery):
 🔗 <b>Link:</b> {link}
 📊 <b>Quantity:</b> {quantity:,}
 💰 <b>Total Amount:</b> ₹{total_price:,.2f}
+💰 <b>Current Balance:</b> ✅ ₹{current_balance:,.2f}
 
 💳 <b>Available Payment Methods:</b>
 
 💡 <b>अपना payment method चुनें:</b>
 """
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr"),
-            InlineKeyboardButton(text="💳 UPI ID", callback_data="payment_upi")
-        ],
-        [
-            InlineKeyboardButton(text="📲 UPI App", callback_data="payment_app"),
-            InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
-        ],
-        [
-            InlineKeyboardButton(text="⬅️ Back", callback_data="skip_coupon")
-        ]
-    ])
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💰 Pay from Balance", callback_data="pay_from_balance"),
+                InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr")
+            ],
+            [
+                InlineKeyboardButton(text="💳 UPI Payment", callback_data="payment_upi"),
+                InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Back", callback_data="skip_coupon")
+            ]
+        ])
 
-    user_state[user_id]["current_step"] = "selecting_payment"
+        user_state[user_id]["current_step"] = "selecting_payment"
+        await safe_edit_message(callback, payment_text, keyboard)
 
-    await safe_edit_message(callback, payment_text, keyboard)
+    else:
+        # User has insufficient balance - show professional message with options
+        shortfall = total_price - current_balance
+
+        balance_message = f"""
+💰 <b>Account Balance Check</b>
+
+📊 <b>Order Summary:</b>
+• Package: {package_name}
+• Platform: {platform.title()}
+• Quantity: {quantity:,}
+• Total Amount: ₹{total_price:,.2f}
+
+💳 <b>Current Balance:</b> ₹{current_balance:,.2f}
+⚠️ <b>Additional Required:</b> ₹{shortfall:,.2f}
+
+🎯 <b>Payment Options Available:</b>
+
+💡 <b>Option 1: Add Balance First</b>
+पहले अपने account में balance add करें, फिर order complete करें। यह सबसे convenient method है।
+
+💡 <b>Option 2: Direct Payment (Emergency)</b>
+बिना balance add किए direct payment करें। Emergency के लिए best option है।
+
+🔒 <b>India Social Panel - Trusted SMM Platform</b>
+✅ <b>100% Safe & Secure Payments</b>
+✅ <b>Instant Order Processing</b>
+✅ <b>24/7 Customer Support</b>
+
+🎯 <b>अपना preferred option चुनें:</b>
+"""
+
+        balance_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💰 Add Balance First", callback_data="add_balance_first"),
+                InlineKeyboardButton(text="⚡ Direct Payment Now", callback_data="direct_payment_emergency")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Back to Order", callback_data="skip_coupon")
+            ]
+        ])
+
+        user_state[user_id]["current_step"] = "choosing_payment_option"
+        await safe_edit_message(callback, balance_message, balance_keyboard)
+
     await callback.answer()
 
 @dp.callback_query(F.data == "payment_qr")
@@ -1318,10 +1358,301 @@ async def cb_main_menu(callback: CallbackQuery):
     await safe_edit_message(callback, text, get_main_menu())
     await callback.answer()
 
+@dp.callback_query(F.data == "add_balance_first")
+async def cb_add_balance_first(callback: CallbackQuery):
+    """Handle add balance first option - redirect to add funds"""
+    if not callback.message or not callback.from_user:
+        return
 
+    user_id = callback.from_user.id
+    current_balance = users_data.get(user_id, {}).get("balance", 0.0)
 
+    # Get order amount for reference
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+    shortfall = total_price - current_balance if total_price > current_balance else 0
 
+    text = f"""
+💰 <b>Add Balance to Account</b>
 
+💳 <b>Current Balance:</b> ₹{current_balance:,.2f}
+💸 <b>Required for Order:</b> ₹{total_price:,.2f}
+⚡ <b>Minimum to Add:</b> ₹{shortfall:,.2f}
+
+🎯 <b>Recommended Amounts:</b>
+• ₹{max(500, shortfall):,.0f} (Minimum for order)
+• ₹{max(1000, shortfall + 500):,.0f} (Order + Extra balance)
+• ₹{max(2000, shortfall + 1500):,.0f} (For future orders)
+
+💡 <b>Amount चुनें या custom amount type करें:</b>
+
+🔥 <b>Benefits of Adding Balance:</b>
+• ⚡ Instant order processing
+• 💰 No payment hassle every time
+• 🎁 Exclusive member benefits
+• 🚀 Faster checkout process
+"""
+
+    # Create dynamic amount buttons based on shortfall
+    amount_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text=f"₹{max(500, shortfall):,.0f}", callback_data=f"fund_{max(500, shortfall):,.0f}".replace(",", "")),
+            InlineKeyboardButton(text=f"₹{max(1000, shortfall + 500):,.0f}", callback_data=f"fund_{max(1000, shortfall + 500):,.0f}".replace(",", ""))
+        ],
+        [
+            InlineKeyboardButton(text=f"₹{max(2000, shortfall + 1500):,.0f}", callback_data=f"fund_{max(2000, shortfall + 1500):,.0f}".replace(",", "")),
+            InlineKeyboardButton(text="₹5000", callback_data="fund_5000")
+        ],
+        [
+            InlineKeyboardButton(text="💬 Custom Amount", callback_data="fund_custom")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Order", callback_data="final_confirm_order")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, amount_keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "direct_payment_emergency")
+async def cb_direct_payment_emergency(callback: CallbackQuery):
+    """Handle direct payment option - show payment methods directly"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state or user_state[user_id].get("current_step") != "choosing_payment_option":
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state[user_id]["data"]
+    package_name = order_data.get("package_name", "Unknown Package")
+    link = order_data.get("link", "")
+    quantity = order_data.get("quantity", 0)
+    total_price = order_data.get("total_price", 0.0)
+    platform = order_data.get("platform", "")
+
+    from datetime import datetime
+    current_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    emergency_payment_text = f"""
+⚡ <b>Direct Payment (Emergency Mode)</b>
+
+🚨 <b>Emergency Order Processing</b>
+
+📅 <b>Date:</b> {current_date}
+📦 <b>Package:</b> {package_name}
+🌐 <b>Platform:</b> {platform.title()}
+🔗 <b>Target:</b> {link[:50]}...
+📊 <b>Quantity:</b> {quantity:,}
+💰 <b>Total Amount:</b> ₹{total_price:,.2f}
+
+💳 <b>Available Payment Methods:</b>
+
+🎯 <b>सभी payment methods available हैं:</b>
+
+🔥 <b>Instant Payment Features:</b>
+• ⚡ QR Code scan करके pay करें
+• 💳 UPI से direct transfer
+• 🏦 Bank transfer options
+• 📱 All UPI apps supported
+
+💡 <b>अपना preferred payment method चुनें:</b>
+"""
+
+    emergency_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr"),
+            InlineKeyboardButton(text="💳 UPI Payment", callback_data="payment_upi")
+        ],
+        [
+            InlineKeyboardButton(text="📲 Open UPI App", callback_data="payment_app"),
+            InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
+        ],
+        [
+            InlineKeyboardButton(text="💸 Digital Wallets", callback_data="payment_wallet")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Options", callback_data="final_confirm_order")
+        ]
+    ])
+
+    user_state[user_id]["current_step"] = "selecting_payment"
+
+    await safe_edit_message(callback, emergency_payment_text, emergency_keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "pay_from_balance")
+async def cb_pay_from_balance(callback: CallbackQuery):
+    """Handle payment from account balance"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state:
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state[user_id]["data"]
+    package_name = order_data.get("package_name", "Unknown Package")
+    service_id = order_data.get("service_id", "")
+    link = order_data.get("link", "")
+    quantity = order_data.get("quantity", 0)
+    total_price = order_data.get("total_price", 0.0)
+    platform = order_data.get("platform", "")
+
+    # Get user's current balance
+    current_balance = users_data.get(user_id, {}).get("balance", 0.0)
+
+    # Double check balance
+    if current_balance < total_price:
+        await callback.answer("⚠️ Insufficient balance!", show_alert=True)
+        return
+
+    # Process order from balance
+    order_id = generate_order_id()
+    
+    # Deduct balance
+    users_data[user_id]['balance'] -= total_price
+    users_data[user_id]['total_spent'] += total_price
+    users_data[user_id]['orders_count'] += 1
+
+    # Create order record
+    order_record = {
+        'order_id': order_id,
+        'user_id': user_id,
+        'package_name': package_name,
+        'service_id': service_id,
+        'platform': platform,
+        'link': link,
+        'quantity': quantity,
+        'total_price': total_price,
+        'status': 'processing',
+        'created_at': datetime.now().isoformat(),
+        'payment_method': 'Account Balance',
+        'payment_status': 'completed'
+    }
+
+    # Store order
+    order_temp[user_id] = order_record
+
+    # Clear user state
+    user_state[user_id]["current_step"] = None
+    user_state[user_id]["data"] = {}
+
+    # Success message
+    new_balance = users_data[user_id]['balance']
+
+    success_text = f"""
+🎉 <b>Order Successfully Placed!</b>
+
+✅ <b>Payment Successful from Account Balance!</b>
+
+📦 <b>Order Details:</b>
+• Order ID: <code>{order_id}</code>
+• Package: {package_name}
+• Platform: {platform.title()}
+• Quantity: {quantity:,}
+• Amount: ₹{total_price:,.2f}
+
+💰 <b>Balance Update:</b>
+• Previous: ₹{current_balance:,.2f}
+• Deducted: ₹{total_price:,.2f}
+• Current: ₹{new_balance:,.2f}
+
+⏰ <b>Processing Status:</b>
+आपका order processing start हो गया है। Package description के अनुसार delivery complete होगी।
+
+🚀 <b>Order successfully received!</b>
+📈 <b>Track करने के लिए Order History check करें</b>
+"""
+
+    success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await safe_edit_message(callback, success_text, success_keyboard)
+    await callback.answer("✅ Order placed successfully!")
+
+@dp.callback_query(F.data == "payment_app")
+async def cb_payment_app(callback: CallbackQuery):
+    """Handle UPI app payment method"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state:
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state[user_id]["data"]
+    total_price = order_data.get("total_price", 0.0)
+
+    # Show UPI app payment options
+    app_text = f"""
+📲 <b>UPI App Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+🆔 <b>UPI ID:</b> <code>business@paytm</code>
+👤 <b>Name:</b> India Social Panel
+
+📱 <b>Popular UPI Apps:</b>
+
+🔸 <b>Method 1: Copy UPI ID</b>
+• UPI ID: <code>business@paytm</code>
+• Manual transfer करें any UPI app में
+
+🔸 <b>Method 2: UPI Apps Direct</b>
+• Google Pay, PhonePe, Paytm
+• JioMoney, Amazon Pay
+• Any UPI enabled app
+
+💡 <b>Payment Steps:</b>
+1. Copy UPI ID: <code>business@paytm</code>
+2. Open any UPI app
+3. Send ₹{total_price:,.2f}
+4. Complete payment with PIN
+5. Take screenshot
+6. Share screenshot यहाँ
+
+✅ <b>Payment complete होने के बाद screenshot share करें!</b>
+"""
+
+    app_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📋 Copy UPI ID", callback_data="copy_upi_id"),
+            InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr")
+        ],
+        [
+            InlineKeyboardButton(text="📸 Share Screenshot", callback_data="share_screenshot")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Payment", callback_data="direct_payment_emergency")
+        ]
+    ])
+
+    await safe_edit_message(callback, app_text, app_keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "copy_upi_id")
+async def cb_copy_upi_id(callback: CallbackQuery):
+    """Handle UPI ID copy"""
+    if not callback.message:
+        return
+
+    await callback.answer("✅ UPI ID copied: business@paytm", show_alert=True)
 
 
 # ========== ORDER CONFIRMATION HANDLERS ==========
@@ -2217,14 +2548,23 @@ async def handle_text_input_wrapper(message: Message):
     if not message.from_user:
         return
 
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        mark_user_for_notification(message.from_user.id)
+        return
+
     # Check if user is in account creation flow
     user_id = message.from_user.id
     current_step = user_state.get(user_id, {}).get("current_step")
 
+    print(f"🔍 TEXT DEBUG: User {user_id} sent text: '{message.text[:50]}...'")
+    print(f"🔍 TEXT DEBUG: User {user_id} current_step: {current_step}")
+
     # Account creation steps that should be handled by account_creation.py
-    account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token"]
+    account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token", "waiting_contact_permission"]
 
     if current_step in account_creation_steps:
+        print(f"🔄 Passing to account_creation.py for user {user_id}")
         # Let account_creation.py handle this
         from account_creation import handle_text_input
         await handle_text_input(message)
@@ -2233,7 +2573,7 @@ async def handle_text_input_wrapper(message: Message):
     # Otherwise use regular text input handler
     await text_input_handler.handle_text_input(
         message, user_state, users_data, order_temp, tickets_data,
-        is_message_old, mark_user_for_notification, is_account_created, 
+        is_message_old, mark_user_for_notification, is_account_created,
         format_currency, get_main_menu, OWNER_USERNAME
     )
 
@@ -2300,59 +2640,47 @@ async def handle_photo_input(message: Message):
 @dp.message(F.contact)
 async def handle_contact_input(message: Message):
     """Handle contact sharing for account creation"""
+    print(f"📞 Main.py: Contact received from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
     if not message.from_user or not message.contact:
+        print("❌ Main.py: No user or contact found")
         return
 
-    user_id = message.from_user.id
-    current_step = user_state.get(user_id, {}).get("current_step")
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        mark_user_for_notification(message.from_user.id)
+        return
 
-    if current_step == "waiting_contact":
-        contact = message.contact
-        phone_number = contact.phone_number
-
-        # Validate phone format
-        if not phone_number.startswith('+'):
-            phone_number = '+' + phone_number
-
-        # Store contact info
-        user_state[user_id]["data"]["phone_number"] = phone_number
-        user_state[user_id]["current_step"] = "waiting_email"
-
-        text = """
-✅ <b>Contact Shared Successfully!</b>
-
-📋 <b>Account Creation - Step 3/3</b>
-
-📧 <b>कृपया अपना Email Address भेजें:</b>
-
-⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
-"""
-        await message.answer(text)
+    # Let account_creation.py handle all contact processing
+    from account_creation import handle_contact_sharing
+    await handle_contact_sharing(message)
 
 
 # ========== STARTUP FUNCTIONS ==========
 async def on_startup():
     """Initialize bot on startup"""
+    print("🚀 India Social Panel Bot starting...")
+
+    # Initialize all handlers now that dp is available
+    print("🔄 Initializing account handlers...")
+    account_handlers.init_account_handlers(
+        dp, users_data, orders_data, require_account,
+        format_currency, format_time, is_account_created, user_state, is_admin, safe_edit_message
+    )
+
+    print("🔄 Initializing account creation handlers...")
+    account_creation.init_account_creation_handlers(
+        dp, users_data, user_state, safe_edit_message, init_user,
+        mark_user_for_notification, is_message_old, bot, START_TIME
+    )
+    
+    print("✅ Account creation initialization complete")
+
     print("🔄 Initializing payment system...")
     payment_system.register_payment_handlers(dp, users_data, user_state, format_currency)
 
     print("🔄 Initializing service system...")
     services.register_service_handlers(dp, require_account)
-
-    print("🚀 India Social Panel Bot starting...")
-
-    # Initialize account creation handlers
-    account_creation.init_account_creation_handlers(
-        dp, users_data, user_state, safe_edit_message, init_user, 
-        mark_user_for_notification, is_message_old, bot, START_TIME
-    )
-
-    # Initialize account handlers
-    account_handlers.init_account_handlers(
-        dp, users_data, orders_data, require_account, format_currency, 
-        format_time, is_account_created, user_state, is_admin, safe_edit_message
-    )
 
     # Set bot commands
     commands = [
@@ -2408,7 +2736,7 @@ async def main():
     if WEBHOOK_MODE:
         # Webhook mode for deployment
         app = Application()
-        
+
         # Add health check route - shows "I'm alive" instead of 404
         app.router.add_get('/', health_check)
         app.router.add_get('/health', health_check)
