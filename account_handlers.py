@@ -160,6 +160,12 @@ def init_account_handlers(main_dp, main_users_data, main_orders_data, main_requi
         dp.callback_query.register(require_account(cb_sync_telegram_data), F.data == "sync_telegram_data")
         dp.callback_query.register(require_account(cb_preview_profile), F.data == "preview_profile")
 
+        # Register new access token and logout handlers
+        dp.callback_query.register(require_account(cb_copy_access_token_myaccount), F.data == "copy_access_token")
+        dp.callback_query.register(require_account(cb_logout_account), F.data == "logout_account")
+        dp.callback_query.register(require_account(cb_confirm_logout), F.data == "confirm_logout")
+        dp.callback_query.register(require_account(cb_regenerate_access_token), F.data == "regenerate_access_token")
+
 
 # ========== ACCOUNT MENU BUILDERS ==========
 def get_account_menu() -> InlineKeyboardMarkup:
@@ -184,6 +190,10 @@ def get_account_menu() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="🔐 Security Settings", callback_data="security_settings"),
             InlineKeyboardButton(text="💳 Payment Methods", callback_data="payment_methods")
+        ],
+        [
+            InlineKeyboardButton(text="🔑 Copy Access Token", callback_data="copy_access_token"),
+            InlineKeyboardButton(text="🚪 Logout Account", callback_data="logout_account")
         ],
         [
             InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
@@ -246,69 +256,76 @@ async def cb_my_account(callback: CallbackQuery):
 
 # ========== ORDER HISTORY ==========
 async def cb_order_history(callback: CallbackQuery):
-    """Handle order history display"""
+    """Show user's order history with proper details"""
     if not callback.message or not callback.from_user:
         return
 
     user_id = callback.from_user.id
 
-    # Get user's orders
+    # Get orders from both orders_data and order_temp
+    from main import order_temp
     user_orders = []
-    for order_id, order_data in orders_data.items():
-        if order_data.get('user_id') == user_id:
-            user_orders.append((order_id, order_data))
 
-    user_orders.sort(key=lambda x: x[1].get('created_at', ''), reverse=True)
+    # Get from orders_data
+    for order_id, order in orders_data.items():
+        if order.get('user_id') == user_id:
+            user_orders.append(order)
+
+    # Get from order_temp (recent orders)
+    if user_id in order_temp:
+        temp_order = order_temp[user_id].copy()
+        temp_order['is_recent'] = True
+        user_orders.append(temp_order)
 
     if not user_orders:
         text = """
 📜 <b>Order History</b>
 
-📝 <b>No orders found</b>
+📋 <b>कोई orders नहीं मिले</b>
 
-आपने अभी तक कोई order नहीं किया है।
-
-🚀 <b>अपना पहला order create करने के लिए "New Order" पर click करें!</b>
-
-💡 <b>Tips:</b>
-• High quality services available 24/7
-• Fast delivery guarantee
-• Competitive pricing
-• Full customer support
+🚀 <b>अभी तक कोई orders place नहीं किए हैं!</b>
+💡 <b>First order करने के लिए "New Order" पर click करें</b>
 """
     else:
-        text = f"""
-📜 <b>Order History</b>
+        text = "📜 <b>Order History</b>\n\n"
+        # Sort orders by created_at (newest first)
+        sorted_orders = sorted(user_orders, key=lambda x: x.get('created_at', ''), reverse=True)
 
-📊 <b>Total Orders:</b> {len(user_orders)}
+        for i, order in enumerate(sorted_orders[:10], 1):  # Last 10 orders
+            status_emoji = {"processing": "🔄", "completed": "✅", "failed": "❌", "pending": "⏳"}
+            emoji = status_emoji.get(order.get('status', 'processing'), "🔄")
 
-🕐 <b>Recent Orders:</b>
-"""
+            # Handle different order data formats
+            order_id = order.get('order_id', 'Recent')
+            package_name = order.get('package_name', order.get('service', 'Unknown Package'))
+            platform = order.get('platform', 'Unknown Platform').title()
+            quantity = order.get('quantity', 0)
+            amount = order.get('total_price', order.get('price', 0))
+            created_at = order.get('created_at', '')
+            payment_status = order.get('payment_status', 'completed')
 
-        # Show last 5 orders
-        for order_id, order_data in user_orders[:5]:
-            status_emoji = {
-                'pending': '⏳',
-                'processing': '🔄',
-                'completed': '✅',
-                'failed': '❌',
-                'partial': '⚠️'
-            }.get(order_data.get('status', 'pending'), '⏳')
+            # Recent order indicator
+            recent_indicator = " 🔥" if order.get('is_recent') else ""
 
             text += f"""
-━━━━━━━━━━━━━━━━━━━━
-🆔 <b>Order:</b> #{order_id}
-📱 <b>Service:</b> {order_data.get('service_name', 'N/A')}
-💰 <b>Amount:</b> {format_currency(order_data.get('amount', 0))}
-📊 <b>Quantity:</b> {order_data.get('quantity', 0)}
-🎯 <b>Status:</b> {status_emoji} {order_data.get('status', 'Pending').title()}
-📅 <b>Date:</b> {format_time(order_data.get('created_at', ''))}
+{i}. <b>Order #{order_id}</b>{recent_indicator}
+{emoji} Status: {order.get('status', 'Processing').title()}
+📦 Package: {package_name}
+📱 Platform: {platform}
+🔢 Quantity: {quantity:,}
+💰 Amount: {format_currency(amount)}
+💳 Payment: {payment_status.title()}
+📅 Date: {format_time(created_at)}
+
 """
 
-        if len(user_orders) > 5:
-            text += f"\n\n📋 <b>और {len(user_orders)-5} orders...</b>"
+    back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🚀 New Order", callback_data="new_order")],
+        [InlineKeyboardButton(text="👤 My Account", callback_data="my_account")],
+        [InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")]
+    ])
 
-    await safe_edit_message(callback, text, get_back_to_account_keyboard())
+    await safe_edit_message(callback, text, back_keyboard)
     await callback.answer()
 
 # ========== REFILL HISTORY ==========
@@ -809,10 +826,10 @@ async def cb_api_docs(callback: CallbackQuery):
 
 📖 <b>Request Example:</b>
 <code>
-curl -X POST \\
-  https://api.indiasocialpanel.com/v1/orders \\
-  -H 'Authorization: Bearer YOUR_API_KEY' \\
-  -H 'Content-Type: application/json' \\
+curl -X POST \
+  https://api.indiasocialpanel.com/v1/orders \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
   -d '{
     "service": 1,
     "link": "https://instagram.com/user",
@@ -2399,6 +2416,199 @@ async def cb_language_select(callback: CallbackQuery):
 
     await safe_edit_message(callback, text, keyboard)
     await callback.answer(f"✅ {selected_language} selected! Coming soon...", show_alert=True)
+
+# ========== ACCESS TOKEN & LOGOUT HANDLERS ==========
+async def cb_copy_access_token_myaccount(callback: CallbackQuery):
+    """Handle access token copy from My Account section"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    user_data = users_data.get(user_id, {})
+    access_token = user_data.get('access_token', '')
+
+    if access_token:
+        text = f"""
+🔑 <b>Your Access Token</b>
+
+📋 <b>Access Token (Ready to Copy):</b>
+<code>{access_token}</code>
+
+📱 <b>How to Copy:</b>
+• <b>Mobile:</b> Long press on token above → Copy
+• <b>Desktop:</b> Triple click to select → Ctrl+C
+
+🔐 <b>Security Information:</b>
+• यह token आपके account की key है
+• इसे safely store करें  
+• अगली बार login के लिए इसकी जरूरत होगी
+• Token को किसी के साथ share न करें
+
+💡 <b>Usage:</b>
+• New device पर login करने के लिए
+• Account recovery के लिए
+• Secure access के लिए
+
+⚠️ <b>Keep this token private and secure!</b>
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat"),
+                InlineKeyboardButton(text="🔄 Regenerate Token", callback_data="regenerate_access_token")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ My Account", callback_data="my_account")
+            ]
+        ])
+
+        await safe_edit_message(callback, text, keyboard)
+        await callback.answer()  # No popup alert
+    else:
+        await callback.answer("❌ Access token not found! Contact support.", show_alert=True)
+
+async def cb_logout_account(callback: CallbackQuery):
+    """Handle logout account request with confirmation"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    user_data = users_data.get(user_id, {})
+    user_display_name = user_data.get('full_name', 'User')
+
+    text = f"""
+🚪 <b>Logout Account</b>
+
+⚠️ <b>Account Logout Confirmation</b>
+
+👤 <b>Current Account:</b> {user_display_name}
+📱 <b>Phone:</b> {user_data.get('phone_number', 'N/A')}
+💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}
+
+🔴 <b>Logout करने से क्या होगा:</b>
+• Account temporarily deactivated रहेगा
+• सभी services access बंद हो जाएंगी  
+• Main menu में वापस "Create Account" और "Login" options मिलेंगे
+• Data safe रहेगा - कुछ भी delete नहीं होगा
+• Same phone/token से दोबारा login कर सकते हैं
+
+💡 <b>Logout के बाद:</b>
+• Account create करने का option मिलेगा
+• पुराने account में login करने का option भी मिलेगा  
+• Access token same रहेगा
+
+❓ <b>क्या आप वाकई logout करना चाहते हैं?</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🚪 Yes, Logout", callback_data="confirm_logout"),
+            InlineKeyboardButton(text="❌ Cancel", callback_data="my_account")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer()
+
+async def cb_confirm_logout(callback: CallbackQuery):
+    """Confirm and execute logout"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    user_data = users_data.get(user_id, {})
+    user_display_name = user_data.get('full_name', 'User')
+
+    # Set account as not created (logout)
+    users_data[user_id]['account_created'] = False
+
+    # Clear any current user state
+    if user_id in user_state:
+        user_state[user_id] = {"current_step": None, "data": {}}
+
+    text = f"""
+✅ <b>Successfully Logged Out!</b>
+
+👋 <b>Goodbye {user_display_name}!</b>
+
+🔓 <b>Account logout successful</b>
+
+💡 <b>आप अब दोबारा:</b>
+• नया account create कर सकते हैं
+• पुराने account में login कर सकते हैं (Phone/Token से)
+• सभी services access करने के लिए account required है
+
+🔐 <b>Login Options:</b>
+• Phone Number से login करें
+• Access Token से login करें
+• या बिल्कुल नया account बनाएं
+
+🎯 <b>अपना next action choose करें:</b>
+"""
+
+    # Import get_initial_options_menu to show login/create options
+    from account_creation import get_initial_options_menu
+
+    await safe_edit_message(callback, text, get_initial_options_menu())
+    await callback.answer("✅ Account logout successful!", show_alert=True)
+
+async def cb_regenerate_access_token(callback: CallbackQuery):
+    """Handle access token regeneration"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    user_data = users_data.get(user_id, {})
+
+    # Generate new access token using the same function from account_creation
+    from account_creation import generate_token
+
+    username = user_data.get('full_name', '')
+    phone = user_data.get('phone_number', '')
+    email = user_data.get('email', '')
+
+    # Determine if it was originally from Telegram name (check if matches current Telegram name)
+    telegram_user = callback.from_user
+    telegram_name = telegram_user.first_name if telegram_user else ""
+    is_telegram_name = (username == telegram_name)
+
+    # Generate new token
+    new_access_token = generate_token(username, phone, email, is_telegram_name)
+
+    # Store new token
+    old_token = user_data.get('access_token', 'N/A')
+    users_data[user_id]['access_token'] = new_access_token
+
+    text = f"""
+🔄 <b>Access Token Regenerated!</b>
+
+🔑 <b>New Access Token:</b>
+<code>{new_access_token}</code>
+
+✅ <b>Token Update Complete:</b>
+• 🗑️ Old token permanently invalidated
+• 🔒 New token activated instantly  
+• 🛡️ Enhanced security applied
+• 📅 Regenerated: Just now
+
+⚠️ <b>Important:</b>
+• पुराना token अब काम नहीं करेगा
+• नया token safe place में store करें
+• Next time इसी token से login करें
+
+💡 <b>Copy new access token और safely store करें</b>
+
+🔒 <b>Security Enhancement Applied Successfully!</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⬅️ My Account", callback_data="my_account")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer("🔄 New access token generated!", show_alert=True)
 
 # ========== ACCOUNT CREATION FUNCTIONS MOVED TO account_creation.py ==========
 # All account creation input handlers moved to account_creation.py
