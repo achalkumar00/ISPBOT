@@ -175,7 +175,7 @@ def get_services_main_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="💬 WhatsApp", callback_data="service_whatsapp")
         ],
         [
-            InlineKeyboardButton(text="🔧 Admin Panel", callback_data="admin_panel")
+            InlineKeyboardButton(text="🌟 More Services", callback_data="more_services")
         ],
         [
             InlineKeyboardButton(text="⬅️ Back", callback_data="main_menu")
@@ -187,32 +187,754 @@ def get_services_main_menu() -> InlineKeyboardMarkup:
 def get_package_description(platform: str, service_id: str) -> dict:
     """Get detailed description for a specific package"""
 
-    # Package details database
+    # Package details database - Each package has unique description
     package_details = {
-        # Instagram Packages
-        "5629": {
-            "name": "📷 Instagram Followers - Real & Active",
-            "price": "₹0.45 per follower",
-            "delivery_time": "0-2 hours start, complete in 24-72 hours",
-            "quality": "Real Active Indian Users",
-            "description": "High-quality Instagram followers from real, active Indian accounts. These followers have profile pictures, posts, and regular activity. Perfect for building authentic engagement and credibility for your Instagram profile.",
-            "features": ["✅ 100% Real Active Users", "✅ Profile Pictures & Posts", "✅ Gradual Delivery", "✅ No Password Required", "✅ 90% Retention Rate", "✅ 24/7 Support"]
+        # Instagram Followers - 5 Different Quality Packages
+        "2001": {
+            "name": "👥 Instagram Followers - 💰 Economy",
+            "price": "₹150 per 1000 followers",
+            "delivery_time": "12-24 hours start, 5-7 days completion",
+            "quality": "Basic Quality Users",
+            "description": "Budget-friendly Instagram followers for beginners. Perfect for those who want to increase their follower count without spending much. Basic quality accounts with minimal profile pictures.",
+            "features": ["✅ Real Accounts", "✅ Safe Methods", "✅ Slow & Steady Growth", "✅ Email Support Only", "✅ 60% Retention Rate", "⚠️ No Refill Guarantee"]
         },
-        "5630": {
-            "name": "📷 Instagram Followers - Premium Quality",
-            "price": "₹0.65 per follower", 
-            "delivery_time": "Instant start, 12-48 hours completion",
-            "quality": "Premium Global Users",
-            "description": "Premium Instagram followers from high-quality global accounts with excellent engagement rates. These are carefully selected accounts that actively like and comment on posts, providing genuine growth for your profile.",
-            "features": ["✅ Premium Global Accounts", "✅ High Engagement Rate", "✅ Instant Start", "✅ Natural Growth Pattern", "✅ 95% Retention Rate", "✅ Refill Guarantee"]
+        "2002": {
+            "name": "👥 Instagram Followers - 📈 Standard",
+            "price": "₹250 per 1000 followers",
+            "delivery_time": "6-12 hours start, 3-5 days completion",
+            "quality": "Standard Quality Real Users",
+            "description": "Our most popular followers package with balanced quality and pricing. Standard accounts with moderate activity and profile completeness. Great for regular content creators.",
+            "features": ["✅ Real Active Users", "✅ Moderate Engagement", "✅ Normal Delivery Speed", "✅ Chat Support", "✅ 75% Retention Rate", "✅ 15-day Refill"]
         },
-        "5631": {
-            "name": "📷 Instagram Followers - High Retention",
-            "price": "₹0.55 per follower",
-            "delivery_time": "1-3 hours start, 48-96 hours completion", 
-            "quality": "High Retention Real Users",
-            "description": "Special high-retention Instagram followers designed for long-term growth. These followers are sourced from stable accounts with low drop rates, ensuring your follower count remains consistent over time.",
-            "features": ["✅ 98% Retention Rate", "✅ Stable Accounts", "✅ Long-term Growth", "✅ Natural Delivery", "✅ Minimal Drops", "✅ 30-day Refill"]
+        "2003": {
+            "name": "👥 Instagram Followers - ⭐ Premium",
+            "price": "₹375 per 1000 followers",
+            "delivery_time": "2-6 hours start, 1-3 days completion",
+            "quality": "High Quality Premium Users",
+            "description": "Premium quality Instagram followers with complete profiles and regular activity. These followers engage with content and have profile pictures, posts, and stories.",
+            "features": ["✅ Premium Accounts", "✅ High Engagement Potential", "✅ Fast Start", "✅ Priority Chat Support", "✅ 85% Retention Rate", "✅ 30-day Refill Guarantee"]
+        },
+        "2004": {
+            "name": "👥 Instagram Followers - 🇮🇳 Indian Premium",
+            "price": "₹450 per 1000 followers",
+            "delivery_time": "1-3 hours start, 12-24 hours completion",
+            "quality": "Premium Indian Users Only",
+            "description": "Exclusively Indian Instagram followers for local business growth. Perfect for targeting Indian audience with Hindi/English usernames and regional preferences.",
+            "features": ["✅ 100% Indian Geography", "✅ Local Market Targeting", "✅ Quick Start", "✅ Hindi/English Names", "✅ 90% Retention Rate", "✅ Lifetime Refill Support"]
+        },
+        "2005": {
+            "name": "👥 Instagram Followers - 👑 VIP Elite",
+            "price": "₹550 per 1000 followers",
+            "delivery_time": "Instant start, 6-12 hours completion",
+            "quality": "VIP Elite Maximum Quality",
+            "description": "Our highest quality Instagram followers with maximum engagement and activity. These are carefully selected premium accounts that actively like, comment and share content.",
+            "features": ["✅ Elite Quality Users", "✅ Maximum Engagement", "✅ Instant Start", "✅ 24/7 VIP Support", "✅ 95% Retention Rate", "✅ Unlimited Refill Warranty"]
+        },
+
+        # Instagram Post Likes - 5 Different Quality Packages
+        "2011": {
+            "name": "❤️ Instagram Post Likes - 💰 Economy",
+            "price": "₹18 per 1000 likes",
+            "delivery_time": "4-8 hours start, 24-48 hours completion",
+            "quality": "Basic Quality Likes",
+            "description": "Affordable Instagram post likes for budget-conscious users. Basic engagement boost from real accounts with slower delivery speed.",
+            "features": ["✅ Real Account Likes", "✅ Safe Delivery Process", "✅ Gradual Growth Pattern", "✅ Basic Email Support", "⚠️ No Drop Protection"]
+        },
+        "2012": {
+            "name": "❤️ Instagram Post Likes - 📈 Standard",
+            "price": "₹30 per 1000 likes",
+            "delivery_time": "2-4 hours start, 12-24 hours completion",
+            "quality": "Standard Quality Real Likes",
+            "description": "Standard Instagram post likes with good balance of quality and speed. Perfect for regular posts and consistent engagement growth.",
+            "features": ["✅ Active User Likes", "✅ Moderate Speed Delivery", "✅ Organic Growth Look", "✅ Chat Support Available", "✅ Minor Drop Protection"]
+        },
+        "2013": {
+            "name": "❤️ Instagram Post Likes - ⭐ Premium",
+            "price": "₹45 per 1000 likes",
+            "delivery_time": "1-2 hours start, 6-12 hours completion",
+            "quality": "Premium High-Quality Likes",
+            "description": "Premium Instagram post likes from high-quality accounts with profile pictures and activity. Enhanced engagement for better visibility.",
+            "features": ["✅ Premium Account Likes", "✅ Fast Delivery Speed", "✅ High Quality Profiles", "✅ Priority Support", "✅ Drop Protection Included"]
+        },
+        "2014": {
+            "name": "❤️ Instagram Post Likes - 🇮🇳 Indian Premium",
+            "price": "₹54 per 1000 likes",
+            "delivery_time": "30 minutes - 2 hours start, 3-6 hours completion",
+            "quality": "Premium Indian User Likes",
+            "description": "Exclusive Indian Instagram post likes for local engagement targeting. Perfect for businesses wanting Indian audience interaction.",
+            "features": ["✅ 100% Indian Users", "✅ Local Engagement Focus", "✅ Super Fast Start", "✅ Regional Targeting", "✅ Advanced Drop Protection"]
+        },
+        "2015": {
+            "name": "❤️ Instagram Post Likes - 👑 VIP Elite",
+            "price": "₹66 per 1000 likes",
+            "delivery_time": "Instant start, 1-3 hours completion",
+            "quality": "VIP Elite Maximum Quality",
+            "description": "The fastest and highest quality Instagram post likes available. Instant engagement boost from premium active accounts for viral growth.",
+            "features": ["✅ Elite Premium Likes", "✅ Lightning Fast Delivery", "✅ Maximum Impact", "✅ VIP Priority Support", "✅ 100% Drop Protection Guarantee"]
+        },
+
+        # Instagram Reel Likes - 5 Different Quality Packages
+        "2021": {
+            "name": "❤️ Instagram Reel Likes - 💰 Economy",
+            "price": "₹18 per 1000 likes",
+            "delivery_time": "6-10 hours start, 2-3 days completion",
+            "quality": "Basic Reel Likes",
+            "description": "Cost-effective Instagram reel likes for basic engagement. Slow but steady growth for reels with minimal investment.",
+            "features": ["✅ Real Reel Likes", "✅ Budget-Friendly Option", "✅ Slow Growth Pattern", "✅ Basic Support", "⚠️ Limited Quality Assurance"]
+        },
+        "2022": {
+            "name": "❤️ Instagram Reel Likes - 📈 Standard",
+            "price": "₹30 per 1000 likes",
+            "delivery_time": "3-6 hours start, 18-36 hours completion",
+            "quality": "Standard Reel Engagement",
+            "description": "Standard quality Instagram reel likes with balanced delivery speed. Good for regular reel creators who want consistent engagement.",
+            "features": ["✅ Standard Quality Likes", "✅ Balanced Speed", "✅ Regular User Accounts", "✅ Standard Support", "✅ Basic Retention Guarantee"]
+        },
+        "2023": {
+            "name": "❤️ Instagram Reel Likes - ⭐ Premium",
+            "price": "₹45 per 1000 likes",
+            "delivery_time": "1-3 hours start, 8-15 hours completion",
+            "quality": "Premium Reel Engagement",
+            "description": "Premium Instagram reel likes from active accounts that regularly engage with video content. Better visibility and reach for your reels.",
+            "features": ["✅ Premium Reel Likes", "✅ Video Content Specialists", "✅ Enhanced Visibility", "✅ Priority Support", "✅ Quality Retention Assurance"]
+        },
+        "2024": {
+            "name": "❤️ Instagram Reel Likes - 🇮🇳 Indian Premium",
+            "price": "₹54 per 1000 likes",
+            "delivery_time": "30 minutes - 1 hour start, 4-8 hours completion",
+            "quality": "Indian Premium Reel Likes",
+            "description": "High-quality Indian Instagram reel likes for local content targeting. Perfect for Hindi/regional content creators and local businesses.",
+            "features": ["✅ 100% Indian Reel Likes", "✅ Local Content Focus", "✅ Ultra Fast Delivery", "✅ Cultural Targeting", "✅ Premium Retention"]
+        },
+        "2025": {
+            "name": "❤️ Instagram Reel Likes - 👑 VIP Elite",
+            "price": "₹66 per 1000 likes",
+            "delivery_time": "Instant start, 2-4 hours completion",
+            "quality": "VIP Elite Reel Engagement",
+            "description": "Ultimate Instagram reel likes for viral growth. Instant engagement from highly active accounts that love video content.",
+            "features": ["✅ Elite Reel Specialists", "✅ Viral Growth Potential", "✅ Instant Engagement", "✅ VIP Support", "✅ Maximum Retention Guarantee"]
+        },
+
+        # Instagram Post Views - 5 Different Quality Packages
+        "2031": {
+            "name": "👁️ Instagram Post Views - 💰 Economy",
+            "price": "₹12 per 1000 views",
+            "delivery_time": "8-12 hours start, 2-4 days completion",
+            "quality": "Basic Post Views",
+            "description": "Economical Instagram post views for basic reach increase. Simple view boost without advanced targeting or rapid delivery.",
+            "features": ["✅ Real Post Views", "✅ Cost-Effective", "✅ Gradual Delivery", "✅ Email Support", "⚠️ No View Duration Guarantee"]
+        },
+        "2032": {
+            "name": "👁️ Instagram Post Views - 📈 Standard",
+            "price": "₹20 per 1000 views",
+            "delivery_time": "4-8 hours start, 1-2 days completion",
+            "quality": "Standard Post Views",
+            "description": "Standard Instagram post views with moderate delivery speed and good quality. Ideal for regular content creators seeking steady growth.",
+            "features": ["✅ Quality Post Views", "✅ Steady Growth Rate", "✅ Moderate Speed", "✅ Chat Support", "✅ Basic Analytics Boost"]
+        },
+        "2033": {
+            "name": "👁️ Instagram Post Views - ⭐ Premium",
+            "price": "₹30 per 1000 views",
+            "delivery_time": "2-4 hours start, 8-16 hours completion",
+            "quality": "Premium Post Views",
+            "description": "Premium Instagram post views with enhanced engagement quality. Better reach and visibility with faster delivery from active users.",
+            "features": ["✅ Premium Quality Views", "✅ Enhanced Reach", "✅ Fast Delivery", "✅ Priority Support", "✅ Engagement Boost"]
+        },
+        "2034": {
+            "name": "👁️ Instagram Post Views - 🇮🇳 Indian Premium",
+            "price": "₹36 per 1000 views",
+            "delivery_time": "1-2 hours start, 4-8 hours completion",
+            "quality": "Indian Premium Views",
+            "description": "Targeted Indian Instagram post views for local market reach. Perfect for businesses and creators targeting Indian audience specifically.",
+            "features": ["✅ 100% Indian Views", "✅ Local Market Reach", "✅ Quick Delivery", "✅ Geographic Targeting", "✅ Regional Analytics"]
+        },
+        "2035": {
+            "name": "👁️ Instagram Post Views - 👑 VIP Elite",
+            "price": "₹44 per 1000 views",
+            "delivery_time": "Instant start, 2-6 hours completion",
+            "quality": "VIP Elite Views",
+            "description": "Highest quality Instagram post views with maximum engagement potential. Instant boost for viral content and maximum reach.",
+            "features": ["✅ Elite Quality Views", "✅ Maximum Reach Potential", "✅ Instant Delivery", "✅ VIP Support", "✅ Viral Growth Optimization"]
+        },
+
+        # Instagram Reel Views - 5 Different Quality Packages
+        "2041": {
+            "name": "👁️ Instagram Reel Views - 💰 Economy",
+            "price": "₹12 per 1000 views",
+            "delivery_time": "10-16 hours start, 3-5 days completion",
+            "quality": "Basic Reel Views",
+            "description": "Budget-friendly Instagram reel views for basic reach boost. Suitable for new creators who want to increase their reel visibility gradually.",
+            "features": ["✅ Real Reel Views", "✅ Cost-Effective Solution", "✅ Slow & Steady Growth", "✅ Email Support", "⚠️ No Retention Warranty"]
+        },
+        "2042": {
+            "name": "👁️ Instagram Reel Views - 📈 Standard",
+            "price": "₹20 per 1000 views",
+            "delivery_time": "5-10 hours start, 1-3 days completion",
+            "quality": "Standard Reel Views",
+            "description": "Balanced Instagram reel views with good quality and reasonable pricing. Perfect for content creators seeking consistent reel performance.",
+            "features": ["✅ Quality Reel Views", "✅ Consistent Growth", "✅ Average Speed", "✅ Chat Support", "✅ View Retention Tracking"]
+        },
+        "2043": {
+            "name": "👁️ Instagram Reel Views - ⭐ Premium",
+            "price": "₹30 per 1000 views",
+            "delivery_time": "2-5 hours start, 6-12 hours completion",
+            "quality": "Premium Reel Views",
+            "description": "Premium Instagram reel views from engaged users who actually watch video content. Enhanced algorithmic boost for better reach.",
+            "features": ["✅ Premium Reel Viewers", "✅ Algorithm Friendly", "✅ Faster Delivery", "✅ Priority Support", "✅ Watch Time Optimization"]
+        },
+        "2044": {
+            "name": "👁️ Instagram Reel Views - 🇮🇳 Indian Premium",
+            "price": "₹36 per 1000 views",
+            "delivery_time": "1-2 hours start, 3-6 hours completion",
+            "quality": "Indian Premium Reel Views",
+            "description": "Exclusively Indian Instagram reel views for local content and regional targeting. Best for Hindi and regional language content creators.",
+            "features": ["✅ 100% Indian Reel Views", "✅ Regional Content Focus", "✅ Fast Local Delivery", "✅ Cultural Understanding", "✅ Local Trending Boost"]
+        },
+        "2045": {
+            "name": "👁️ Instagram Reel Views - 👑 VIP Elite",
+            "price": "₹44 per 1000 views",
+            "delivery_time": "Instant start, 1-4 hours completion",
+            "quality": "VIP Elite Reel Views",
+            "description": "Ultimate Instagram reel views package for viral growth. Instant high-quality views from premium accounts with maximum watch time.",
+            "features": ["✅ Elite Reel Viewers", "✅ Viral Growth Potential", "✅ Instant Delivery", "✅ VIP Support", "✅ Maximum Watch Time"]
+        },
+
+        # Instagram Story Views - 5 Different Quality Packages
+        "2051": {
+            "name": "📖 Instagram Story Views - 💰 Economy",
+            "price": "₹12 per 1000 views",
+            "delivery_time": "6-12 hours start, 24-48 hours completion",
+            "quality": "Basic Story Views",
+            "description": "Affordable Instagram story views for basic reach increase. Simple view boost for stories with budget-friendly pricing.",
+            "features": ["✅ Real Story Views", "✅ Budget Option", "✅ Safe Growth", "✅ Email Support", "⚠️ Basic Quality Only"]
+        },
+        "2052": {
+            "name": "📖 Instagram Story Views - 📈 Standard",
+            "price": "₹20 per 1000 views",
+            "delivery_time": "3-6 hours start, 12-24 hours completion",
+            "quality": "Standard Story Views",
+            "description": "Standard Instagram story views with reliable delivery. Good for regular story posters who want consistent audience engagement.",
+            "features": ["✅ Standard Story Views", "✅ Regular Growth", "✅ Reliable Delivery", "✅ Chat Support", "✅ Story Analytics Boost"]
+        },
+        "2053": {
+            "name": "📖 Instagram Story Views - ⭐ Premium",
+            "price": "₹30 per 1000 views",
+            "delivery_time": "1-3 hours start, 6-12 hours completion",
+            "quality": "Premium Story Views",
+            "description": "Premium Instagram story views from active users who regularly check stories. Better engagement and story completion rates.",
+            "features": ["✅ Premium Story Viewers", "✅ High Completion Rate", "✅ Fast Delivery", "✅ Priority Support", "✅ Story Engagement Boost"]
+        },
+        "2054": {
+            "name": "📖 Instagram Story Views - 🇮🇳 Indian Premium",
+            "price": "₹36 per 1000 views",
+            "delivery_time": "30 minutes - 1 hour start, 2-4 hours completion",
+            "quality": "Indian Premium Story Views",
+            "description": "High-quality Indian Instagram story views for local audience targeting. Perfect for location-based businesses and Indian content.",
+            "features": ["✅ 100% Indian Story Views", "✅ Local Audience Focus", "✅ Super Fast Start", "✅ Regional Targeting", "✅ Local Business Boost"]
+        },
+        "2055": {
+            "name": "📖 Instagram Story Views - 👑 VIP Elite",
+            "price": "₹44 per 1000 views",
+            "delivery_time": "Instant start, 1-2 hours completion",
+            "quality": "VIP Elite Story Views",
+            "description": "Maximum quality Instagram story views with instant delivery. Premium accounts that actively engage with story content.",
+            "features": ["✅ Elite Story Viewers", "✅ Maximum Engagement", "✅ Instant Delivery", "✅ VIP Support", "✅ Story Highlights Boost"]
+        },
+
+        # Instagram Story Likes - 5 Different Quality Packages
+        "2061": {
+            "name": "💖 Instagram Story Likes - 💰 Economy",
+            "price": "₹18 per 1000 likes",
+            "delivery_time": "8-14 hours start, 48-72 hours completion",
+            "quality": "Basic Story Likes",
+            "description": "Cost-effective Instagram story likes for basic engagement on your stories. Suitable for casual users who post stories occasionally.",
+            "features": ["✅ Real Story Likes", "✅ Budget-Friendly", "✅ Gradual Growth", "✅ Email Support Only", "⚠️ No Advanced Features"]
+        },
+        "2062": {
+            "name": "💖 Instagram Story Likes - 📈 Standard",
+            "price": "₹30 per 1000 likes",
+            "delivery_time": "4-8 hours start, 24-36 hours completion",
+            "quality": "Standard Story Likes",
+            "description": "Standard Instagram story likes with balanced quality and pricing. Perfect for regular story creators who want steady engagement.",
+            "features": ["✅ Standard Story Likes", "✅ Reliable Delivery", "✅ Good Quality", "✅ Chat Support", "✅ Moderate Retention"]
+        },
+        "2063": {
+            "name": "💖 Instagram Story Likes - ⭐ Premium",
+            "price": "₹45 per 1000 likes",
+            "delivery_time": "2-4 hours start, 12-18 hours completion",
+            "quality": "Premium Story Likes",
+            "description": "Premium Instagram story likes from engaged users who actively interact with story content. Better visibility for story highlights.",
+            "features": ["✅ Premium Story Likes", "✅ Fast Delivery", "✅ High Engagement", "✅ Priority Support", "✅ Story Highlight Boost"]
+        },
+        "2064": {
+            "name": "💖 Instagram Story Likes - 🇮🇳 Indian Premium",
+            "price": "₹54 per 1000 likes",
+            "delivery_time": "1-2 hours start, 6-10 hours completion",
+            "quality": "Indian Premium Story Likes",
+            "description": "Targeted Indian Instagram story likes for local audience engagement. Excellent for region-specific content and local businesses.",
+            "features": ["✅ 100% Indian Story Likes", "✅ Local Engagement", "✅ Quick Delivery", "✅ Regional Focus", "✅ Cultural Relevance"]
+        },
+        "2065": {
+            "name": "💖 Instagram Story Likes - 👑 VIP Elite",
+            "price": "₹66 per 1000 likes",
+            "delivery_time": "Instant start, 3-6 hours completion",
+            "quality": "VIP Elite Story Likes",
+            "description": "Ultimate Instagram story likes for maximum impact. Instant engagement from premium accounts with highest interaction rates.",
+            "features": ["✅ Elite Story Likes", "✅ Maximum Impact", "✅ Instant Start", "✅ VIP Support", "✅ Premium Interaction"]
+        },
+
+        # Instagram Story Link Clicks - 5 Different Quality Packages
+        "2071": {
+            "name": "🔗 Instagram Story Link Clicks - 💰 Economy",
+            "price": "₹90 per 1000 clicks",
+            "delivery_time": "12-24 hours start, 4-6 days completion",
+            "quality": "Basic Link Clicks",
+            "description": "Budget-friendly Instagram story link clicks for basic traffic boost. Suitable for new businesses testing story link features.",
+            "features": ["✅ Real Link Clicks", "✅ Cost-Effective", "✅ Slow Traffic Growth", "✅ Basic Tracking", "⚠️ No Conversion Guarantee"]
+        },
+        "2072": {
+            "name": "🔗 Instagram Story Link Clicks - 📈 Standard",
+            "price": "₹150 per 1000 clicks",
+            "delivery_time": "6-12 hours start, 2-3 days completion",
+            "quality": "Standard Link Clicks",
+            "description": "Standard Instagram story link clicks with moderate engagement quality. Good for driving traffic to websites and landing pages.",
+            "features": ["✅ Quality Link Clicks", "✅ Moderate Speed", "✅ Traffic Analytics", "✅ Chat Support", "✅ Basic Conversion Tracking"]
+        },
+        "2073": {
+            "name": "🔗 Instagram Story Link Clicks - ⭐ Premium",
+            "price": "₹225 per 1000 clicks",
+            "delivery_time": "3-6 hours start, 12-24 hours completion",
+            "quality": "Premium Link Clicks",
+            "description": "Premium Instagram story link clicks from engaged users who actually visit linked content. Better conversion potential for businesses.",
+            "features": ["✅ Premium Link Clicks", "✅ High Engagement", "✅ Fast Traffic", "✅ Priority Support", "✅ Conversion Optimization"]
+        },
+        "2074": {
+            "name": "🔗 Instagram Story Link Clicks - 🇮🇳 Indian Premium",
+            "price": "₹270 per 1000 clicks",
+            "delivery_time": "1-3 hours start, 6-12 hours completion",
+            "quality": "Indian Premium Link Clicks",
+            "description": "High-quality Indian Instagram story link clicks for local market targeting. Perfect for Indian businesses and regional campaigns.",
+            "features": ["✅ 100% Indian Clicks", "✅ Local Market Focus", "✅ Fast Delivery", "✅ Regional Targeting", "✅ Local Business Boost"]
+        },
+        "2075": {
+            "name": "🔗 Instagram Story Link Clicks - 👑 VIP Elite",
+            "price": "₹330 per 1000 clicks",
+            "delivery_time": "Instant start, 3-8 hours completion",
+            "quality": "VIP Elite Link Clicks",
+            "description": "Maximum quality Instagram story link clicks with highest conversion potential. Premium traffic from highly engaged users.",
+            "features": ["✅ Elite Link Clicks", "✅ Maximum Conversion", "✅ Instant Traffic", "✅ VIP Support", "✅ Advanced Analytics"]
+        },
+
+        # Instagram Post Shares - 5 Different Quality Packages
+        "2081": {
+            "name": "📤 Instagram Post Shares - 💰 Economy",
+            "price": "₹108 per 1000 shares",
+            "delivery_time": "16-24 hours start, 5-7 days completion",
+            "quality": "Basic Post Shares",
+            "description": "Budget-friendly Instagram post shares for basic viral growth. Simple sharing from real accounts with gradual delivery for natural growth pattern.",
+            "features": ["✅ Real Post Shares", "✅ Cost-Effective Option", "✅ Natural Growth Pattern", "✅ Email Support", "⚠️ No Viral Guarantee"]
+        },
+        "2082": {
+            "name": "📤 Instagram Post Shares - 📈 Standard", 
+            "price": "₹180 per 1000 shares",
+            "delivery_time": "8-15 hours start, 3-4 days completion",
+            "quality": "Standard Post Shares",
+            "description": "Standard Instagram post shares with reliable delivery and good reach potential. Perfect for content creators wanting steady viral growth.",
+            "features": ["✅ Quality Post Shares", "✅ Steady Viral Growth", "✅ Good Reach Expansion", "✅ Chat Support", "✅ Moderate Viral Potential"]
+        },
+        "2083": {
+            "name": "📤 Instagram Post Shares - ⭐ Premium",
+            "price": "₹270 per 1000 shares",
+            "delivery_time": "4-8 hours start, 1-2 days completion",
+            "quality": "Premium Post Shares",
+            "description": "Premium Instagram post shares from engaged users who actively share content. Enhanced viral potential with faster reach expansion.",
+            "features": ["✅ Premium Post Shares", "✅ High Viral Potential", "✅ Fast Reach Expansion", "✅ Priority Support", "✅ Engagement Multiplier"]
+        },
+        "2084": {
+            "name": "📤 Instagram Post Shares - 🇮🇳 Indian Premium",
+            "price": "₹324 per 1000 shares",
+            "delivery_time": "2-4 hours start, 8-16 hours completion",
+            "quality": "Indian Premium Post Shares",
+            "description": "High-quality Indian Instagram post shares for local viral growth. Perfect for targeting Indian audience with cultural content sharing.",
+            "features": ["✅ 100% Indian Post Shares", "✅ Local Viral Growth", "✅ Cultural Content Focus", "✅ Regional Targeting", "✅ Indian Market Reach"]
+        },
+        "2085": {
+            "name": "📤 Instagram Post Shares - 👑 VIP Elite",
+            "price": "₹396 per 1000 shares",
+            "delivery_time": "Instant start, 4-8 hours completion",
+            "quality": "VIP Elite Post Shares",
+            "description": "Ultimate Instagram post shares for maximum viral impact. Instant sharing from premium accounts with highest engagement rates for viral success.",
+            "features": ["✅ Elite Post Shares", "✅ Maximum Viral Impact", "✅ Instant Viral Growth", "✅ VIP Support", "✅ Guaranteed Viral Boost"]
+        },
+
+        # Instagram Reel Shares - 5 Different Quality Packages  
+        "2091": {
+            "name": "📱 Instagram Reel Shares - 💰 Economy",
+            "price": "₹108 per 1000 shares",
+            "delivery_time": "18-28 hours start, 6-8 days completion",
+            "quality": "Basic Reel Shares",
+            "description": "Affordable Instagram reel shares for basic video viral growth. Slow but steady sharing pattern to make your reels reach more audiences gradually.",
+            "features": ["✅ Real Reel Shares", "✅ Budget-Friendly", "✅ Gradual Video Spread", "✅ Basic Support", "⚠️ Slow Viral Growth"]
+        },
+        "2092": {
+            "name": "📱 Instagram Reel Shares - 📈 Standard",
+            "price": "₹180 per 1000 shares", 
+            "delivery_time": "10-18 hours start, 3-5 days completion",
+            "quality": "Standard Reel Shares",
+            "description": "Standard Instagram reel shares with balanced viral growth. Good for reel creators who want consistent sharing and reach expansion.",
+            "features": ["✅ Standard Reel Shares", "✅ Balanced Viral Growth", "✅ Consistent Sharing", "✅ Chat Support", "✅ Reel Reach Expansion"]
+        },
+        "2093": {
+            "name": "📱 Instagram Reel Shares - ⭐ Premium",
+            "price": "₹270 per 1000 shares",
+            "delivery_time": "5-10 hours start, 1-3 days completion", 
+            "quality": "Premium Reel Shares",
+            "description": "Premium Instagram reel shares from video content enthusiasts. Enhanced viral potential for reels with faster algorithmic boost.",
+            "features": ["✅ Premium Reel Shares", "✅ Video Content Focus", "✅ Algorithm Boost", "✅ Priority Support", "✅ Enhanced Viral Reach"]
+        },
+        "2094": {
+            "name": "📱 Instagram Reel Shares - 🇮🇳 Indian Premium",
+            "price": "₹324 per 1000 shares",
+            "delivery_time": "2-5 hours start, 6-12 hours completion",
+            "quality": "Indian Premium Reel Shares", 
+            "description": "Exclusive Indian Instagram reel shares for local video viral growth. Perfect for Hindi and regional content creators targeting Indian audience.",
+            "features": ["✅ 100% Indian Reel Shares", "✅ Local Video Viral", "✅ Hindi Content Focus", "✅ Regional Sharing", "✅ Cultural Targeting"]
+        },
+        "2095": {
+            "name": "📱 Instagram Reel Shares - 👑 VIP Elite",
+            "price": "₹396 per 1000 shares",
+            "delivery_time": "Instant start, 2-6 hours completion",
+            "quality": "VIP Elite Reel Shares",
+            "description": "Maximum quality Instagram reel shares for ultimate viral success. Instant sharing from premium video enthusiasts for explosive reel growth.",
+            "features": ["✅ Elite Reel Shares", "✅ Ultimate Viral Success", "✅ Instant Video Spread", "✅ VIP Support", "✅ Explosive Growth Guaranteed"]
+        },
+
+        # Instagram Channel Members - 5 Different Quality Packages
+        "2101": {
+            "name": "👥 Instagram Channel Members - 💰 Economy", 
+            "price": "₹240 per 1000 members",
+            "delivery_time": "24-36 hours start, 7-10 days completion",
+            "quality": "Basic Channel Members",
+            "description": "Budget-friendly Instagram channel members for basic community growth. Suitable for new channels starting their member base building journey.",
+            "features": ["✅ Real Channel Members", "✅ Community Building", "✅ Slow Growth Pattern", "✅ Email Support", "⚠️ Basic Member Quality"]
+        },
+        "2102": {
+            "name": "👥 Instagram Channel Members - 📈 Standard",
+            "price": "₹400 per 1000 members",
+            "delivery_time": "12-20 hours start, 4-6 days completion", 
+            "quality": "Standard Channel Members",
+            "description": "Standard Instagram channel members with good engagement potential. Perfect for growing channels that need consistent member addition.",
+            "features": ["✅ Quality Channel Members", "✅ Good Engagement", "✅ Steady Growth", "✅ Chat Support", "✅ Member Retention Focus"]
+        },
+        "2103": {
+            "name": "👥 Instagram Channel Members - ⭐ Premium",
+            "price": "₹600 per 1000 members",
+            "delivery_time": "6-12 hours start, 2-3 days completion",
+            "quality": "Premium Channel Members", 
+            "description": "Premium Instagram channel members with high engagement rates. Active members who participate in channel discussions and content.",
+            "features": ["✅ Premium Channel Members", "✅ High Engagement", "✅ Active Participation", "✅ Priority Support", "✅ Discussion Contributors"]
+        },
+        "2104": {
+            "name": "👥 Instagram Channel Members - 🇮🇳 Indian Premium",
+            "price": "₹720 per 1000 members",
+            "delivery_time": "3-8 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Channel Members",
+            "description": "High-quality Indian Instagram channel members for local community building. Perfect for Hindi channels and regional content creators.",
+            "features": ["✅ 100% Indian Members", "✅ Local Community Focus", "✅ Hindi Channel Support", "✅ Regional Engagement", "✅ Cultural Understanding"]
+        },
+        "2105": {
+            "name": "👥 Instagram Channel Members - 👑 VIP Elite",
+            "price": "₹880 per 1000 members", 
+            "delivery_time": "1-4 hours start, 6-12 hours completion",
+            "quality": "VIP Elite Channel Members",
+            "description": "Ultimate Instagram channel members with maximum engagement and activity. Elite community builders who actively contribute to channel growth.",
+            "features": ["✅ Elite Channel Members", "✅ Maximum Engagement", "✅ Community Leaders", "✅ VIP Support", "✅ Channel Growth Catalysts"]
+        },
+
+        # Instagram Random Comments - 5 Different Quality Packages
+        "2111": {
+            "name": "💬 Instagram Random Comments - 💰 Economy",
+            "price": "₹54 per 1000 comments",
+            "delivery_time": "20-30 hours start, 8-12 days completion",
+            "quality": "Basic Random Comments",
+            "description": "Budget-friendly Instagram random comments for basic engagement boost. Simple pre-written comments from real accounts with slow delivery speed.",
+            "features": ["✅ Real Random Comments", "✅ Pre-Written Messages", "✅ Basic Engagement", "✅ Email Support", "⚠️ Generic Comment Quality"]
+        },
+        "2112": {
+            "name": "💬 Instagram Random Comments - 📈 Standard",
+            "price": "₹90 per 1000 comments",
+            "delivery_time": "12-18 hours start, 5-7 days completion",
+            "quality": "Standard Random Comments",
+            "description": "Standard Instagram random comments with better variety and engagement. Good selection of pre-written comments for consistent interaction.",
+            "features": ["✅ Varied Random Comments", "✅ Better Quality Messages", "✅ Good Engagement", "✅ Chat Support", "✅ Comment Variety"]
+        },
+        "2113": {
+            "name": "💬 Instagram Random Comments - ⭐ Premium",
+            "price": "₹135 per 1000 comments",
+            "delivery_time": "6-12 hours start, 2-4 days completion",
+            "quality": "Premium Random Comments",
+            "description": "Premium Instagram random comments with high-quality messages and better engagement. Thoughtful comments that look natural and engaging.",
+            "features": ["✅ Premium Random Comments", "✅ High-Quality Messages", "✅ Natural Engagement", "✅ Priority Support", "✅ Thoughtful Comments"]
+        },
+        "2114": {
+            "name": "💬 Instagram Random Comments - 🇮🇳 Indian Premium",
+            "price": "₹162 per 1000 comments",
+            "delivery_time": "3-8 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Random Comments",
+            "description": "High-quality Indian Instagram random comments with Hindi/English mix. Perfect for local content with culturally relevant comment messages.",
+            "features": ["✅ Indian Random Comments", "✅ Hindi/English Mix", "✅ Cultural Relevance", "✅ Local Context", "✅ Regional Comments"]
+        },
+        "2115": {
+            "name": "💬 Instagram Random Comments - 👑 VIP Elite",
+            "price": "₹198 per 1000 comments",
+            "delivery_time": "1-4 hours start, 6-12 hours completion",
+            "quality": "VIP Elite Random Comments",
+            "description": "Ultimate Instagram random comments with maximum quality and engagement. Carefully selected comments that boost your post interaction significantly.",
+            "features": ["✅ Elite Random Comments", "✅ Maximum Quality", "✅ High Interaction", "✅ VIP Support", "✅ Engagement Boost"]
+        },
+
+        # Instagram Emoji Comments - 5 Different Quality Packages
+        "2121": {
+            "name": "😀 Instagram Emoji Comments - 💰 Economy",
+            "price": "₹42 per 1000 comments",
+            "delivery_time": "15-25 hours start, 6-9 days completion",
+            "quality": "Basic Emoji Comments",
+            "description": "Cost-effective Instagram emoji comments for basic reaction boost. Simple emoji combinations from real accounts with gradual delivery pattern.",
+            "features": ["✅ Real Emoji Comments", "✅ Basic Emoji Combos", "✅ Simple Reactions", "✅ Email Support", "⚠️ Limited Emoji Variety"]
+        },
+        "2122": {
+            "name": "😀 Instagram Emoji Comments - 📈 Standard",
+            "price": "₹70 per 1000 comments",
+            "delivery_time": "8-15 hours start, 3-5 days completion",
+            "quality": "Standard Emoji Comments",
+            "description": "Standard Instagram emoji comments with good variety and reaction diversity. Balanced emoji engagement for consistent post interaction.",
+            "features": ["✅ Varied Emoji Comments", "✅ Good Emoji Selection", "✅ Reaction Diversity", "✅ Chat Support", "✅ Balanced Engagement"]
+        },
+        "2123": {
+            "name": "😀 Instagram Emoji Comments - ⭐ Premium",
+            "price": "₹105 per 1000 comments",
+            "delivery_time": "4-10 hours start, 1-3 days completion",
+            "quality": "Premium Emoji Comments",
+            "description": "Premium Instagram emoji comments with creative emoji combinations and high engagement. Trending emoji patterns that enhance post appeal.",
+            "features": ["✅ Premium Emoji Comments", "✅ Creative Combinations", "✅ Trending Patterns", "✅ Priority Support", "✅ Enhanced Appeal"]
+        },
+        "2124": {
+            "name": "😀 Instagram Emoji Comments - 🇮🇳 Indian Premium",
+            "price": "₹126 per 1000 comments",
+            "delivery_time": "2-6 hours start, 8-16 hours completion",
+            "quality": "Indian Premium Emoji Comments",
+            "description": "High-quality Indian Instagram emoji comments with locally popular emoji patterns. Perfect for Indian audience with cultural emoji preferences.",
+            "features": ["✅ Indian Emoji Comments", "✅ Local Emoji Trends", "✅ Cultural Patterns", "✅ Regional Preferences", "✅ Popular Combinations"]
+        },
+        "2125": {
+            "name": "😀 Instagram Emoji Comments - 👑 VIP Elite",
+            "price": "₹154 per 1000 comments",
+            "delivery_time": "Instant start, 3-8 hours completion",
+            "quality": "VIP Elite Emoji Comments",
+            "description": "Ultimate Instagram emoji comments with maximum creativity and viral emoji patterns. Premium emoji combinations for maximum post engagement.",
+            "features": ["✅ Elite Emoji Comments", "✅ Maximum Creativity", "✅ Viral Patterns", "✅ VIP Support", "✅ Premium Combinations"]
+        },
+
+        # Instagram Custom Comments - 5 Different Quality Packages
+        "2131": {
+            "name": "✍️ Instagram Custom Comments - 💰 Economy",
+            "price": "₹120 per 1000 comments",
+            "delivery_time": "48-72 hours start, 10-15 days completion",
+            "quality": "Basic Custom Comments",
+            "description": "Budget-friendly Instagram custom comments with your provided text. Basic delivery of your custom messages from real accounts with slower speed.",
+            "features": ["✅ Your Custom Text", "✅ Real Account Comments", "✅ Personalized Messages", "✅ Email Support", "⚠️ Slow Delivery Speed"]
+        },
+        "2132": {
+            "name": "✍️ Instagram Custom Comments - 📈 Standard",
+            "price": "₹200 per 1000 comments",
+            "delivery_time": "24-36 hours start, 5-8 days completion",
+            "quality": "Standard Custom Comments",
+            "description": "Standard Instagram custom comments with reliable delivery of your messages. Good balance of speed and quality for personalized engagement.",
+            "features": ["✅ Custom Message Delivery", "✅ Reliable Speed", "✅ Personalized Engagement", "✅ Chat Support", "✅ Quality Accounts"]
+        },
+        "2133": {
+            "name": "✍️ Instagram Custom Comments - ⭐ Premium",
+            "price": "₹300 per 1000 comments",
+            "delivery_time": "12-24 hours start, 2-4 days completion",
+            "quality": "Premium Custom Comments",
+            "description": "Premium Instagram custom comments with fast delivery of your personalized messages. High-quality accounts posting your custom content naturally.",
+            "features": ["✅ Premium Custom Delivery", "✅ Fast Personalization", "✅ Natural Posting", "✅ Priority Support", "✅ High-Quality Accounts"]
+        },
+        "2134": {
+            "name": "✍️ Instagram Custom Comments - 🇮🇳 Indian Premium",
+            "price": "₹360 per 1000 comments",
+            "delivery_time": "6-12 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Custom Comments",
+            "description": "High-quality Indian Instagram custom comments with your personalized Hindi/English messages. Perfect for local audience engagement.",
+            "features": ["✅ Indian Custom Comments", "✅ Hindi/English Support", "✅ Local Engagement", "✅ Cultural Context", "✅ Regional Targeting"]
+        },
+        "2135": {
+            "name": "✍️ Instagram Custom Comments - 👑 VIP Elite",
+            "price": "₹440 per 1000 comments",
+            "delivery_time": "2-6 hours start, 6-12 hours completion",
+            "quality": "VIP Elite Custom Comments",
+            "description": "Ultimate Instagram custom comments with fastest delivery of your personalized messages. Elite accounts providing maximum engagement impact.",
+            "features": ["✅ Elite Custom Delivery", "✅ Fastest Personalization", "✅ Maximum Impact", "✅ VIP Support", "✅ Elite Account Quality"]
+        },
+
+        # Instagram Channel Members - 5 Different Quality Packages
+        "2101": {
+            "name": "👥 Instagram Channel Members - 💰 Economy", 
+            "price": "₹240 per 1000 members",
+            "delivery_time": "24-36 hours start, 7-10 days completion",
+            "quality": "Basic Channel Members",
+            "description": "Budget-friendly Instagram channel members for basic community growth. Suitable for new channels starting their member base building journey.",
+            "features": ["✅ Real Channel Members", "✅ Community Building", "✅ Slow Growth Pattern", "✅ Email Support", "⚠️ Basic Member Quality"]
+        },
+        "2102": {
+            "name": "👥 Instagram Channel Members - 📈 Standard",
+            "price": "₹400 per 1000 members",
+            "delivery_time": "12-20 hours start, 4-6 days completion", 
+            "quality": "Standard Channel Members",
+            "description": "Standard Instagram channel members with good engagement potential. Perfect for growing channels that need consistent member addition.",
+            "features": ["✅ Quality Channel Members", "✅ Good Engagement", "✅ Steady Growth", "✅ Chat Support", "✅ Member Retention Focus"]
+        },
+        "2103": {
+            "name": "👥 Instagram Channel Members - ⭐ Premium",
+            "price": "₹600 per 1000 members",
+            "delivery_time": "6-12 hours start, 2-3 days completion",
+            "quality": "Premium Channel Members", 
+            "description": "Premium Instagram channel members with high engagement rates. Active members who participate in channel discussions and content.",
+            "features": ["✅ Premium Channel Members", "✅ High Engagement", "✅ Active Participation", "✅ Priority Support", "✅ Discussion Contributors"]
+        },
+        "2104": {
+            "name": "👥 Instagram Channel Members - 🇮🇳 Indian Premium",
+            "price": "₹720 per 1000 members",
+            "delivery_time": "3-8 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Channel Members",
+            "description": "High-quality Indian Instagram channel members for local community building. Perfect for Hindi channels and regional content creators.",
+            "features": ["✅ 100% Indian Members", "✅ Local Community Focus", "✅ Hindi Channel Support", "✅ Regional Engagement", "✅ Cultural Understanding"]
+        },
+        "2105": {
+            "name": "👥 Instagram Channel Members - 👑 VIP Elite",
+            "price": "₹880 per 1000 members", 
+            "delivery_time": "1-4 hours start, 6-12 hours completion",
+            "quality": "VIP Elite Channel Members",
+            "description": "Ultimate Instagram channel members with maximum engagement and activity. Elite community builders who actively contribute to channel growth.",
+            "features": ["✅ Elite Channel Members", "✅ Maximum Engagement", "✅ Community Leaders", "✅ VIP Support", "✅ Channel Growth Catalysts"]
+        },
+
+        # Instagram Random Comments - 5 Different Quality Packages
+        "2111": {
+            "name": "💬 Instagram Random Comments - 💰 Economy",
+            "price": "₹54 per 1000 comments",
+            "delivery_time": "20-30 hours start, 8-12 days completion",
+            "quality": "Basic Random Comments",
+            "description": "Budget-friendly Instagram random comments for basic engagement boost. Simple pre-written comments from real accounts with slow delivery speed.",
+            "features": ["✅ Real Random Comments", "✅ Pre-Written Messages", "✅ Basic Engagement", "✅ Email Support", "⚠️ Generic Comment Quality"]
+        },
+        "2112": {
+            "name": "💬 Instagram Random Comments - 📈 Standard",
+            "price": "₹90 per 1000 comments",
+            "delivery_time": "12-18 hours start, 5-7 days completion",
+            "quality": "Standard Random Comments",
+            "description": "Standard Instagram random comments with better variety and engagement. Good selection of pre-written comments for consistent interaction.",
+            "features": ["✅ Varied Random Comments", "✅ Better Quality Messages", "✅ Good Engagement", "✅ Chat Support", "✅ Comment Variety"]
+        },
+        "2113": {
+            "name": "💬 Instagram Random Comments - ⭐ Premium",
+            "price": "₹135 per 1000 comments",
+            "delivery_time": "6-12 hours start, 2-4 days completion",
+            "quality": "Premium Random Comments",
+            "description": "Premium Instagram random comments with high-quality messages and better engagement. Thoughtful comments that look natural and engaging.",
+            "features": ["✅ Premium Random Comments", "✅ High-Quality Messages", "✅ Natural Engagement", "✅ Priority Support", "✅ Thoughtful Comments"]
+        },
+        "2114": {
+            "name": "💬 Instagram Random Comments - 🇮🇳 Indian Premium",
+            "price": "₹162 per 1000 comments",
+            "delivery_time": "3-8 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Random Comments",
+            "description": "High-quality Indian Instagram random comments with Hindi/English mix. Perfect for local content with culturally relevant comment messages.",
+            "features": ["✅ Indian Random Comments", "✅ Hindi/English Mix", "✅ Cultural Relevance", "✅ Local Context", "✅ Regional Comments"]
+        },
+        "2115": {
+            "name": "💬 Instagram Random Comments - 👑 VIP Elite",
+            "price": "₹198 per 1000 comments",
+            "delivery_time": "1-4 hours start, 6-12 hours completion",
+            "quality": "VIP Elite Random Comments",
+            "description": "Ultimate Instagram random comments with maximum quality and engagement. Carefully selected comments that boost your post interaction significantly.",
+            "features": ["✅ Elite Random Comments", "✅ Maximum Quality", "✅ High Interaction", "✅ VIP Support", "✅ Engagement Boost"]
+        },
+
+        # Instagram Emoji Comments - 5 Different Quality Packages
+        "2121": {
+            "name": "😀 Instagram Emoji Comments - 💰 Economy",
+            "price": "₹42 per 1000 comments",
+            "delivery_time": "15-25 hours start, 6-9 days completion",
+            "quality": "Basic Emoji Comments",
+            "description": "Cost-effective Instagram emoji comments for basic reaction boost. Simple emoji combinations from real accounts with gradual delivery pattern.",
+            "features": ["✅ Real Emoji Comments", "✅ Basic Emoji Combos", "✅ Simple Reactions", "✅ Email Support", "⚠️ Limited Emoji Variety"]
+        },
+        "2122": {
+            "name": "😀 Instagram Emoji Comments - 📈 Standard",
+            "price": "₹70 per 1000 comments",
+            "delivery_time": "8-15 hours start, 3-5 days completion",
+            "quality": "Standard Emoji Comments",
+            "description": "Standard Instagram emoji comments with good variety and reaction diversity. Balanced emoji engagement for consistent post interaction.",
+            "features": ["✅ Varied Emoji Comments", "✅ Good Emoji Selection", "✅ Reaction Diversity", "✅ Chat Support", "✅ Balanced Engagement"]
+        },
+        "2123": {
+            "name": "😀 Instagram Emoji Comments - ⭐ Premium",
+            "price": "₹105 per 1000 comments",
+            "delivery_time": "4-10 hours start, 1-3 days completion",
+            "quality": "Premium Emoji Comments",
+            "description": "Premium Instagram emoji comments with creative emoji combinations and high engagement. Trending emoji patterns that enhance post appeal.",
+            "features": ["✅ Premium Emoji Comments", "✅ Creative Combinations", "✅ Trending Patterns", "✅ Priority Support", "✅ Enhanced Appeal"]
+        },
+        "2124": {
+            "name": "😀 Instagram Emoji Comments - 🇮🇳 Indian Premium",
+            "price": "₹126 per 1000 comments",
+            "delivery_time": "2-6 hours start, 8-16 hours completion",
+            "quality": "Indian Premium Emoji Comments",
+            "description": "High-quality Indian Instagram emoji comments with locally popular emoji patterns. Perfect for Indian audience with cultural emoji preferences.",
+            "features": ["✅ Indian Emoji Comments", "✅ Local Emoji Trends", "✅ Cultural Patterns", "✅ Regional Preferences", "✅ Popular Combinations"]
+        },
+        "2125": {
+            "name": "😀 Instagram Emoji Comments - 👑 VIP Elite",
+            "price": "₹154 per 1000 comments",
+            "delivery_time": "Instant start, 3-8 hours completion",
+            "quality": "VIP Elite Emoji Comments",
+            "description": "Ultimate Instagram emoji comments with maximum creativity and viral emoji patterns. Premium emoji combinations for maximum post engagement.",
+            "features": ["✅ Elite Emoji Comments", "✅ Maximum Creativity", "✅ Viral Patterns", "✅ VIP Support", "✅ Premium Combinations"]
+        },
+
+        # Previously added Custom Comments (2131-2135) are already above this
+        "2131": {
+            "name": "✍️ Instagram Custom Comments - 💰 Economy",
+            "price": "₹120 per 1000 comments",
+            "delivery_time": "48-72 hours start, 10-15 days completion",
+            "quality": "Basic Custom Comments",
+            "description": "Budget-friendly Instagram custom comments with your provided text. Basic delivery of your custom messages from real accounts with slower speed.",
+            "features": ["✅ Your Custom Text", "✅ Real Account Comments", "✅ Personalized Messages", "✅ Email Support", "⚠️ Slow Delivery Speed"]
+        },
+        "2132": {
+            "name": "✍️ Instagram Custom Comments - 📈 Standard",
+            "price": "₹200 per 1000 comments",
+            "delivery_time": "24-36 hours start, 5-8 days completion",
+            "quality": "Standard Custom Comments",
+            "description": "Standard Instagram custom comments with reliable delivery of your messages. Good balance of speed and quality for personalized engagement.",
+            "features": ["✅ Custom Message Delivery", "✅ Reliable Speed", "✅ Personalized Engagement", "✅ Chat Support", "✅ Quality Accounts"]
+        },
+        "2133": {
+            "name": "✍️ Instagram Custom Comments - ⭐ Premium",
+            "price": "₹300 per 1000 comments",
+            "delivery_time": "12-24 hours start, 2-4 days completion",
+            "quality": "Premium Custom Comments",
+            "description": "Premium Instagram custom comments with fast delivery of your personalized messages. High-quality accounts posting your custom content naturally.",
+            "features": ["✅ Premium Custom Delivery", "✅ Fast Personalization", "✅ Natural Posting", "✅ Priority Support", "✅ High-Quality Accounts"]
+        },
+        "2134": {
+            "name": "✍️ Instagram Custom Comments - 🇮🇳 Indian Premium",
+            "price": "₹360 per 1000 comments",
+            "delivery_time": "6-12 hours start, 12-24 hours completion",
+            "quality": "Indian Premium Custom Comments",
+            "description": "High-quality Indian Instagram custom comments with your personalized Hindi/English messages. Perfect for local audience engagement.",
+            "features": ["✅ Indian Custom Comments", "✅ Hindi/English Support", "✅ Local Engagement", "✅ Cultural Context", "✅ Regional Targeting"]
         }
     }
 
@@ -274,56 +996,103 @@ def get_service_packages(platform: str) -> InlineKeyboardMarkup:
 
     packages = {
         "instagram": [
-            # Basic Instagram Services
-            ("👥 Instagram Followers - Real & Active", "ID:5629"),
-            ("👥 Instagram Followers - Premium Quality", "ID:5630"),
-            ("👥 Instagram Followers - High Retention", "ID:5631"),
-            ("👥 Instagram Followers - Instant Start", "ID:5632"),
-            ("👥 Instagram Followers - Targeted India", "ID:5633"),
-            ("👥 Instagram Followers - Global Mix", "ID:5634"),
+            # Instagram Followers - Multiple Quality Options
+            ("👥 Instagram Followers - 💰 Economy (₹150/1K)", "ID:2001"),
+            ("👥 Instagram Followers - 📈 Standard (₹250/1K)", "ID:2002"),
+            ("👥 Instagram Followers - ⭐ Premium (₹375/1K)", "ID:2003"),
+            ("👥 Instagram Followers - 🇮🇳 Indian Premium (₹450/1K)", "ID:2004"),
+            ("👥 Instagram Followers - 👑 VIP Elite (₹550/1K)", "ID:2005"),
 
-            # Instagram Likes
-            ("❤️ Instagram Post Likes - Real Users", "ID:5635"),
-            ("❤️ Instagram Post Likes - Instant", "ID:5636"),
-            ("❤️ Instagram Post Likes - High Quality", "ID:5637"),
-            ("❤️ Instagram Reel Likes - Viral Boost", "ID:5638"),
-            ("❤️ Instagram Photo Likes - Premium", "ID:5639"),
-            ("❤️ Instagram Video Likes - Fast", "ID:5640"),
+            # Instagram Post Likes - Multiple Quality Options
+            ("❤️ Instagram Post Likes - 💰 Economy (₹18/1K)", "ID:2011"),
+            ("❤️ Instagram Post Likes - 📈 Standard (₹30/1K)", "ID:2012"),
+            ("❤️ Instagram Post Likes - ⭐ Premium (₹45/1K)", "ID:2013"),
+            ("❤️ Instagram Post Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2014"),
+            ("❤️ Instagram Post Likes - 👑 VIP Elite (₹66/1K)", "ID:2015"),
 
-            # Instagram Views
-            ("👁️ Instagram Post Views - Real", "ID:5641"),
-            ("👁️ Instagram Reel Views - Viral", "ID:5642"),
-            ("👁️ Instagram Video Views - High Retention", "ID:5643"),
-            ("👁️ Instagram Profile Views - Organic", "ID:5644"),
-            ("👁️ Instagram IGTV Views - Premium", "ID:5645"),
+            # Instagram Reel Likes - Multiple Quality Options
+            ("❤️ Instagram Reel Likes - 💰 Economy (₹18/1K)", "ID:2021"),
+            ("❤️ Instagram Reel Likes - 📈 Standard (₹30/1K)", "ID:2022"),
+            ("❤️ Instagram Reel Likes - ⭐ Premium (₹45/1K)", "ID:2023"),
+            ("❤️ Instagram Reel Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2024"),
+            ("❤️ Instagram Reel Likes - 👑 VIP Elite (₹66/1K)", "ID:2025"),
 
-            # Instagram Story Services
-            ("📖 Instagram Story Views - Real Users", "ID:5646"),
-            ("📖 Instagram Story Views - Instant", "ID:5647"),
-            ("📖 Instagram Story Views - High Quality", "ID:5648"),
-            ("💖 Instagram Story Likes - Premium", "ID:5649"),
-            ("💖 Instagram Story Likes - Fast Delivery", "ID:5650"),
-            ("⏰ Instagram Story Poll Votes - Real", "ID:5651"),
+            # Instagram Post Views - Multiple Quality Options
+            ("👁️ Instagram Post Views - 💰 Economy (₹12/1K)", "ID:2031"),
+            ("👁️ Instagram Post Views - 📈 Standard (₹20/1K)", "ID:2032"),
+            ("👁️ Instagram Post Views - ⭐ Premium (₹30/1K)", "ID:2033"),
+            ("👁️ Instagram Post Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2034"),
+            ("👁️ Instagram Post Views - 👑 VIP Elite (₹44/1K)", "ID:2035"),
 
-            # Instagram Engagement
-            ("💬 Instagram Comments - Real Users", "ID:5652"),
-            ("💬 Instagram Comments - Custom Text", "ID:5653"),
-            ("💬 Instagram Comments - Positive Only", "ID:5654"),
-            ("💬 Instagram Comments - Random Mix", "ID:5655"),
+            # Instagram Reel Views - Multiple Quality Options
+            ("👁️ Instagram Reel Views - 💰 Economy (₹12/1K)", "ID:2041"),
+            ("👁️ Instagram Reel Views - 📈 Standard (₹20/1K)", "ID:2042"),
+            ("👁️ Instagram Reel Views - ⭐ Premium (₹30/1K)", "ID:2043"),
+            ("👁️ Instagram Reel Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2044"),
+            ("👁️ Instagram Reel Views - 👑 VIP Elite (₹44/1K)", "ID:2045"),
 
-            # Instagram Advanced
-            ("📤 Instagram Shares - Real Accounts", "ID:5656"),
-            ("📤 Instagram Shares - Viral Boost", "ID:5657"),
-            ("💾 Instagram Saves - Bookmark Boost", "ID:5658"),
-            ("💾 Instagram Saves - High Quality", "ID:5659"),
-            ("🔄 Instagram Auto Likes - 30 Days", "ID:5660"),
-            ("🔄 Instagram Auto Views - Monthly", "ID:5661"),
+            # Instagram Story Views - Multiple Quality Options
+            ("📖 Instagram Story Views - 💰 Economy (₹12/1K)", "ID:2051"),
+            ("📖 Instagram Story Views - 📈 Standard (₹20/1K)", "ID:2052"),
+            ("📖 Instagram Story Views - ⭐ Premium (₹30/1K)", "ID:2053"),
+            ("📖 Instagram Story Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2054"),
+            ("📖 Instagram Story Views - 👑 VIP Elite (₹44/1K)", "ID:2055"),
 
-            # Instagram Channel/Business
-            ("👥 Instagram Channel Members", "ID:5662"),
-            ("📊 Instagram Reach Boost", "ID:5663"),
-            ("🎯 Instagram Impressions", "ID:5664"),
-            ("⭐ Instagram Profile Visits", "ID:5665")
+            # Instagram Story Likes - Multiple Quality Options
+            ("💖 Instagram Story Likes - 💰 Economy (₹18/1K)", "ID:2061"),
+            ("💖 Instagram Story Likes - 📈 Standard (₹30/1K)", "ID:2062"),
+            ("💖 Instagram Story Likes - ⭐ Premium (₹45/1K)", "ID:2063"),
+            ("💖 Instagram Story Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2064"),
+            ("💖 Instagram Story Likes - 👑 VIP Elite (₹66/1K)", "ID:2065"),
+
+            # Instagram Story Link Clicks - Multiple Quality Options
+            ("🔗 Instagram Story Link Clicks - 💰 Economy (₹90/1K)", "ID:2071"),
+            ("🔗 Instagram Story Link Clicks - 📈 Standard (₹150/1K)", "ID:2072"),
+            ("🔗 Instagram Story Link Clicks - ⭐ Premium (₹225/1K)", "ID:2073"),
+            ("🔗 Instagram Story Link Clicks - 🇮🇳 Indian Premium (₹270/1K)", "ID:2074"),
+            ("🔗 Instagram Story Link Clicks - 👑 VIP Elite (₹330/1K)", "ID:2075"),
+
+            # Instagram Post Shares - Multiple Quality Options
+            ("📤 Instagram Post Shares - 💰 Economy (₹8/1K)", "ID:2081"),
+            ("📤 Instagram Post Shares - 📈 Standard (₹13.50/1K)", "ID:2082"),
+            ("📤 Instagram Post Shares - ⭐ Premium (₹20/1K)", "ID:2083"),
+            ("📤 Instagram Post Shares - 🇮🇳 Indian Premium (₹24/1K)", "ID:2084"),
+            ("📤 Instagram Post Shares - 👑 VIP Elite (₹30/1K)", "ID:2085"),
+
+            # Instagram Reel Shares - Multiple Quality Options
+            ("📤 Instagram Reel Shares - 💰 Economy (₹8/1K)", "ID:2091"),
+            ("📤 Instagram Reel Shares - 📈 Standard (₹13.50/1K)", "ID:2092"),
+            ("📤 Instagram Reel Shares - ⭐ Premium (₹20/1K)", "ID:2093"),
+            ("📤 Instagram Reel Shares - 🇮🇳 Indian Premium (₹24/1K)", "ID:2094"),
+            ("📤 Instagram Reel Shares - 👑 VIP Elite (₹30/1K)", "ID:2095"),
+
+            # Instagram Channel Members - Multiple Quality Options
+            ("👥 Instagram Channel Members - 💰 Economy (₹720/1K)", "ID:2101"),
+            ("👥 Instagram Channel Members - 📈 Standard (₹1200/1K)", "ID:2102"),
+            ("👥 Instagram Channel Members - ⭐ Premium (₹1800/1K)", "ID:2103"),
+            ("👥 Instagram Channel Members - 🇮🇳 Indian Premium (₹2160/1K)", "ID:2104"),
+            ("👥 Instagram Channel Members - 👑 VIP Elite (₹2640/1K)", "ID:2105"),
+
+            # Instagram Random Comments - Multiple Quality Options
+            ("💬 Instagram Random Comments - 💰 Economy (₹270/1K)", "ID:2111"),
+            ("💬 Instagram Random Comments - 📈 Standard (₹450/1K)", "ID:2112"),
+            ("💬 Instagram Random Comments - ⭐ Premium (₹675/1K)", "ID:2113"),
+            ("💬 Instagram Random Comments - 🇮🇳 Indian Premium (₹810/1K)", "ID:2114"),
+            ("💬 Instagram Random Comments - 👑 VIP Elite (₹990/1K)", "ID:2115"),
+
+            # Instagram Emoji Comments - Multiple Quality Options
+            ("😊 Instagram Emoji Comments - 💰 Economy (₹230/1K)", "ID:2121"),
+            ("😊 Instagram Emoji Comments - 📈 Standard (₹380/1K)", "ID:2122"),
+            ("😊 Instagram Emoji Comments - ⭐ Premium (₹570/1K)", "ID:2123"),
+            ("😊 Instagram Emoji Comments - 🇮🇳 Indian Premium (₹684/1K)", "ID:2124"),
+            ("😊 Instagram Emoji Comments - 👑 VIP Elite (₹836/1K)", "ID:2125"),
+
+            # Instagram Custom Comments - Multiple Quality Options
+            ("💬 Instagram Custom Comments - 💰 Economy (₹240/1K)", "ID:2131"),
+            ("💬 Instagram Custom Comments - 📈 Standard (₹400/1K)", "ID:2132"),
+            ("💬 Instagram Custom Comments - ⭐ Premium (₹600/1K)", "ID:2133"),
+            ("💬 Instagram Custom Comments - 🇮🇳 Indian Premium (₹720/1K)", "ID:2134"),
+            ("💬 Instagram Custom Comments - 👑 VIP Elite (₹880/1K)", "ID:2135")
         ],
 
         "facebook": [
@@ -599,18 +1368,13 @@ def get_service_packages(platform: str) -> InlineKeyboardMarkup:
     platform_packages = packages.get(platform, [])
 
     # Add packages in rows of 1 (limit to first 15 to avoid size issues)
-    for package_name, service_id in platform_packages[:15]:
+    # Show all packages without limit
+    for package_name, service_id in platform_packages:
         keyboard.append([
             InlineKeyboardButton(
                 text=package_name, 
                 callback_data=f"package_{platform}_{service_id.replace('ID:', '')}"
             )
-        ])
-    
-    # Add "More Services" if more than 15 packages exist
-    if len(platform_packages) > 15:
-        keyboard.append([
-            InlineKeyboardButton(text="📋 More Services", callback_data=f"more_{platform}")
         ])
 
     # Add back button
@@ -845,6 +1609,59 @@ def register_service_handlers(dp, require_account):
         await callback.answer()
 
     # ========== ADMIN PANEL HANDLERS ==========
+    @dp.callback_query(F.data == "more_services")
+    async def cb_more_services(callback: CallbackQuery):
+        """Handle more services menu for additional platforms and tools"""
+        if not callback.message:
+            return
+
+        text = """
+🌟 <b>More Services & Features</b>
+
+🚀 <b>Additional Services Coming Soon!</b>
+
+📱 <b>More Platforms:</b>
+• 📱 Snapchat Services
+• 🎬 TikTok Advanced
+• 📺 YouTube Premium
+• 🔴 Pinterest Marketing
+• 📧 Email Marketing
+• 💼 Business Solutions
+
+⚡ <b>Advanced Features:</b>
+• 🤖 AI Content Generation
+• 📊 Analytics Dashboard
+• 🎯 Target Audience Analysis
+• 📈 Growth Strategy Consultation
+• 🎪 Event Promotion Services
+• 💡 Custom Package Creation
+
+🔧 <b>Professional Tools:</b>
+• 📋 Bulk Order Management
+• ⏰ Scheduled Campaigns
+• 📊 Performance Tracking
+• 🎨 Content Creation Tools
+• 📞 Priority Support
+• 💎 VIP Account Features
+
+💡 <b>यह सभी services development में हैं और जल्द ही available होंगी!</b>
+
+📞 <b>Custom Requirements:</b> Contact @tech_support_admin
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📞 Request Custom Service", url="https://t.me/tech_support_admin"),
+                InlineKeyboardButton(text="🔔 Get Notified", callback_data="notify_new_services")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Back to Services", callback_data="new_order")
+            ]
+        ])
+
+        await safe_edit_message(callback, text, keyboard)
+        await callback.answer()
+
     @dp.callback_query(F.data == "admin_panel")
     async def cb_admin_panel(callback: CallbackQuery):
         """Handle admin panel main menu"""
@@ -1029,6 +1846,48 @@ def register_service_handlers(dp, require_account):
     async def cb_admin_confirm_broadcast(callback: CallbackQuery):
         """Handle broadcast confirmation"""
         await handle_admin_broadcast_confirm(callback)
+
+    @dp.callback_query(F.data == "notify_new_services")
+    async def cb_notify_new_services(callback: CallbackQuery):
+        """Handle notification signup for new services"""
+        if not callback.message:
+            return
+
+        text = """
+🔔 <b>Get Notified for New Services</b>
+
+✅ <b>Notification Subscription Successful!</b>
+
+📢 <b>आपको notification मिलेंगी जब:</b>
+• New platforms add होंगे
+• Advanced features launch होंगे  
+• Special offers available होंगे
+• Premium tools release होंगे
+
+📱 <b>Notification Methods:</b>
+• Direct Telegram message
+• Bot announcements
+• Channel updates
+• Email alerts (future)
+
+🎉 <b>Thank you for your interest!</b>
+हम जल्द ही exciting new services launch करने वाले हैं।
+
+🔔 <b>Stay tuned for updates!</b>
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="💬 Join Channel", url="https://t.me/IndiaSocialPanelOfficial"),
+                InlineKeyboardButton(text="📞 Contact", url="https://t.me/tech_support_admin")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Back", callback_data="more_services")
+            ]
+        ])
+
+        await safe_edit_message(callback, text, keyboard)
+        await callback.answer("🔔 Notifications enabled!", show_alert=True)
 
     @dp.callback_query(F.data.startswith("admin_"))
     async def cb_admin_fallback(callback: CallbackQuery):
