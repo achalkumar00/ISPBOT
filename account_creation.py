@@ -313,7 +313,8 @@ def register_account_creation_handlers():
 
         # Register message handlers for account creation
         dp.message.register(handle_contact_sharing, F.contact)
-        # Note: Text handler is managed by main.py wrapper
+        
+        print("✅ Account creation handlers registered successfully")
 
 # ========== ACTUAL ACCOUNT CREATION HANDLERS ==========
 async def cb_login_account(callback: CallbackQuery):
@@ -576,23 +577,32 @@ async def cb_share_telegram_contact(callback: CallbackQuery):
 # ========== CONTACT HANDLERS ==========
 async def handle_contact_sharing(message):
     """Handle shared contact for phone number"""
+    print(f"📞 Contact received from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
     if not message.from_user or not message.contact:
+        print("❌ No user or contact found in message")
         return
 
     # Check if message is old (sent before bot restart)
     if is_message_old(message):
+        print(f"⏰ Contact message is old, marking user {message.from_user.id} for notification")
         mark_user_for_notification(message.from_user.id)
         return  # Ignore old messages
 
     user_id = message.from_user.id
     contact = message.contact
     current_step = user_state.get(user_id, {}).get("current_step")
+    
+    print(f"🔍 Contact DEBUG: User {user_id} current_step: {current_step}")
+    print(f"🔍 Contact DEBUG: Contact user_id: {contact.user_id}")
+    print(f"🔍 Contact DEBUG: Contact phone: {contact.phone_number}")
 
     if current_step == "waiting_contact_permission":
         # User shared their contact
         if contact.user_id == user_id:
             # Contact belongs to the same user
             phone_number = contact.phone_number
+            print(f"✅ Contact belongs to user, phone: {phone_number}")
 
             # Ensure phone starts with + for international format
             if not phone_number.startswith('+'):
@@ -601,6 +611,8 @@ async def handle_contact_sharing(message):
             # Store phone number and move to next step
             user_state[user_id]["data"]["phone_number"] = phone_number
             user_state[user_id]["current_step"] = "waiting_email"
+            
+            print(f"✅ Updated user_state for {user_id}: {user_state[user_id]}")
 
             # Remove contact keyboard
             from aiogram.types import ReplyKeyboardRemove
@@ -621,6 +633,7 @@ async def handle_contact_sharing(message):
 """
 
             await message.answer(success_text, reply_markup=ReplyKeyboardRemove())
+            print(f"✅ Email step message sent to user {user_id}")
 
         else:
             # User shared someone else's contact
@@ -650,7 +663,41 @@ async def handle_contact_sharing(message):
             await message.answer("💡 <b>Choose an option:</b>", reply_markup=manual_keyboard)
 
     else:
-        # Contact shared without proper context
+        # Contact shared without proper context or step mismatch
+        print(f"⚠️ Contact shared but current_step is {current_step}")
+        
+        # Force process contact if user is in any account creation flow
+        if current_step in ["waiting_contact_permission", "choosing_phone_option", None]:
+            print(f"🔄 Force processing contact for user {user_id}")
+            
+            # Force set to contact permission step and process
+            user_state[user_id]["current_step"] = "waiting_contact_permission" 
+            
+            # Process contact
+            if contact.user_id == user_id:
+                phone_number = contact.phone_number
+                if not phone_number.startswith('+'):
+                    phone_number = f"+{phone_number}"
+
+                user_state[user_id]["data"]["phone_number"] = phone_number
+                user_state[user_id]["current_step"] = "waiting_email"
+
+                from aiogram.types import ReplyKeyboardRemove
+                success_text = f"""
+✅ <b>Contact Successfully Processed!</b>
+
+📱 <b>Phone Number:</b> {phone_number}
+
+📝 <b>Account Creation - Step 3/3</b>
+
+📧 <b>कृपया अपना Email Address भेजें:</b>
+
+⚠️ <b>Example:</b> your.email@gmail.com
+💬 <b>Instruction:</b> अपना email address type करके भेज दें
+"""
+                await message.answer(success_text, reply_markup=ReplyKeyboardRemove())
+                return
+
         text = """
 📱 <b>Contact Received</b>
 
@@ -674,12 +721,44 @@ async def handle_text_input(message):
         return  # Ignore old messages
 
     user_id = message.from_user.id
+    text = message.text.strip()
 
     # Check if user is in account creation flow
     current_step = user_state.get(user_id, {}).get("current_step")
+    
+    print(f"🔍 ACCOUNT_CREATION DEBUG: User {user_id} sent text: '{text}'")
+    print(f"🔍 ACCOUNT_CREATION DEBUG: User {user_id} current_step: {current_step}")
+    print(f"🔍 ACCOUNT_CREATION DEBUG: Full user_state for {user_id}: {user_state.get(user_id, {})}")
+
+    # Handle cancel & enter manually for contact sharing
+    if current_step == "waiting_contact_permission" and text == "❌ Cancel & Enter Manually":
+        user_state[user_id]["current_step"] = "waiting_manual_phone"
+        
+        text = """
+✏️ <b>Manual Phone Entry</b>
+
+📝 <b>Account Creation - Step 2/3</b>
+
+📱 <b>कृपया अपना Phone Number भेजें:</b>
+
+⚠️ <b>Format Rules:</b>
+• Must start with +91 (India)
+• Total 13 characters
+• Only numbers after +91
+• No spaces or special characters
+
+💬 <b>Examples:</b>
+• +919876543210 ✅
+• +91 9876543210 ❌ (space not allowed)
+• 9876543210 ❌ (country code missing)
+
+📤 <b>अपना complete phone number type करके भेज दें:</b>
+"""
+        await message.answer(text)
+        return
 
     # Only handle account creation related steps, ignore others
-    account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token"]
+    account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token", "waiting_contact_permission"]
 
     if current_step not in account_creation_steps:
         return  # Let other handlers deal with non-account creation text
