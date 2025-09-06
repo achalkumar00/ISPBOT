@@ -176,19 +176,19 @@ async def send_admin_notification(order_record: Dict[str, Any]):
         link = order_record.get('link', 'N/A')
         service_id = order_record.get('service_id', 'N/A')
         created_at = order_record.get('created_at', '')
-        
+
         # Get user info if available - with better fallback
         user_info = users_data.get(user_id, {})
         username = user_info.get('username', '')
         first_name = user_info.get('first_name', '')
         full_name = user_info.get('full_name', '')
         phone = user_info.get('phone_number', '')
-        
+
         # Use better display values
         display_username = f"@{username}" if username else "No Username"
         display_name = full_name or first_name or "No Name Set"
         display_phone = phone if phone else "No Phone Set"
-        
+
         print(f"📊 DEBUG: User {user_id} info - username: {username}, first_name: {first_name}, full_name: {full_name}, phone: {phone}")
 
         if order_id: # Notification for new order with screenshot
@@ -537,6 +537,14 @@ async def cmd_start(message: Message):
         return  # Ignore old messages
 
     init_user(user.id, user.username or "", user.first_name or "")
+
+    # Auto-complete account for admin users to avoid conflicts
+    if is_admin(user.id) and not is_account_created(user.id):
+        users_data[user.id]['account_created'] = True
+        users_data[user.id]['full_name'] = user.first_name or "Admin"
+        users_data[user.id]['email'] = "admin@indiasocialpanel.com"
+        users_data[user.id]['phone_number'] = "+91XXXXXXXXXX"
+        print(f"🔧 Auto-completed admin account for user {user.id}")
 
     # Check if account is created
     if is_account_created(user.id):
@@ -983,7 +991,7 @@ async def cb_offers_rewards(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "admin_panel")
 async def cb_admin_panel(callback: CallbackQuery):
-    """Handle admin panel access"""
+    """Handle admin panel access - redirect to services.py admin panel"""
     if not callback.message or not callback.from_user:
         return
 
@@ -1006,24 +1014,21 @@ Unauthorized access attempts are logged and monitored.
 
         await safe_edit_message(callback, text, back_keyboard)
     else:
-        # Admin menu will be implemented here
+        # Import admin menu from services.py
+        from services import get_admin_main_menu, get_bot_status_info
+        
+        # Show proper admin panel with all buttons
         text = """
-👑 <b>Admin Panel</b>
+👑 <b>India Social Panel - Admin Control Center</b>
 
-🔧 <b>System Controls Available</b>
+🎯 <b>Welcome Admin!</b> Choose your action below:
 
-📊 <b>Stats:</b>
-• Total Users: 0
-• Total Orders: 0
-• Today's Revenue: ₹0.00
-
-⚙️ <b>Admin features coming soon...</b>
+🚀 <b>Full administrative access granted</b>
+📊 <b>All systems operational</b>
 """
-        back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")]
-        ])
-
-        await safe_edit_message(callback, text, back_keyboard)
+        
+        admin_menu = get_admin_main_menu()
+        await safe_edit_message(callback, text, admin_menu)
 
     await callback.answer()
 
@@ -3143,11 +3148,11 @@ async def cb_admin_order_details(callback: CallbackQuery):
     global orders_data, order_temp
     print(f"🔍 DEBUG: Details - Looking for order {order_id}")
     print(f"🔍 DEBUG: Details - orders_data has {len(orders_data)} orders")
-    
+
     # Check if we can access the order from different sources
     order_found = False
     order = None
-    
+
     if order_id in orders_data:
         order = orders_data[order_id]
         order_found = True
@@ -3159,11 +3164,11 @@ async def cb_admin_order_details(callback: CallbackQuery):
                 order_found = True
                 orders_data[order_id] = temp_order  # Store back
                 break
-    
+
     if not order_found:
         await callback.answer("❌ Order not found!", show_alert=True)
         return
-    
+
     details_text = f"""
 📊 <b>Order Complete Details</b>
 
@@ -3182,7 +3187,7 @@ async def cb_admin_order_details(callback: CallbackQuery):
 • Service ID: {order.get('service_id', 'N/A')}
 • Payment Status: {order.get('payment_status', 'pending')}
 """
-    
+
     # Create management buttons
     details_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -3212,7 +3217,7 @@ async def cb_admin_order_details(callback: CallbackQuery):
             )
         ]
     ])
-    
+
     await safe_edit_message(callback, details_text, details_keyboard)
     await callback.answer("Order details loaded")
 
@@ -3228,13 +3233,13 @@ async def cb_admin_user_profile(callback: CallbackQuery):
         return
 
     target_user_id = int(callback.data.replace("admin_profile_", ""))
-    
+
     if target_user_id not in users_data:
         await callback.answer("❌ User not found!", show_alert=True)
         return
-    
+
     user = users_data[target_user_id]
-    
+
     profile_text = f"""
 👤 <b>User Profile Details</b>
 
@@ -3250,7 +3255,7 @@ async def cb_admin_user_profile(callback: CallbackQuery):
 📅 <b>Joined:</b> {format_time(user.get('join_date', ''))}
 ⚡ <b>Status:</b> {user.get('status', 'active').title()}
 """
-    
+
     await callback.answer(profile_text, show_alert=True)
 
 @dp.callback_query(F.data.startswith("admin_refresh_"))
@@ -3265,16 +3270,16 @@ async def cb_admin_refresh_status(callback: CallbackQuery):
         return
 
     order_id = callback.data.replace("admin_refresh_", "")
-    
+
     # Debug info for refresh button - check all sources
     global orders_data, order_temp
     print(f"🔍 DEBUG: Refresh - Looking for order {order_id}")
     print(f"🔍 DEBUG: Refresh - orders_data has {len(orders_data)} orders")
-    
+
     # Check if we can access the order from different sources
     order_found = False
     order = None
-    
+
     if order_id in orders_data:
         order = orders_data[order_id]
         order_found = True
@@ -3286,12 +3291,12 @@ async def cb_admin_refresh_status(callback: CallbackQuery):
                 order_found = True
                 orders_data[order_id] = temp_order  # Store back
                 break
-    
+
     if not order_found:
         await callback.answer("❌ Order not found!", show_alert=True)
         return
     current_status = order.get('status', 'pending')
-    
+
     await callback.answer(f"🔄 Order {order_id} - Current Status: {current_status.title()}", show_alert=True)
 @dp.callback_query(F.data.startswith("admin_complete_"))
 async def cb_admin_complete_order(callback: CallbackQuery):
@@ -3311,11 +3316,11 @@ async def cb_admin_complete_order(callback: CallbackQuery):
     print(f"🔍 DEBUG: Complete Order - Looking for order {order_id}")
     print(f"🔍 DEBUG: Complete Order - Global orders_data has {len(orders_data)} orders")
     print(f"🔍 DEBUG: Complete Order - Available orders: {list(orders_data.keys())}")
-    
+
     # Check if we can access the order from different sources
     order_found = False
     order = None
-    
+
     if order_id in orders_data:
         order = orders_data[order_id]
         order_found = True
@@ -3330,7 +3335,7 @@ async def cb_admin_complete_order(callback: CallbackQuery):
                 # Also store it back in orders_data
                 orders_data[order_id] = temp_order
                 break
-    
+
     if not order_found:
         await callback.answer("❌ Order not found in any storage!", show_alert=True)
         return
@@ -3518,11 +3523,11 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
     # Get order details - check all possible sources
     global orders_data, order_temp
     print(f"🔍 DEBUG: Cancel Reason - Looking for order {order_id}")
-    
+
     # Check if we can access the order from different sources
     order_found = False
     order = None
-    
+
     if order_id in orders_data:
         order = orders_data[order_id]
         order_found = True
@@ -3534,7 +3539,7 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
                 order_found = True
                 orders_data[order_id] = temp_order  # Store back
                 break
-    
+
     if not order_found:
         await callback.answer("❌ Order not found!", show_alert=True)
         return
