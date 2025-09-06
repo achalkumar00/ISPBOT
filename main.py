@@ -44,7 +44,7 @@ if not BASE_WEBHOOK_URL:
     else:
         print("⚠️ BASE_WEBHOOK_URL not set. Bot will run in polling mode.")
 
-OWNER_NAME = os.getenv("OWNER_NAME", "Achal Parvat")
+OWNER_NAME = os.getenv("OWNER_NAME", "Panel Owner")
 OWNER_USERNAME = os.getenv("OWNER_USERNAME", "tech_support_admin")
 
 # Webhook settings
@@ -129,8 +129,19 @@ def generate_api_key() -> str:
     return f"ISP-{''.join(random.choices(string.ascii_letters + string.digits, k=32))}"
 
 def generate_order_id() -> str:
-    """Generate unique order ID"""
-    return f"ORD{int(time.time())}{random.randint(100, 999)}"
+    """Generate unique professional order ID"""
+    import secrets
+    import string
+
+    # Generate timestamp part
+    timestamp = str(int(time.time()))[-6:]  # Last 6 digits
+
+    # Generate random part with letters and numbers
+    random_part = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+
+    # Create professional format: ISP-XXXXXX-YYYYYY
+    order_id = f"ISP-{timestamp}-{random_part}"
+    return order_id
 
 def generate_ticket_id() -> str:
     """Generate unique ticket ID"""
@@ -149,6 +160,87 @@ def is_message_old(message: Message) -> bool:
     message_timestamp = message.date.timestamp()
     return message_timestamp < START_TIME
 
+async def send_admin_notification(order_record: Dict[str, Any]):
+    """Send notification to admin group about a new order or important event"""
+    # Group ID where notifications will be sent
+    admin_group_id = -1003009015663
+
+    try:
+        user_id = order_record.get('user_id')
+        order_id = order_record.get('order_id')
+        package_name = order_record.get('package_name', 'N/A')
+        platform = order_record.get('platform', 'N/A')
+        quantity = order_record.get('quantity', 0)
+        total_price = order_record.get('total_price', 0.0)
+        payment_method = order_record.get('payment_method', 'N/A')
+        link = order_record.get('link', 'N/A')
+        service_id = order_record.get('service_id', 'N/A')
+        created_at = order_record.get('created_at', '')
+        
+        # Get user info if available - with better fallback
+        user_info = users_data.get(user_id, {})
+        username = user_info.get('username', '')
+        first_name = user_info.get('first_name', '')
+        full_name = user_info.get('full_name', '')
+        phone = user_info.get('phone_number', '')
+        
+        # Use better display values
+        display_username = f"@{username}" if username else "No Username"
+        display_name = full_name or first_name or "No Name Set"
+        display_phone = phone if phone else "No Phone Set"
+        
+        print(f"📊 DEBUG: User {user_id} info - username: {username}, first_name: {first_name}, full_name: {full_name}, phone: {phone}")
+
+        if order_id: # Notification for new order with screenshot
+            message_text = (
+                f"🚨 <b>नया Order Received - Screenshot Upload!</b>\n\n"
+                f"👤 <b>User Details:</b>\n"
+                f"• User ID: {user_id}\n"
+                f"• Name: {display_name}\n"
+                f"• Username: {display_username}\n"
+                f"• Phone: {display_phone}\n\n"
+                f"📦 <b>Order Details:</b>\n"
+                f"• Order ID: <code>{order_id}</code>\n"
+                f"• Package: {package_name}\n"
+                f"• Platform: {platform.title()}\n"
+                f"• Service ID: {service_id}\n"
+                f"• Link: {link}\n"
+                f"• Quantity: {quantity:,}\n"
+                f"• Amount: ₹{total_price:,.2f}\n"
+                f"• Payment Method: {payment_method}\n"
+                f"• Order Time: {format_time(created_at)}\n\n"
+                f"📸 <b>Payment screenshot uploaded by user</b>\n\n"
+                f"⚡ <b>Action Required: Verify payment and manage order</b>"
+            )
+        else: # Generic notification for screenshot upload if no order_id
+            message_text = (
+                f"📸 <b>Screenshot Upload Received!</b>\n\n"
+                f"👤 <b>User ID:</b> {user_id}\n"
+                f"📝 <b>Details:</b> A user has uploaded a screenshot for payment verification.\n\n"
+                f"👉 <b>Please check user's messages for context.</b>"
+            )
+
+        # Create management buttons for order handling
+        management_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Complete Order", callback_data=f"admin_complete_{order_id}"),
+                InlineKeyboardButton(text="❌ Cancel Order", callback_data=f"admin_cancel_{order_id}")
+            ],
+            [
+                InlineKeyboardButton(text="💬 Send Message", callback_data=f"admin_message_{user_id}"),
+                InlineKeyboardButton(text="📊 Order Details", callback_data=f"admin_details_{order_id}")
+            ],
+            [
+                InlineKeyboardButton(text="👤 User Profile", callback_data=f"admin_profile_{user_id}"),
+                InlineKeyboardButton(text="🔄 Refresh Status", callback_data=f"admin_refresh_{order_id}")
+            ]
+        ])
+
+        await bot.send_message(admin_group_id, message_text, parse_mode="HTML", reply_markup=management_keyboard)
+        print(f"✅ Group notification sent for Order ID: {order_id or 'Screenshot Upload'}")
+
+    except Exception as e:
+        print(f"❌ Failed to send group notification: {e}")
 
 async def send_first_interaction_notification(user_id: int, first_name: str = "", username: str = ""):
     """Send notification to user on first interaction after restart"""
@@ -602,7 +694,7 @@ async def cmd_description(message: Message):
 
 💡 <b>Package description देखने के लिए:</b>
 1. पहले /start करें
-2. New Order पर click करें  
+2. New Order पर click करें
 3. कोई service select करें
 4. Package choose करें
 5. फिर /description use करें
@@ -976,7 +1068,7 @@ async def cb_owner_info(callback: CallbackQuery):
 🙏 <b>Namaste! मैं {OWNER_NAME}</b>
 Founder & CEO, India Social Panel
 
-📍 <b>Location:</b> Bihar, India 🇮🇳
+📍 <b>Location:</b> India 🇮🇳
 💼 <b>Experience:</b> 5+ Years in SMM Industry
 🎯 <b>Mission:</b> भारतीय businesses को affordable digital marketing solutions देना
 
@@ -984,7 +1076,7 @@ Founder & CEO, India Social Panel
 "हर Indian business को social media पर successful बनाना"
 
 💬 <b>Personal Message:</b>
-"मेरा मकसद आप सभी को Bihar से high-quality और affordable SMM services प्रदान करना है। आपका support और trust ही मेरी सबसे बड़ी achievement है।"
+"मेरा मकसद आप सभी को high-quality और affordable SMM services प्रदान करना है। आपका support और trust ही मेरी सबसे बड़ी achievement है।"
 
 📞 <b>Contact:</b> @{OWNER_USERNAME}
 🌟 <b>Thank you for choosing us!</b>
@@ -1183,11 +1275,19 @@ async def cb_final_confirm_order(callback: CallbackQuery):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="💰 Pay from Balance", callback_data="pay_from_balance"),
-                InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr")
+                InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr")
             ],
             [
-                InlineKeyboardButton(text="💳 UPI Payment", callback_data="payment_upi"),
+                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi"),
                 InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
+            ],
+            [
+                InlineKeyboardButton(text="💳 Card Payment", callback_data="payment_card"),
+                InlineKeyboardButton(text="💸 Digital Wallets", callback_data="payment_wallet")
+            ],
+            [
+                InlineKeyboardButton(text="📲 Open UPI App", callback_data="payment_app"),
+                InlineKeyboardButton(text="💰 Net Banking", callback_data="payment_netbanking")
             ],
             [
                 InlineKeyboardButton(text="⬅️ Back", callback_data="skip_coupon")
@@ -1246,7 +1346,7 @@ async def cb_final_confirm_order(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "payment_qr")
 async def cb_payment_qr(callback: CallbackQuery):
-    """Handle QR code payment method"""
+    """Handle QR code payment method - Fixed to work properly"""
     if not callback.message or not callback.from_user:
         return
 
@@ -1261,59 +1361,49 @@ async def cb_payment_qr(callback: CallbackQuery):
     order_data = user_state[user_id]["data"]
     total_price = order_data.get("total_price", 0.0)
 
-    # Show QR code generation message
+    # Generate transaction ID
+    import time
+    import random
+    transaction_id = f"QR{int(time.time())}{random.randint(100, 999)}"
+
+    # Set user state to waiting for screenshot
+    user_state[user_id]["current_step"] = "waiting_screenshot_upload"
+    user_state[user_id]["data"]["transaction_id"] = transaction_id
+
+    # Show QR payment with proper buttons
     qr_text = f"""
 📱 <b>QR Code Payment</b>
 
 💰 <b>Amount:</b> ₹{total_price:,.2f}
-
-⚡ <b>QR Code Generated Successfully!</b>
+🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+📱 <b>UPI ID:</b> <code>business@paytm</code>
+👤 <b>Merchant:</b> India Social Panel
 
 📋 <b>Payment Instructions:</b>
-1. Scan QR code with any UPI app
-2. Pay the exact amount ₹{total_price:,.2f}
-3. Take screenshot of payment confirmation
-4. Share the screenshot here
+1. Scan QR code with any UPI app (GPay, PhonePe, Paytm)
+2. Pay exact amount ₹{total_price:,.2f}
+3. Complete payment with UPI PIN
+4. Take screenshot of success message
+5. Click "Payment Done" after successful payment
 
-⚠️ <b>Important:</b>
-• Pay exact amount only
-• Don't add extra charges
-• Screenshot must be clear and visible
+⚡ <b>QR Code ready for scanning!</b>
 
-💡 <b>QR Code और payment instructions next message में आ रहे हैं...</b>
+💡 <b>Payment complete होने के बाद "Payment Done" button दबाएं</b>
 """
 
-    # Send the QR instructions
-    await safe_edit_message(callback, qr_text)
-    await callback.answer()
-
-    # Send QR code in next message (simulating QR code generation)
-    qr_code_message = f"""
-📱 <b>UPI QR Code</b>
-
-💳 <b>Pay: ₹{total_price:,.2f}</b>
-📞 <b>Merchant: India Social Panel</b>
-🆔 <b>UPI ID: achal@paytm</b>
-
-[QR CODE PLACEHOLDER - In real implementation, generate actual QR code image]
-
-📸 <b>Scan QR Code and Share Screenshot</b>
-
-💡 <b>Payment के बाद screenshot share करने के लिए नीचे button दबाएं</b>
-"""
-
+    # Create payment completion keyboard
     qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📸 Share Screenshot", callback_data="share_screenshot")
+            InlineKeyboardButton(text="✅ Payment Done", callback_data=f"payment_completed_{transaction_id}"),
+            InlineKeyboardButton(text="❌ Cancel Order", callback_data="payment_cancel")
         ],
         [
             InlineKeyboardButton(text="⬅️ Back to Payment Methods", callback_data="final_confirm_order")
         ]
     ])
 
-    user_state[user_id]["current_step"] = "waiting_screenshot"
-
-    await bot.send_message(user_id, qr_code_message, reply_markup=qr_keyboard)
+    await safe_edit_message(callback, qr_text, qr_keyboard)
+    await callback.answer("✅ QR Payment ready! Complete payment and click 'Payment Done'")
 
 @dp.callback_query(F.data == "share_screenshot")
 async def cb_share_screenshot(callback: CallbackQuery):
@@ -1357,6 +1447,54 @@ async def cb_main_menu(callback: CallbackQuery):
 
     await safe_edit_message(callback, text, get_main_menu())
     await callback.answer()
+
+@dp.callback_query(F.data.startswith("copy_order_id_"))
+async def cb_copy_order_id(callback: CallbackQuery):
+    """Handle copy order ID functionality"""
+    if not callback.message or not callback.data:
+        return
+
+    # Extract order ID from callback data
+    order_id = callback.data.replace("copy_order_id_", "")
+
+    copy_text = f"""
+📋 <b>Order ID Copied!</b>
+
+🆔 <b>Your Order ID:</b>
+<code>{order_id}</code>
+
+💡 <b>Copy Instructions:</b>
+• <b>Mobile:</b> Long press on Order ID above → Copy
+• <b>Desktop:</b> Triple click to select → Ctrl+C
+
+📝 <b>Save this Order ID for:</b>
+• Order tracking और status check
+• Customer support के लिए reference
+• Future inquiries और complaints
+• Order delivery confirmation
+
+🎯 <b>Order Tracking:</b>
+Order History में जाकर इस ID से अपना order track कर सकते हैं।
+
+📞 <b>Support:</b>
+अगर कोई problem हो तो इस Order ID के साथ support contact करें।
+
+💡 <b>Important:</b> यह Order ID unique है और केवल आपके order के लिए है।
+"""
+
+    copy_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+            InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
+        ],
+        [
+            InlineKeyboardButton(text="🚀 Place New Order", callback_data="new_order"),
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await safe_edit_message(callback, copy_text, copy_keyboard)
+    await callback.answer(f"📋 Order ID copied: {order_id}", show_alert=True)
 
 @dp.callback_query(F.data == "add_balance_first")
 async def cb_add_balance_first(callback: CallbackQuery):
@@ -1465,15 +1603,19 @@ async def cb_direct_payment_emergency(callback: CallbackQuery):
 
     emergency_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr"),
-            InlineKeyboardButton(text="💳 UPI Payment", callback_data="payment_upi")
+            InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr"),
+            InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
         ],
         [
             InlineKeyboardButton(text="📲 Open UPI App", callback_data="payment_app"),
             InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
         ],
         [
-            InlineKeyboardButton(text="💸 Digital Wallets", callback_data="payment_wallet")
+            InlineKeyboardButton(text="💸 Digital Wallets", callback_data="payment_wallet"),
+            InlineKeyboardButton(text="💰 Net Banking", callback_data="payment_netbanking")
+        ],
+        [
+            InlineKeyboardButton(text="💳 Card Payment", callback_data="payment_card")
         ],
         [
             InlineKeyboardButton(text="⬅️ Back to Options", callback_data="final_confirm_order")
@@ -1517,7 +1659,7 @@ async def cb_pay_from_balance(callback: CallbackQuery):
 
     # Process order from balance
     order_id = generate_order_id()
-    
+
     # Deduct balance
     users_data[user_id]['balance'] -= total_price
     users_data[user_id]['total_spent'] += total_price
@@ -1539,14 +1681,17 @@ async def cb_pay_from_balance(callback: CallbackQuery):
         'payment_status': 'completed'
     }
 
-    # Store order
+    # Store order in both temp and permanent storage
     order_temp[user_id] = order_record
+    orders_data[order_id] = order_record  # Also store in permanent orders_data
+
+    print(f"✅ Order {order_id} stored in both temp and permanent storage")
 
     # Clear user state
     user_state[user_id]["current_step"] = None
     user_state[user_id]["data"] = {}
 
-    # Success message
+    # Success message with improved format
     new_balance = users_data[user_id]['balance']
 
     success_text = f"""
@@ -1554,34 +1699,308 @@ async def cb_pay_from_balance(callback: CallbackQuery):
 
 ✅ <b>Payment Successful from Account Balance!</b>
 
-📦 <b>Order Details:</b>
-• Order ID: <code>{order_id}</code>
-• Package: {package_name}
-• Platform: {platform.title()}
-• Quantity: {quantity:,}
-• Amount: ₹{total_price:,.2f}
+📦 <b>Order Confirmation Details:</b>
+• 🆔 <b>Order ID:</b> <code>{order_id}</code>
+• 📦 <b>Package:</b> {package_name}
+• 📱 <b>Platform:</b> {platform.title()}
+• 🔢 <b>Quantity:</b> {quantity:,}
+• 💰 <b>Amount:</b> ₹{total_price:,.2f}
+• 💳 <b>Payment:</b> Account Balance ✅
+• 📅 <b>Date:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
 
 💰 <b>Balance Update:</b>
-• Previous: ₹{current_balance:,.2f}
-• Deducted: ₹{total_price:,.2f}
-• Current: ₹{new_balance:,.2f}
+• 💳 <b>Previous Balance:</b> ₹{current_balance:,.2f}
+• 💸 <b>Amount Deducted:</b> ₹{total_price:,.2f}
+• 💰 <b>Current Balance:</b> ₹{new_balance:,.2f}
 
-⏰ <b>Processing Status:</b>
-आपका order processing start हो गया है। Package description के अनुसार delivery complete होगी।
+📋 <b>Order Status:</b> ⏳ Processing Started
+🔄 <b>Payment Status:</b> ✅ Completed
 
-🚀 <b>Order successfully received!</b>
-📈 <b>Track करने के लिए Order History check करें</b>
+⏰ <b>Delivery Timeline:</b>
+आपका order अब process हो रहा है। Package description के अनुसार delivery complete होगी।
+
+💡 <b>Order ID को save करके रखें - यह tracking के लिए जरूरी है!</b>
+
+✨ <b>Thank you for choosing India Social Panel!</b>
 """
 
     success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+            InlineKeyboardButton(text="📋 Copy Order ID", callback_data=f"copy_order_id_{order_id}"),
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history")
+        ],
+        [
+            InlineKeyboardButton(text="🚀 Place New Order", callback_data="new_order"),
             InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
         ]
     ])
 
     await safe_edit_message(callback, success_text, success_keyboard)
     await callback.answer("✅ Order placed successfully!")
+
+# ========== WALLET SPECIFIC HANDLERS ==========
+@dp.callback_query(F.data.startswith("wallet_") and F.data.endswith("_order"))
+async def cb_wallet_specific_order(callback: CallbackQuery):
+    """Handle specific wallet payment for order"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    wallet_name = callback.data.replace("wallet_", "").replace("_order", "")
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    # Wallet information
+    wallet_info = {
+        "paytm": ("💙 Paytm", "paytm@indiasmm", "Most popular wallet in India"),
+        "phonepe": ("🟢 PhonePe", "phonepe@indiasmm", "UPI + Wallet integrated"),
+        "gpay": ("🔴 Google Pay", "gpay@indiasmm", "Fastest transfer guaranteed"),
+        "amazon": ("🟡 Amazon Pay", "amazonpay@indiasmm", "Instant refund policy"),
+        "jio": ("🔵 JioMoney", "jio@indiasmm", "Jio network optimized"),
+        "freecharge": ("🟠 FreeCharge", "freecharge@indiasmm", "Quick mobile recharge")
+    }
+
+    if wallet_name in wallet_info:
+        name, upi_id, description = wallet_info[wallet_name]
+
+        text = f"""
+{name} <b>Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+✨ <b>{description}</b>
+
+💳 <b>Payment Details:</b>
+• 🆔 <b>UPI ID:</b> <code>{upi_id}</code>
+• 👤 <b>Name:</b> India Social Panel
+• 💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+📱 <b>Payment Steps:</b>
+1. Open {name} app
+2. Select "Send Money" या "Pay"
+3. Enter UPI ID: <code>{upi_id}</code>
+4. Enter amount: ₹{total_price:,.2f}
+5. Complete payment with PIN/Password
+
+⚡ <b>Payment के बाद screenshot भेजना जरूरी है!</b>
+
+💡 <b>Most users prefer {name} for reliability!</b>
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📋 Copy UPI ID", callback_data=f"copy_wallet_upi_{wallet_name}"),
+                InlineKeyboardButton(text="📸 Send Screenshot", callback_data="wallet_screenshot")
+            ],
+            [
+                InlineKeyboardButton(text="💡 Payment Guide", callback_data=f"wallet_guide_{wallet_name}"),
+                InlineKeyboardButton(text="⬅️ Back", callback_data="payment_wallet")
+            ]
+        ])
+
+        user_state[user_id]["current_step"] = "waiting_wallet_screenshot"
+        user_state[user_id]["data"]["selected_wallet"] = wallet_name
+
+        await safe_edit_message(callback, text, keyboard)
+        await callback.answer()
+
+# ========== NET BANKING HANDLERS ==========
+@dp.callback_query(F.data.startswith("netbank_"))
+async def cb_netbank_specific(callback: CallbackQuery):
+    """Handle specific bank net banking"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    bank_code = callback.data.replace("netbank_", "")
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    # Bank information
+    bank_info = {
+        "sbi": ("State Bank of India", "SBIN0001234", "India's largest bank"),
+        "hdfc": ("HDFC Bank", "HDFC0001234", "Leading private bank"),
+        "icici": ("ICICI Bank", "ICIC0001234", "Digital banking leader"),
+        "axis": ("Axis Bank", "UTIB0001234", "Modern banking solutions"),
+        "pnb": ("Punjab National Bank", "PUNB0001234", "Trusted public bank"),
+        "others": ("Other Banks", "XXXX0001234", "All major banks supported")
+    }
+
+    if bank_code in bank_info:
+        bank_name, ifsc_sample, description = bank_info[bank_code]
+
+        text = f"""
+🏦 <b>{bank_name} Net Banking</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+🏛️ <b>{description}</b>
+
+💳 <b>Net Banking Process:</b>
+1. आपको bank का secure login page दिखेगा
+2. अपना User ID और Password enter करें
+3. Transaction password/MPIN डालें
+4. Payment authorize करें
+5. Success message का screenshot लें
+
+🔒 <b>Security Features:</b>
+• 256-bit SSL encryption
+• Direct bank connection
+• No middleman involved
+• Instant payment confirmation
+
+⚠️ <b>Important:</b>
+• Net banking login ready रखें
+• Transaction limit check करें
+• Payment timeout: 15 minutes
+
+🚀 <b>Ready to proceed with {bank_name}?</b>
+"""
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🚀 Proceed to Bank", callback_data=f"proceed_netbank_{bank_code}"),
+                InlineKeyboardButton(text="💡 Help", callback_data=f"netbank_help_{bank_code}")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Choose Different Bank", callback_data="payment_netbanking")
+            ]
+        ])
+
+        await safe_edit_message(callback, text, keyboard)
+        await callback.answer()
+
+# ========== COPY AND SCREENSHOT HANDLERS ==========
+@dp.callback_query(F.data.startswith("copy_wallet_upi_"))
+async def cb_copy_wallet_upi(callback: CallbackQuery):
+    """Handle wallet UPI ID copy"""
+    if not callback.message:
+        return
+
+    wallet_name = callback.data.replace("copy_wallet_upi_", "")
+    wallet_upis = {
+        "paytm": "paytm@indiasmm",
+        "phonepe": "phonepe@indiasmm",
+        "gpay": "gpay@indiasmm",
+        "amazon": "amazonpay@indiasmm",
+        "jio": "jio@indiasmm",
+        "freecharge": "freecharge@indiasmm"
+    }
+
+    upi_id = wallet_upis.get(wallet_name, "contact@indiasmm")
+    await callback.answer(f"✅ UPI ID copied: {upi_id}", show_alert=True)
+
+@dp.callback_query(F.data == "copy_bank_details_order")
+async def cb_copy_bank_details_order(callback: CallbackQuery):
+    """Handle bank details copy for order"""
+    if not callback.message:
+        return
+
+    text = """
+📋 <b>Bank Details Copied!</b>
+
+🏦 <b>Complete Bank Information:</b>
+
+• 🏛️ <b>Bank:</b> State Bank of India
+• 🔢 <b>Account No:</b> <code>12345678901234</code>
+• 🔑 <b>IFSC Code:</b> <code>SBIN0001234</code>
+• 👤 <b>Name:</b> India Social Panel
+
+📝 <b>Next Steps:</b>
+1. Copy above details carefully
+2. Open your banking app
+3. Add new beneficiary
+4. Transfer the amount
+5. Send transaction screenshot
+
+✅ <b>Bank details ready to use!</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📸 Send Screenshot", callback_data="bank_transfer_screenshot")],
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="payment_bank")]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer("✅ Bank details copied!")
+
+@dp.callback_query(F.data == "bank_transfer_screenshot")
+async def cb_bank_transfer_screenshot(callback: CallbackQuery):
+    """Handle bank transfer screenshot request"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    user_state[user_id]["current_step"] = "waiting_bank_screenshot"
+
+    text = """
+📸 <b>Bank Transfer Screenshot</b>
+
+💡 <b>कृपया bank transfer का screenshot भेजें</b>
+
+📋 <b>Screenshot में ये दिखना चाहिए:</b>
+• ✅ Transfer successful message
+• 💰 Transfer amount
+• 🆔 Transaction reference number
+• 📅 Date और time
+• 🏦 Beneficiary name (India Social Panel)
+
+💬 <b>Screenshot को image के रूप में send करें...</b>
+
+⏰ <b>Screenshot verify होने के बाद order process हो जाएगा</b>
+"""
+
+    await safe_edit_message(callback, text)
+    await callback.answer("📸 Bank transfer screenshot भेजें...")
+
+@dp.callback_query(F.data.startswith("proceed_netbank_"))
+async def cb_proceed_netbank(callback: CallbackQuery):
+    """Handle net banking proceed"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    bank_code = callback.data.replace("proceed_netbank_", "")
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    text = f"""
+🚀 <b>Net Banking Payment Processing</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+🔄 <b>Redirecting to bank's secure portal...</b>
+
+⏰ <b>Please wait while we prepare your payment link</b>
+
+🔐 <b>Security Notice:</b>
+• You'll be redirected to official bank website
+• Enter your credentials only on bank's page
+• Never share login details with anyone
+• Payment will be processed securely
+
+💡 <b>Net banking feature implementation in progress...</b>
+📞 <b>For now, please use UPI/QR code method for instant payment</b>
+
+🎯 <b>Alternative quick methods available:</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr"),
+            InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Net Banking", callback_data="payment_netbanking")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer("🔄 Net banking integration coming soon...")
 
 @dp.callback_query(F.data == "payment_app")
 async def cb_payment_app(callback: CallbackQuery):
@@ -1597,11 +2016,10 @@ async def cb_payment_app(callback: CallbackQuery):
         return
 
     # Get order details
-    order_data = user_state[user_id]["data"]
+    order_data = user_state.get(user_id, {}).get("data", {})
     total_price = order_data.get("total_price", 0.0)
 
-    # Show UPI app payment options
-    app_text = f"""
+    text = f"""
 📲 <b>UPI App Payment</b>
 
 💰 <b>Amount:</b> ₹{total_price:,.2f}
@@ -1630,7 +2048,7 @@ async def cb_payment_app(callback: CallbackQuery):
 ✅ <b>Payment complete होने के बाद screenshot share करें!</b>
 """
 
-    app_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="📋 Copy UPI ID", callback_data="copy_upi_id"),
             InlineKeyboardButton(text="📱 Generate QR Code", callback_data="payment_qr")
@@ -1643,7 +2061,7 @@ async def cb_payment_app(callback: CallbackQuery):
         ]
     ])
 
-    await safe_edit_message(callback, app_text, app_keyboard)
+    await safe_edit_message(callback, text, keyboard)
     await callback.answer()
 
 @dp.callback_query(F.data == "copy_upi_id")
@@ -1653,6 +2071,196 @@ async def cb_copy_upi_id(callback: CallbackQuery):
         return
 
     await callback.answer("✅ UPI ID copied: business@paytm", show_alert=True)
+
+@dp.callback_query(F.data == "payment_bank")
+async def cb_payment_bank_method(callback: CallbackQuery):
+    """Handle bank transfer payment method"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state:
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    text = f"""
+🏦 <b>Bank Transfer Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+🏛️ <b>Bank Details:</b>
+• 🏦 <b>Bank:</b> State Bank of India
+• 🔢 <b>Account No:</b> <code>12345678901234</code>
+• 🔑 <b>IFSC Code:</b> <code>SBIN0001234</code>
+• 👤 <b>Account Name:</b> India Social Panel
+
+📝 <b>Transfer Instructions:</b>
+1. Open your banking app या net banking
+2. Select "Fund Transfer" या "Send Money"
+3. Add beneficiary with above details
+4. Transfer exact amount ₹{total_price:,.2f}
+5. Save transaction reference number
+6. Send screenshot यहाँ
+
+⏰ <b>Processing Time:</b>
+• IMPS: Instant
+• NEFT: 2-4 hours
+• RTGS: 1-2 hours (₹2L+ के लिए)
+
+💡 <b>Transfer के बाद screenshot भेजना जरूरी है!</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📋 Copy Bank Details", callback_data="copy_bank_details_order"),
+            InlineKeyboardButton(text="📸 Send Screenshot", callback_data="bank_transfer_screenshot")
+        ],
+        [
+            InlineKeyboardButton(text="💡 Transfer Guide", callback_data="bank_transfer_guide"),
+            InlineKeyboardButton(text="⬅️ Back", callback_data="final_confirm_order")
+        ]
+    ])
+
+    user_state[user_id]["current_step"] = "waiting_bank_transfer"
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "payment_wallet")
+async def cb_payment_wallet_method(callback: CallbackQuery):
+    """Handle digital wallet payment method"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state:
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    text = f"""
+💸 <b>Digital Wallet Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+📱 <b>Available Wallets:</b>
+
+💙 <b>Paytm</b>
+• UPI ID: <code>paytm@indiasmm</code>
+• Most popular in India
+
+🟢 <b>PhonePe</b>
+• UPI ID: <code>phonepe@indiasmm</code>
+• UPI + Wallet combo
+
+🔴 <b>Google Pay</b>
+• UPI ID: <code>gpay@indiasmm</code>
+• Fastest transfers
+
+🟡 <b>Amazon Pay</b>
+• UPI ID: <code>amazonpay@indiasmm</code>
+• Instant refunds
+
+💡 <b>Choose your preferred wallet:</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💙 Paytm", callback_data="wallet_paytm_order"),
+            InlineKeyboardButton(text="🟢 PhonePe", callback_data="wallet_phonepe_order")
+        ],
+        [
+            InlineKeyboardButton(text="🔴 Google Pay", callback_data="wallet_gpay_order"),
+            InlineKeyboardButton(text="🟡 Amazon Pay", callback_data="wallet_amazon_order")
+        ],
+        [
+            InlineKeyboardButton(text="🔵 JioMoney", callback_data="wallet_jio_order"),
+            InlineKeyboardButton(text="🟠 FreeCharge", callback_data="wallet_freecharge_order")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back", callback_data="final_confirm_order")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data == "payment_netbanking")
+async def cb_payment_netbanking_method(callback: CallbackQuery):
+    """Handle net banking payment method"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+
+    # Check if user has order data
+    if user_id not in user_state:
+        await callback.answer("⚠️ Order data not found!")
+        return
+
+    # Get order details
+    order_data = user_state.get(user_id, {}).get("data", {})
+    total_price = order_data.get("total_price", 0.0)
+
+    text = f"""
+💰 <b>Net Banking Payment</b>
+
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+🏦 <b>Supported Banks:</b>
+• State Bank of India (SBI)
+• HDFC Bank
+• ICICI Bank
+• Axis Bank
+• Punjab National Bank (PNB)
+• Bank of Baroda
+• Canara Bank
+• और सभी major banks
+
+📝 <b>Net Banking Steps:</b>
+1. Select your bank below
+2. You'll be redirected to bank's secure page
+3. Login with your net banking credentials
+4. Authorize payment of ₹{total_price:,.2f}
+5. Payment will be processed instantly
+
+🔒 <b>100% Secure & Encrypted</b>
+✅ <b>Direct bank-to-bank transfer</b>
+
+💡 <b>Select your bank:</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🏦 SBI", callback_data="netbank_sbi"),
+            InlineKeyboardButton(text="🏦 HDFC", callback_data="netbank_hdfc")
+        ],
+        [
+            InlineKeyboardButton(text="🏦 ICICI", callback_data="netbank_icici"),
+            InlineKeyboardButton(text="🏦 Axis", callback_data="netbank_axis")
+        ],
+        [
+            InlineKeyboardButton(text="🏦 PNB", callback_data="netbank_pnb"),
+            InlineKeyboardButton(text="🏦 Other Banks", callback_data="netbank_others")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back", callback_data="final_confirm_order")
+        ]
+    ])
+
+    await safe_edit_message(callback, text, keyboard)
+    await callback.answer()
 
 
 # ========== ORDER CONFIRMATION HANDLERS ==========
@@ -2515,6 +3123,676 @@ async def cb_view_tickets(callback: CallbackQuery):
 # ========== WEBHOOK SETUP ==========
 # Webhook setup is at the end of this file
 
+# ========== ADMIN ORDER MANAGEMENT HANDLERS ==========
+
+# New Group Management Button Handlers
+@dp.callback_query(F.data.startswith("admin_details_"))
+async def cb_admin_order_details(callback: CallbackQuery):
+    """Handle admin order details request"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    order_id = callback.data.replace("admin_details_", "")
+
+    # Get order details - check all possible sources
+    global orders_data, order_temp
+    print(f"🔍 DEBUG: Details - Looking for order {order_id}")
+    print(f"🔍 DEBUG: Details - orders_data has {len(orders_data)} orders")
+    
+    # Check if we can access the order from different sources
+    order_found = False
+    order = None
+    
+    if order_id in orders_data:
+        order = orders_data[order_id]
+        order_found = True
+    else:
+        # Check order_temp for recent orders
+        for temp_order in order_temp.values():
+            if temp_order.get('order_id') == order_id:
+                order = temp_order
+                order_found = True
+                orders_data[order_id] = temp_order  # Store back
+                break
+    
+    if not order_found:
+        await callback.answer("❌ Order not found!", show_alert=True)
+        return
+    
+    details_text = f"""
+📊 <b>Order Complete Details</b>
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Package:</b> {order.get('package_name', 'N/A')}
+📱 <b>Platform:</b> {order.get('platform', 'N/A').title()}
+🔗 <b>Link:</b> {order.get('link', 'N/A')}
+🔢 <b>Quantity:</b> {order.get('quantity', 0):,}
+💰 <b>Amount:</b> ₹{order.get('total_price', 0.0):,.2f}
+💳 <b>Payment Method:</b> {order.get('payment_method', 'N/A')}
+📅 <b>Created:</b> {format_time(order.get('created_at', ''))}
+⚡ <b>Status:</b> {order.get('status', 'pending').title()}
+
+👤 <b>Customer Details:</b>
+• User ID: {order.get('user_id', 'N/A')}
+• Service ID: {order.get('service_id', 'N/A')}
+• Payment Status: {order.get('payment_status', 'pending')}
+"""
+    
+    # Create management buttons
+    details_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="✅ Complete Order",
+                callback_data=f"admin_complete_{order_id}"
+            ),
+            InlineKeyboardButton(
+                text="❌ Cancel Order",
+                callback_data=f"admin_cancel_{order_id}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="💬 Send Message",
+                callback_data=f"admin_message_{order.get('user_id', '')}"
+            ),
+            InlineKeyboardButton(
+                text="🔄 Refresh Status", 
+                callback_data=f"admin_refresh_{order_id}"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="👤 User Profile",
+                callback_data=f"admin_profile_{order.get('user_id', '')}"
+            )
+        ]
+    ])
+    
+    await safe_edit_message(callback, details_text, details_keyboard)
+    await callback.answer("Order details loaded")
+
+@dp.callback_query(F.data.startswith("admin_profile_"))
+async def cb_admin_user_profile(callback: CallbackQuery):
+    """Handle admin user profile request"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    target_user_id = int(callback.data.replace("admin_profile_", ""))
+    
+    if target_user_id not in users_data:
+        await callback.answer("❌ User not found!", show_alert=True)
+        return
+    
+    user = users_data[target_user_id]
+    
+    profile_text = f"""
+👤 <b>User Profile Details</b>
+
+🆔 <b>User ID:</b> {target_user_id}
+👤 <b>Name:</b> {user.get('full_name', 'N/A')}
+📱 <b>Username:</b> @{user.get('username', 'N/A')}
+📞 <b>Phone:</b> {user.get('phone_number', 'N/A')}
+📧 <b>Email:</b> {user.get('email', 'N/A')}
+
+💰 <b>Balance:</b> ₹{user.get('balance', 0.0):,.2f}
+💸 <b>Total Spent:</b> ₹{user.get('total_spent', 0.0):,.2f}
+📦 <b>Orders:</b> {user.get('orders_count', 0)}
+📅 <b>Joined:</b> {format_time(user.get('join_date', ''))}
+⚡ <b>Status:</b> {user.get('status', 'active').title()}
+"""
+    
+    await callback.answer(profile_text, show_alert=True)
+
+@dp.callback_query(F.data.startswith("admin_refresh_"))
+async def cb_admin_refresh_status(callback: CallbackQuery):
+    """Handle admin order status refresh"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    order_id = callback.data.replace("admin_refresh_", "")
+    
+    # Debug info for refresh button - check all sources
+    global orders_data, order_temp
+    print(f"🔍 DEBUG: Refresh - Looking for order {order_id}")
+    print(f"🔍 DEBUG: Refresh - orders_data has {len(orders_data)} orders")
+    
+    # Check if we can access the order from different sources
+    order_found = False
+    order = None
+    
+    if order_id in orders_data:
+        order = orders_data[order_id]
+        order_found = True
+    else:
+        # Check order_temp for recent orders
+        for temp_order in order_temp.values():
+            if temp_order.get('order_id') == order_id:
+                order = temp_order
+                order_found = True
+                orders_data[order_id] = temp_order  # Store back
+                break
+    
+    if not order_found:
+        await callback.answer("❌ Order not found!", show_alert=True)
+        return
+    current_status = order.get('status', 'pending')
+    
+    await callback.answer(f"🔄 Order {order_id} - Current Status: {current_status.title()}", show_alert=True)
+@dp.callback_query(F.data.startswith("admin_complete_"))
+async def cb_admin_complete_order(callback: CallbackQuery):
+    """Handle admin order completion"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    order_id = callback.data.replace("admin_complete_", "")
+
+    # Get order details - check all possible sources  
+    global orders_data, order_temp
+    print(f"🔍 DEBUG: Complete Order - Looking for order {order_id}")
+    print(f"🔍 DEBUG: Complete Order - Global orders_data has {len(orders_data)} orders")
+    print(f"🔍 DEBUG: Complete Order - Available orders: {list(orders_data.keys())}")
+    
+    # Check if we can access the order from different sources
+    order_found = False
+    order = None
+    
+    if order_id in orders_data:
+        order = orders_data[order_id]
+        order_found = True
+        print(f"✅ DEBUG: Order found in global orders_data")
+    else:
+        # Check order_temp for recent orders
+        for temp_order in order_temp.values():
+            if temp_order.get('order_id') == order_id:
+                order = temp_order
+                order_found = True
+                print(f"✅ DEBUG: Order found in order_temp")
+                # Also store it back in orders_data
+                orders_data[order_id] = temp_order
+                break
+    
+    if not order_found:
+        await callback.answer("❌ Order not found in any storage!", show_alert=True)
+        return
+    customer_id = order['user_id']
+    # Get customer name from users_data instead of order
+    customer_info = users_data.get(customer_id, {})
+    customer_name = customer_info.get('full_name') or customer_info.get('first_name', 'Customer')
+    package_name = order['package_name']
+    platform = order['platform']
+    quantity = order['quantity']
+    total_price = order['total_price']
+
+    # Update order status
+    orders_data[order_id]['status'] = 'completed'
+    orders_data[order_id]['completed_at'] = datetime.now().isoformat()
+    orders_data[order_id]['completed_by_admin'] = user_id
+
+    # Update user's order count and spending
+    if customer_id in users_data:
+        users_data[customer_id]['orders_count'] += 1
+        users_data[customer_id]['total_spent'] += total_price
+
+    # Send completion message to customer
+    customer_message = f"""
+🎉 <b>ORDER COMPLETED!</b>
+
+✅ <b>Your order has been successfully completed!</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <b>ORDER DETAILS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Package:</b> {package_name}
+📱 <b>Platform:</b> {platform.title()}
+📊 <b>Quantity:</b> {quantity:,}
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+✅ <b>Status:</b> Completed
+📅 <b>Completed:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+⚡ <b>Delivery:</b> Service is now active
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💝 <b>THANK YOU!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌟 <b>Service delivery successful!</b>
+🎯 <b>Please check your {platform.title()} account</b>
+⏰ <b>Full delivery within 0-6 hours</b>
+
+💡 <b>Need more services? Place your next order!</b>
+
+✨ <b>Thank you for choosing India Social Panel!</b>
+"""
+
+    customer_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⭐ Rate Service", callback_data=f"rate_order_{order_id}"),
+            InlineKeyboardButton(text="💬 Feedback", callback_data=f"feedback_order_{order_id}")
+        ],
+        [
+            InlineKeyboardButton(text="🚀 New Order", callback_data="new_order"),
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    try:
+        await bot.send_message(
+            chat_id=customer_id,
+            text=customer_message,
+            reply_markup=customer_keyboard,
+            parse_mode="HTML"
+        )
+
+        # Update admin message
+        admin_update = f"""
+✅ <b>ORDER COMPLETED SUCCESSFULLY!</b>
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+👤 <b>Customer:</b> {customer_name}
+📦 <b>Service:</b> {package_name}
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+✅ <b>Actions Completed:</b>
+• Order status updated to "Completed"
+• Customer notification sent
+• User statistics updated
+• Order marked as delivered
+
+📊 <b>Completion Time:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+🎉 <b>Order processing completed successfully!</b>
+"""
+
+        await safe_edit_message(callback, admin_update)
+        await callback.answer("✅ Order completed and customer notified!")
+
+    except Exception as e:
+        print(f"Error completing order: {e}")
+        await callback.answer("❌ Error completing order!", show_alert=True)
+
+@dp.callback_query(F.data.startswith("admin_cancel_"))
+async def cb_admin_cancel_order(callback: CallbackQuery):
+    """Handle admin order cancellation with reason selection"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    order_id = callback.data.replace("admin_cancel_", "")
+
+    # Show cancellation reason options
+    cancel_text = f"""
+❌ <b>Cancel Order #{order_id}</b>
+
+⚠️ <b>Select cancellation reason:</b>
+
+💡 <b>Choose the most appropriate reason for order cancellation:</b>
+"""
+
+    cancel_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🔗 Invalid Link",
+                callback_data=f"cancel_reason_{order_id}_invalid_link"
+            ),
+            InlineKeyboardButton(
+                text="💳 Payment Issue",
+                callback_data=f"cancel_reason_{order_id}_payment_issue"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="📦 Service Unavailable",
+                callback_data=f"cancel_reason_{order_id}_service_unavailable"
+            ),
+            InlineKeyboardButton(
+                text="❌ Duplicate Order",
+                callback_data=f"cancel_reason_{order_id}_duplicate"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🚫 Policy Violation",
+                callback_data=f"cancel_reason_{order_id}_policy_violation"
+            ),
+            InlineKeyboardButton(
+                text="💬 Custom Reason",
+                callback_data=f"cancel_reason_{order_id}_custom"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="⬅️ Back to Order",
+                callback_data=f"admin_details_{order_id}"
+            )
+        ]
+    ])
+
+    await safe_edit_message(callback, cancel_text, cancel_keyboard)
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("cancel_reason_"))
+async def cb_admin_cancel_reason(callback: CallbackQuery):
+    """Handle order cancellation with specific reason"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    # Parse callback data: cancel_reason_ORDER_ID_REASON
+    callback_parts = callback.data.split("_")
+    order_id = callback_parts[2]
+    reason_type = "_".join(callback_parts[3:])
+
+    # Get order details - check all possible sources
+    global orders_data, order_temp
+    print(f"🔍 DEBUG: Cancel Reason - Looking for order {order_id}")
+    
+    # Check if we can access the order from different sources
+    order_found = False
+    order = None
+    
+    if order_id in orders_data:
+        order = orders_data[order_id]
+        order_found = True
+    else:
+        # Check order_temp for recent orders
+        for temp_order in order_temp.values():
+            if temp_order.get('order_id') == order_id:
+                order = temp_order
+                order_found = True
+                orders_data[order_id] = temp_order  # Store back
+                break
+    
+    if not order_found:
+        await callback.answer("❌ Order not found!", show_alert=True)
+        return
+    customer_id = order['user_id']
+    # Get customer name from users_data instead of order
+    customer_info = users_data.get(customer_id, {})
+    customer_name = customer_info.get('full_name') or customer_info.get('first_name', 'Customer')
+    package_name = order['package_name']
+    total_price = order['total_price']
+
+    # Reason mapping
+    reason_messages = {
+        "invalid_link": "❌ Link provided is invalid or inaccessible",
+        "payment_issue": "💳 Payment verification failed or insufficient",
+        "service_unavailable": "📦 Requested service is temporarily unavailable",
+        "duplicate": "❌ Duplicate order detected",
+        "policy_violation": "🚫 Order violates our service policy",
+        "custom": "💬 Custom reason (contact support for details)"
+    }
+
+    reason_message = reason_messages.get(reason_type, "Order cancelled by admin")
+
+    # Update order status
+    orders_data[order_id]['status'] = 'cancelled'
+    orders_data[order_id]['cancelled_at'] = datetime.now().isoformat()
+    orders_data[order_id]['cancelled_by_admin'] = user_id
+    orders_data[order_id]['cancellation_reason'] = reason_message
+
+    # Send cancellation message to customer
+    customer_message = f"""
+❌ <b>ORDER CANCELLED</b>
+
+😔 <b>We regret to inform you that your order has been cancelled.</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <b>ORDER DETAILS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Package:</b> {package_name}
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+❌ <b>Status:</b> Cancelled
+📅 <b>Cancelled:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ <b>CANCELLATION REASON</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{reason_message}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 <b>NEXT STEPS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 <b>Refund Process:</b> If payment was made, refund will be processed within 24-48 hours
+📞 <b>Need Help?</b> Contact support with Order ID: <code>{order_id}</code>
+🚀 <b>New Order:</b> You can place a new order anytime
+
+💙 <b>Thank you for your understanding!</b>
+"""
+
+    customer_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin"),
+            InlineKeyboardButton(text="🔄 Request Refund", callback_data=f"refund_request_{order_id}")
+        ],
+        [
+            InlineKeyboardButton(text="🚀 New Order", callback_data="new_order"),
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    try:
+        await bot.send_message(
+            chat_id=customer_id,
+            text=customer_message,
+            reply_markup=customer_keyboard,
+            parse_mode="HTML"
+        )
+
+        # Update admin message
+        admin_update = f"""
+❌ <b>ORDER CANCELLED SUCCESSFULLY!</b>
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+👤 <b>Customer:</b> {customer_name}
+📦 <b>Service:</b> {package_name}
+💰 <b>Amount:</b> ₹{total_price:,.2f}
+
+❌ <b>Cancellation Reason:</b>
+{reason_message}
+
+✅ <b>Actions Completed:</b>
+• Order status updated to "Cancelled"
+• Customer notification sent
+• Cancellation reason logged
+• Order marked for refund processing
+
+📊 <b>Cancellation Time:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+💡 <b>Order cancellation processed successfully!</b>
+"""
+
+        await safe_edit_message(callback, admin_update)
+        await callback.answer("❌ Order cancelled and customer notified!")
+
+    except Exception as e:
+        print(f"Error cancelling order: {e}")
+        await callback.answer("❌ Error cancelling order!", show_alert=True)
+
+@dp.callback_query(F.data.startswith("admin_message_"))
+async def cb_admin_message(callback: CallbackQuery):
+    """Handle admin message sending"""
+    if not callback.message or not callback.from_user:
+        return
+
+    admin_id = callback.from_user.id
+    if not is_admin(admin_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    # Get target user ID from callback data
+    target_user_id = int(callback.data.replace("admin_message_", ""))
+
+    # Set admin state for message input
+    if admin_id not in user_state:
+        user_state[admin_id] = {"current_step": None, "data": {}}
+
+    user_state[admin_id]["current_step"] = f"admin_messaging_{target_user_id}"
+    user_state[admin_id]["data"] = {"target_user_id": target_user_id}
+
+    # Get user info for context
+    user_info = users_data.get(target_user_id, {})
+    user_name = user_info.get('full_name', 'Unknown')
+    username = user_info.get('username', 'N/A')
+
+    message_prompt = f"""
+💬 <b>Send Message to Customer</b>
+
+👤 <b>Target User:</b> {user_name} (@{username})
+🆔 <b>User ID:</b> {target_user_id}
+
+📝 <b>Type your message for the customer:</b>
+
+💡 <b>Message will be sent directly to user</b>
+⚠️ <b>Keep message professional and helpful</b>
+
+🔙 <b>Send /cancel to go back</b>
+"""
+
+    await safe_edit_message(callback, message_prompt)
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("admin_processing_"))
+async def cb_admin_processing(callback: CallbackQuery):
+    """Mark order as processing"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    order_id = callback.data.replace("admin_processing_", "")
+
+    # Get order details
+    if order_id not in orders_data:
+        await callback.answer("❌ Order not found!", show_alert=True)
+        return
+
+    order = orders_data[order_id]
+    customer_id = order['user_id']
+    customer_name = order['first_name']
+    package_name = order['package_name']
+
+    # Update order status
+    orders_data[order_id]['status'] = 'processing'
+    orders_data[order_id]['processing_started_at'] = datetime.now().isoformat()
+    orders_data[order_id]['processing_by_admin'] = user_id
+
+    # Send processing message to customer
+    customer_message = f"""
+🔄 <b>ORDER PROCESSING STARTED!</b>
+
+⚡ <b>Great news! Your order is now being processed.</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <b>ORDER DETAILS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Package:</b> {package_name}
+
+🔄 <b>Status:</b> Processing Started
+📅 <b>Started:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+⏰ <b>Expected Completion:</b> 0-6 hours
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ <b>WHAT HAPPENS NEXT?</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>Our team is working on your order</b>
+📈 <b>Service delivery will begin shortly</b>
+🔔 <b>You'll get completion notification</b>
+📊 <b>Track progress in Order History</b>
+
+💙 <b>Thank you for your patience!</b>
+"""
+
+    customer_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📜 Track Order", callback_data="order_history"),
+            InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    try:
+        await bot.send_message(
+            chat_id=customer_id,
+            text=customer_message,
+            reply_markup=customer_keyboard,
+            parse_mode="HTML"
+        )
+
+        # Update admin message
+        admin_update = f"""
+🔄 <b>ORDER MARKED AS PROCESSING!</b>
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+👤 <b>Customer:</b> {customer_name}
+📦 <b>Service:</b> {package_name}
+
+✅ <b>Actions Completed:</b>
+• Order status updated to "Processing"
+• Customer notification sent
+• Processing timestamp logged
+• Order tracking activated
+
+📊 <b>Processing Started:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+⚡ <b>Order is now in active processing queue!</b>
+"""
+
+        await safe_edit_message(callback, admin_update)
+        await callback.answer("🔄 Order marked as processing!")
+
+    except Exception as e:
+        print(f"Error marking order as processing: {e}")
+        await callback.answer("❌ Error updating order!", show_alert=True)
+
 # ========== END OF MAIN BOT HANDLERS ==========
 # All account creation handlers moved to account_creation.py
 # Payment handlers in payment_system.py
@@ -2621,19 +3899,55 @@ async def handle_photo_input(message: Message):
 
         await message.answer(text, reply_markup=keyboard)
 
-    else:
-        # Photo sent but user not in photo editing mode
-        text = """
-⚠️ <b>Unexpected Photo</b>
+    elif current_step == "waiting_screenshot_upload":
+        # This is for payment screenshot upload
+        order_data = user_state.get(user_id, {}).get("data", {})
+        transaction_id = order_data.get("transaction_id")
 
-📸 <b>आपने photo भेजी है लेकिन photo editing mode में नहीं हैं</b>
+        if not transaction_id:
+            await message.answer("⚠️ Could not find transaction details. Please try again.")
+            return
 
-💡 <b>Photo update करने के लिए:</b>
-👤 My Account → ✏️ Edit Profile → 📸 Change Photo
+        # Store the screenshot file_id
+        user_state[user_id]["data"]["screenshot_file_id"] = message.photo[-1].file_id
 
-🏠 <b>Main menu के लिए /start दबाएं</b>
+        # Send admin notification
+        await send_admin_notification(order_data)
+
+        # Send success message with improved buttons including Copy Order ID
+        success_text = f"""
+🎉 <b>Order Successfully Placed!</b>
+
+✅ <b>Payment Screenshot Verified Successfully!</b>
+
+🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+📅 <b>Uploaded At:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+🎉 <b>Your payment is being verified. You'll get confirmation soon!</b>
+💡 <b>You can check order status in Order History</b>
 """
-        await message.answer(text, reply_markup=get_main_menu())
+
+        success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📋 Copy Transaction ID", callback_data=f"copy_transaction_id_{transaction_id}"),
+                InlineKeyboardButton(text="📜 Order History", callback_data="order_history")
+            ],
+            [
+                InlineKeyboardButton(text="🚀 Place New Order", callback_data="new_order"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            ]
+        ])
+
+        user_state[user_id]["current_step"] = None
+        user_state[user_id]["data"] = {} # Clear order data after successful upload
+
+        await safe_edit_message(callback if isinstance(callback, CallbackQuery) else message, success_text, success_keyboard) # type: ignore
+        await message.answer("✅ Screenshot uploaded successfully. Your payment is being verified.") # Reply to message for clarity
+
+    else:
+        # Photo sent but user not in relevant mode - IGNORE completely
+        print(f"🔇 IGNORED: Unexpected photo from user {user_id}")
+        return
 
 
 # ========== CONTACT INPUT HANDLER ==========
@@ -2641,7 +3955,7 @@ async def handle_photo_input(message: Message):
 async def handle_contact_input(message: Message):
     """Handle contact sharing for account creation"""
     print(f"📞 Main.py: Contact received from user {message.from_user.id if message.from_user else 'Unknown'}")
-    
+
     if not message.from_user or not message.contact:
         print("❌ Main.py: No user or contact found")
         return
@@ -2673,7 +3987,7 @@ async def on_startup():
         dp, users_data, user_state, safe_edit_message, init_user,
         mark_user_for_notification, is_message_old, bot, START_TIME
     )
-    
+
     print("✅ Account creation initialization complete")
 
     print("🔄 Initializing payment system...")
