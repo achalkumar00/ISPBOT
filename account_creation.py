@@ -1277,10 +1277,16 @@ async def handle_access_token_login(message, user_id):
                 users_data[user_id] = users_data[matching_user_id].copy()
                 users_data[user_id]['created_at'] = init_user(user_id)
 
-            # Mark account as created and clear state
+            # Mark account as created and clear state (but protect admin broadcast state)
             users_data[user_id]['account_created'] = True
-            user_state[user_id]["current_step"] = None  
-            user_state[user_id]["data"] = {}
+            
+            # Only clear state if it's not an admin broadcast operation
+            current_step = user_state[user_id].get("current_step")
+            if current_step != "admin_broadcast_message":
+                user_state[user_id]["current_step"] = None  
+                user_state[user_id]["data"] = {}
+            else:
+                print(f"🔒 PROTECTED: Admin broadcast state preserved for user {user_id}")
 
             # Get user display name for login success
             user_display_name = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name or 'Friend'
@@ -1333,9 +1339,13 @@ async def handle_access_token_login(message, user_id):
                 'created_at': init_user(user_id)
             }
 
-            # Clear user state
-            user_state[user_id]["current_step"] = None
-            user_state[user_id]["data"] = {}
+            # Clear user state (but protect admin broadcast state)
+            current_step = user_state[user_id].get("current_step")
+            if current_step != "admin_broadcast_message":
+                user_state[user_id]["current_step"] = None
+                user_state[user_id]["data"] = {}
+            else:
+                print(f"🔒 PROTECTED: Admin broadcast state preserved for user {user_id}")
 
             # Get user display name
             user_display_name = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name or 'Friend'
