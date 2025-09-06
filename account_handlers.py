@@ -262,67 +262,133 @@ async def cb_order_history(callback: CallbackQuery):
 
     user_id = callback.from_user.id
 
-    # Get orders from both orders_data and order_temp
-    from main import order_temp
+    # Get orders from multiple sources
+    from main import order_temp, orders_data as main_orders_data
     user_orders = []
 
-    # Get from orders_data
-    for order_id, order in orders_data.items():
+    print(f"🔍 DEBUG: Checking order history for user {user_id}")
+    print(f"🔍 DEBUG: main_orders_data has {len(main_orders_data)} orders")
+    print(f"🔍 DEBUG: order_temp has user {user_id}: {user_id in order_temp}")
+    print(f"🔍 DEBUG: local orders_data has {len(orders_data)} orders")
+
+    # Get from main orders_data
+    for order_id, order in main_orders_data.items():
         if order.get('user_id') == user_id:
+            print(f"🔍 Found order in main_orders_data: {order_id}")
             user_orders.append(order)
 
-    # Get from order_temp (recent orders)
+    # Get from order_temp (recent orders) 
     if user_id in order_temp:
         temp_order = order_temp[user_id].copy()
         temp_order['is_recent'] = True
+        print(f"🔍 Found recent order in order_temp: {temp_order.get('order_id', 'NO_ID')}")
         user_orders.append(temp_order)
+
+    # Also get from local orders_data if it exists
+    if orders_data:
+        for order_id, order in orders_data.items():
+            if order.get('user_id') == user_id:
+                # Check if not already added
+                existing_ids = [o.get('order_id') for o in user_orders]
+                if order.get('order_id') not in existing_ids:
+                    print(f"🔍 Found order in local orders_data: {order_id}")
+                    user_orders.append(order)
+
+    print(f"🔍 DEBUG: Total orders found for user {user_id}: {len(user_orders)}")
 
     if not user_orders:
         text = """
 📜 <b>Order History</b>
 
-📋 <b>कोई orders नहीं मिले</b>
+📋 <b>अभी तक कोई orders नहीं हैं</b>
 
-🚀 <b>अभी तक कोई orders place नहीं किए हैं!</b>
-💡 <b>First order करने के लिए "New Order" पर click करें</b>
+🚀 <b>आपने अभी तक कोई orders place नहीं किए हैं!</b>
+
+💡 <b>First order करने के लिए:</b>
+• "New Order" पर click करें
+• अपना platform choose करें  
+• Package select करें
+• Order place करें
+
+✨ <b>India Social Panel में आपका स्वागत है!</b>
 """
     else:
-        text = "📜 <b>Order History</b>\n\n"
+        text = f"""
+📜 <b>Order History</b>
+
+📊 <b>Total Orders Found:</b> {len(user_orders)}
+
+📋 <b>Recent Orders (Latest First):</b>
+
+"""
         # Sort orders by created_at (newest first)
         sorted_orders = sorted(user_orders, key=lambda x: x.get('created_at', ''), reverse=True)
 
-        for i, order in enumerate(sorted_orders[:10], 1):  # Last 10 orders
-            status_emoji = {"processing": "🔄", "completed": "✅", "failed": "❌", "pending": "⏳"}
-            emoji = status_emoji.get(order.get('status', 'processing'), "🔄")
+        for i, order in enumerate(sorted_orders[:15], 1):  # Show last 15 orders
+            status_emoji = {"processing": "⏳", "completed": "✅", "failed": "❌", "pending": "🔄", "cancelled": "❌"}
+            emoji = status_emoji.get(order.get('status', 'processing'), "⏳")
 
             # Handle different order data formats
-            order_id = order.get('order_id', 'Recent')
+            order_id = order.get('order_id', f'ORDER-{i}')
             package_name = order.get('package_name', order.get('service', 'Unknown Package'))
             platform = order.get('platform', 'Unknown Platform').title()
             quantity = order.get('quantity', 0)
             amount = order.get('total_price', order.get('price', 0))
             created_at = order.get('created_at', '')
             payment_status = order.get('payment_status', 'completed')
+            payment_method = order.get('payment_method', 'Unknown')
 
             # Recent order indicator
             recent_indicator = " 🔥" if order.get('is_recent') else ""
 
+            # Format date properly
+            try:
+                if created_at:
+                    from datetime import datetime
+                    if isinstance(created_at, str):
+                        dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        formatted_date = dt.strftime("%d %b %Y, %I:%M %p")
+                    else:
+                        formatted_date = str(created_at)
+                else:
+                    formatted_date = "Just now"
+            except:
+                formatted_date = "Recent"
+
             text += f"""
-{i}. <b>Order #{order_id}</b>{recent_indicator}
-{emoji} Status: {order.get('status', 'Processing').title()}
-📦 Package: {package_name}
-📱 Platform: {platform}
-🔢 Quantity: {quantity:,}
-💰 Amount: {format_currency(amount)}
-💳 Payment: {payment_status.title()}
-📅 Date: {format_time(created_at)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<b>{i}. Order #{order_id}</b>{recent_indicator}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{emoji} <b>Status:</b> {order.get('status', 'Processing').title()}
+📦 <b>Package:</b> {package_name}
+📱 <b>Platform:</b> {platform}
+🔢 <b>Quantity:</b> {quantity:,}
+💰 <b>Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
+💳 <b>Payment:</b> {payment_method} - {payment_status.title()}
+📅 <b>Date:</b> {formatted_date}
 
 """
 
+        text += """
+💡 <b>Order Details देखने के लिए:</b>
+• Order ID copy करें
+• Support को भेजें detailed info के लिए
+
+📞 <b>Order में problem है?</b>
+• Support contact करें: @tech_support_admin
+• Order ID mention करना न भूलें
+"""
+
     back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚀 New Order", callback_data="new_order")],
-        [InlineKeyboardButton(text="👤 My Account", callback_data="my_account")],
-        [InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")]
+        [
+            InlineKeyboardButton(text="🚀 New Order", callback_data="new_order"),
+            InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
+        ],
+        [
+            InlineKeyboardButton(text="👤 My Account", callback_data="my_account"),
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
     ])
 
     await safe_edit_message(callback, text, back_keyboard)
@@ -2454,7 +2520,7 @@ async def cb_copy_access_token_myaccount(callback: CallbackQuery):
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat"),
+                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/tech_support_admin"),
                 InlineKeyboardButton(text="🔄 Regenerate Token", callback_data="regenerate_access_token")
             ],
             [
