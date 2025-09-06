@@ -706,16 +706,16 @@ def generate_dynamic_description(platform: str, service_info: dict, quality_conf
     Generate custom descriptions only for Instagram platform
     All other platforms will have empty descriptions
     """
-    
+
     # Only generate descriptions for Instagram
     if platform != 'instagram':
         return ""  # Empty description for all non-Instagram services
-    
+
     # Custom Instagram descriptions based on quality and service
     service_name = service_info['name']
     quality_name = quality_config['quality_name']
     quality_emoji = quality_config['quality_emoji']
-    
+
     # Create dynamic description for Instagram only
     description = f"""
 📷 <b>{service_name}</b> - Professional Instagram Growth Service
@@ -819,9 +819,9 @@ def generate_dynamic_description(platform: str, service_info: dict, quality_conf
         'Economic Quality': '6-24 hours',
         'Basic Quality': '12-48 hours'
     }
-    
+
     completion_time = completion_times.get(quality_name, '1-24 hours')
-    
+
     description += f"""
 
 ⏱️ <b>Completion Time:</b> {completion_time}
@@ -836,21 +836,21 @@ def generate_order_description(order_record: dict, quality: str = 'standard'):
     Generate dynamic description for Instagram orders with order details
     """
     platform = order_record.get('platform', '').lower()
-    
+
     # Only for Instagram orders
     if platform != 'instagram':
         return ""
-    
+
     # Get order details
     order_id = order_record.get('order_id', 'N/A')
     package_name = order_record.get('package_name', 'Instagram Service')
     quantity = order_record.get('quantity', 0)
     total_price = order_record.get('total_price', 0.0)
     service_id = order_record.get('service_id', '')
-    
+
     # Get quality config
     quality_config = get_quality_config(quality)
-    
+
     # Quality-specific descriptions
     quality_descriptions = {
         'premium': {
@@ -899,9 +899,9 @@ def generate_order_description(order_record: dict, quality: str = 'standard'):
             'speed': '1-5K/d'
         }
     }
-    
+
     quality_info = quality_descriptions.get(quality, quality_descriptions['standard'])
-    
+
     # Generate dynamic description with order details
     description = f"""
 📷 <b>{package_name}</b>
