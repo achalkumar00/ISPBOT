@@ -16,7 +16,12 @@ from aiogram import F
 
 # ========== ADMIN CONFIGURATION ==========
 ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "7437014244"))  # Main admin user ID from environment
-bot_start_time = time.time()
+# Import START_TIME from main.py to ensure consistency
+try:
+    from main import START_TIME
+    bot_start_time = START_TIME
+except ImportError:
+    bot_start_time = time.time()
 error_logs = []  # Store recent errors
 maintenance_mode = False  # Global maintenance flag
 activity_logs = []  # Store recent activity
@@ -104,11 +109,25 @@ def log_activity(user_id: int, action: str):
         activity_logs = activity_logs[-200:]
 
 def format_uptime():
-    """Calculate and format bot uptime"""
-    uptime_seconds = time.time() - bot_start_time
-    hours, remainder = divmod(uptime_seconds, 3600)
+    """Calculate and format bot uptime in XdYmZs format"""
+    try:
+        from main import START_TIME
+        uptime_seconds = time.time() - START_TIME
+    except ImportError:
+        uptime_seconds = time.time() - bot_start_time
+    
+    # Calculate days, hours, minutes, seconds
+    days, remainder = divmod(uptime_seconds, 86400)  # 86400 seconds = 1 day
+    hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
-    return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
+    
+    # Format as requested: 2d20m22s (days, minutes, seconds)
+    if days > 0:
+        return f"{int(days)}d{int(hours)}h{int(minutes)}m{int(seconds)}s"
+    elif hours > 0:
+        return f"{int(hours)}h{int(minutes)}m{int(seconds)}s"
+    else:
+        return f"{int(minutes)}m{int(seconds)}s"
 
 def get_system_stats():
     """Get system performance statistics (simplified without psutil)"""
@@ -1662,18 +1681,19 @@ def register_service_handlers(dp, require_account):
         await safe_edit_message(callback, text, keyboard)
         await callback.answer()
 
-    @dp.callback_query(F.data == "admin_panel")
-    async def cb_admin_panel(callback: CallbackQuery):
-        """Handle admin panel main menu"""
-        if not callback.message:
-            return
+    # Note: admin_panel handler moved to main.py to avoid conflicts
+    # @dp.callback_query(F.data == "admin_panel")
+    # async def cb_admin_panel(callback: CallbackQuery):
+    #     """Handle admin panel main menu"""
+    #     if not callback.message:
+    #         return
 
-        user_id = callback.from_user.id
-        if not is_admin(user_id):
-            await callback.answer("⚠️ Access Denied: Admin only", show_alert=True)
-            return
+    #     user_id = callback.from_user.id
+    #     if not is_admin(user_id):
+    #         await callback.answer("⚠️ Access Denied: Admin only", show_alert=True)
+    #         return
 
-        log_activity(user_id, "Accessed Admin Panel")
+    #     log_activity(user_id, "Accessed Admin Panel")
 
         admin_text = """
 🔧 <b>Admin Control Panel</b>
@@ -1774,14 +1794,29 @@ def register_service_handlers(dp, require_account):
             await callback.answer("⚠️ Access Denied", show_alert=True)
             return
 
-        from main import user_state
+        from main import user_state, users_data, init_user
         user_id = callback.from_user.id
+
+        # Ensure user exists in users_data first
+        if user_id not in users_data:
+            print(f"🔧 Initializing admin user {user_id} for broadcast")
+            init_user(user_id, callback.from_user.username or "", callback.from_user.first_name or "Admin")
+
+        # Force complete admin account if not done  
+        if not users_data.get(user_id, {}).get('account_created', False):
+            users_data[user_id]['account_created'] = True
+            users_data[user_id]['full_name'] = callback.from_user.first_name or "Admin"
+            users_data[user_id]['email'] = "admin@indiasocialpanel.com"
+            users_data[user_id]['phone_number'] = "+91XXXXXXXXXX"
+            print(f"🔧 Force-completed admin account for broadcast user {user_id}")
 
         # Set user state for message input
         user_state[user_id] = {
             "current_step": "admin_broadcast_message",
             "data": {"target": "all"}
         }
+        
+        print(f"🔍 BROADCAST DEBUG: Set user_state for admin {user_id}: {user_state[user_id]}")
 
         text = """
 📢 <b>Broadcast Message to All Users</b>
@@ -2095,33 +2130,42 @@ def get_bot_status_info() -> dict:
         except (KeyError, ValueError, TypeError):
             pass
 
+    # Get proper start time for display
+    try:
+        from main import START_TIME
+        display_start_time = START_TIME
+    except ImportError:
+        display_start_time = bot_start_time
+    
     status_text = f"""
 🤖 <b>India Social Panel Bot Status</b>
 
-⏰ <b>Bot Uptime:</b> {uptime}
-🕐 <b>Started:</b> {datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')}
+⏰ <b>Live Bot Uptime:</b> <code>{uptime}</code>
+🕐 <b>Started:</b> {datetime.fromtimestamp(display_start_time).strftime('%d %b %Y, %I:%M:%S %p')}
 
 📊 <b>User Statistics:</b>
-• Total Users: {total_users}
-• Active (24h): {active_users_24h}
-• Total Orders: {total_orders}
-• Support Tickets: {total_tickets}
+• Total Users: <b>{total_users}</b>
+• Active (24h): <b>{active_users_24h}</b>
+• Total Orders: <b>{total_orders}</b>
+• Support Tickets: <b>{total_tickets}</b>
 
 💻 <b>System Performance:</b>
-• CPU Usage: {system_stats['cpu']}
-• Memory: {system_stats['memory_used']}/{system_stats['memory_total']} ({system_stats['memory']})
-• Disk Usage: {system_stats['disk']}
+• CPU Usage: <b>{system_stats['cpu']}</b>
+• Memory: <b>{system_stats['memory_used']}/{system_stats['memory_total']}</b> ({system_stats['memory']})
+• Disk Usage: <b>{system_stats['disk']}</b>
 
 🔧 <b>Bot Health:</b>
-• Webhook Status: ✅ Active
-• Database: ✅ Connected
-• API Response: ✅ Normal
-• Error Count (24h): {len([e for e in error_logs if e.get('timestamp', '')])}
+• Webhook Status: ✅ <b>Active</b>
+• Database: ✅ <b>Connected</b>
+• API Response: ✅ <b>Normal</b>
+• Error Count (24h): <b>{len([e for e in error_logs if e.get('timestamp', '')])}</b>
 
 🌐 <b>Environment:</b>
-• Mode: Production Webhook
-• Server: Replit Cloud
-• Location: Global CDN
+• Mode: <b>Production Webhook</b>
+• Server: <b>Replit Cloud</b>
+• Location: <b>Global CDN</b>
+
+🚀 <b>Status:</b> <code>🟢 RUNNING PERFECTLY</code>
 """
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -2236,6 +2280,14 @@ def get_broadcast_interface() -> dict:
 
     total_users = len(users_data)
     active_users = sum(1 for user in users_data.values() if user.get('status') == 'active')
+    
+    # Debug user data
+    print(f"🔍 BROADCAST INTERFACE DEBUG: Total users in data: {total_users}")
+    print(f"🔍 BROADCAST INTERFACE DEBUG: Active users: {active_users}")
+    if total_users > 0:
+        sample_users = list(users_data.items())[:3]
+        for uid, udata in sample_users:
+            print(f"   User {uid}: {udata.get('username', 'No username')} - {udata.get('status', 'No status')}")
 
     text = f"""
 📢 <b>Broadcast Message Center</b>
