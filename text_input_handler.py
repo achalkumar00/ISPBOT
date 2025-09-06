@@ -87,7 +87,7 @@ async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[
 
         # Send admin notification to group with screenshot
         await send_admin_notification(order_record)
-        
+
         # Also send the screenshot to admin group
         from main import bot
         admin_group_id = -1003009015663
@@ -172,13 +172,17 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
     user_id = message.from_user.id
 
-    # Handle admin broadcast message input first
+    # Handle admin broadcast message input first (PRIORITY CHECK)
     from services import handle_admin_broadcast_message, is_admin
     if is_admin(user_id):
         current_step = user_state.get(user_id, {}).get("current_step")
+        print(f"🔍 ADMIN DEBUG: User {user_id} current_step: {current_step}")
         if current_step == "admin_broadcast_message":
+            print(f"📢 Processing admin broadcast message from {user_id}")
             await handle_admin_broadcast_message(message, user_id)
             return
+        elif current_step:
+            print(f"🔍 ADMIN DEBUG: Admin {user_id} in step: {current_step}")
 
     # DEBUG: Log current state
     print(f"🔍 DEBUG: User {user_id} sent text: '{message.text}'")
@@ -202,8 +206,14 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         if matching_user and matching_user == user_id:
             # Phone matches, complete login
             users_data[user_id]['account_created'] = True
-            user_state[user_id]["current_step"] = None
-            user_state[user_id]["data"] = {}
+            
+            # Only clear state if it's not an admin broadcast operation
+            current_step = user_state[user_id].get("current_step")
+            if current_step != "admin_broadcast_message":
+                user_state[user_id]["current_step"] = None
+                user_state[user_id]["data"] = {}
+            else:
+                print(f"🔒 PROTECTED: Admin broadcast state preserved for user {user_id}")
 
             # Get user display name for login success
             user_display_name = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name or 'Friend'
@@ -815,7 +825,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
             "💡 <b>कृपया valid coupon code try करें या Skip button दबाएं</b>\n\n"
             "🔄 <b>सही coupon code के लिए support से contact करें</b>"
         )
-    
+
     # Skip if user not in coupon state but has text input
         return
 
