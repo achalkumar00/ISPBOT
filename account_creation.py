@@ -1279,7 +1279,7 @@ async def handle_access_token_login(message, user_id):
 
             # Mark account as created and clear state (but protect admin broadcast state)
             users_data[user_id]['account_created'] = True
-            
+
             # Only clear state if it's not an admin broadcast operation
             current_step = user_state[user_id].get("current_step")
             if current_step != "admin_broadcast_message":
