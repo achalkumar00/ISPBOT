@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Account Creation Module - India Social Panel
@@ -313,7 +312,7 @@ def register_account_creation_handlers():
 
         # Register message handlers for account creation
         dp.message.register(handle_contact_sharing, F.contact)
-        
+
         print("✅ Account creation handlers registered successfully")
 
 # ========== ACTUAL ACCOUNT CREATION HANDLERS ==========
@@ -346,7 +345,7 @@ async def cb_login_account(callback: CallbackQuery):
 🔒 <b>Security:</b> Phone number verification के लिए
 
 💡 <b>अगर phone number भूल गए हैं तो support से contact करें</b>
-📞 <b>Support:</b> @achal_parvat
+📞 <b>Support:</b> @tech_support_admin
 """
 
     await safe_edit_message(callback, text)
@@ -578,7 +577,7 @@ async def cb_share_telegram_contact(callback: CallbackQuery):
 async def handle_contact_sharing(message):
     """Handle shared contact for phone number"""
     print(f"📞 Contact received from user {message.from_user.id if message.from_user else 'Unknown'}")
-    
+
     if not message.from_user or not message.contact:
         print("❌ No user or contact found in message")
         return
@@ -592,7 +591,7 @@ async def handle_contact_sharing(message):
     user_id = message.from_user.id
     contact = message.contact
     current_step = user_state.get(user_id, {}).get("current_step")
-    
+
     print(f"🔍 Contact DEBUG: User {user_id} current_step: {current_step}")
     print(f"🔍 Contact DEBUG: Contact user_id: {contact.user_id}")
     print(f"🔍 Contact DEBUG: Contact phone: {contact.phone_number}")
@@ -611,7 +610,7 @@ async def handle_contact_sharing(message):
             # Store phone number and move to next step
             user_state[user_id]["data"]["phone_number"] = phone_number
             user_state[user_id]["current_step"] = "waiting_email"
-            
+
             print(f"✅ Updated user_state for {user_id}: {user_state[user_id]}")
 
             # Remove contact keyboard
@@ -665,14 +664,14 @@ async def handle_contact_sharing(message):
     else:
         # Contact shared without proper context or step mismatch
         print(f"⚠️ Contact shared but current_step is {current_step}")
-        
+
         # Force process contact if user is in any account creation flow
         if current_step in ["waiting_contact_permission", "choosing_phone_option", None]:
             print(f"🔄 Force processing contact for user {user_id}")
-            
+
             # Force set to contact permission step and process
             user_state[user_id]["current_step"] = "waiting_contact_permission" 
-            
+
             # Process contact
             if contact.user_id == user_id:
                 phone_number = contact.phone_number
@@ -725,7 +724,7 @@ async def handle_text_input(message):
 
     # Check if user is in account creation flow
     current_step = user_state.get(user_id, {}).get("current_step")
-    
+
     print(f"🔍 ACCOUNT_CREATION DEBUG: User {user_id} sent text: '{text}'")
     print(f"🔍 ACCOUNT_CREATION DEBUG: User {user_id} current_step: {current_step}")
     print(f"🔍 ACCOUNT_CREATION DEBUG: Full user_state for {user_id}: {user_state.get(user_id, {})}")
@@ -733,7 +732,7 @@ async def handle_text_input(message):
     # Handle cancel & enter manually for contact sharing
     if current_step == "waiting_contact_permission" and text == "❌ Cancel & Enter Manually":
         user_state[user_id]["current_step"] = "waiting_manual_phone"
-        
+
         text = """
 ✏️ <b>Manual Phone Entry</b>
 
@@ -754,6 +753,7 @@ async def handle_text_input(message):
 
 📤 <b>अपना complete phone number type करके भेज दें:</b>
 """
+
         await message.answer(text)
         return
 
@@ -828,7 +828,7 @@ async def handle_login_phone_verification(message, user_id):
 • नया account create करें
 • Support से contact करें
 
-📞 <b>Support:</b> @achal_parvat
+📞 <b>Support:</b> @tech_support_admin
 """
 
         user_state[user_id]["current_step"] = None
@@ -839,7 +839,7 @@ async def handle_login_phone_verification(message, user_id):
                 InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
             ],
             [
-                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat")
+                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/tech_support_admin")
             ]
         ])
 
@@ -868,7 +868,7 @@ async def handle_login_phone_verification(message, user_id):
                 InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
             ],
             [
-                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat")
+                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/tech_support_admin")
             ]
         ])
 
@@ -1234,7 +1234,7 @@ async def handle_access_token_login(message, user_id):
 • Try creating a new account if token is lost
 • Contact support for help
 
-📞 <b>Support:</b> @achal_parvat
+📞 <b>Support:</b> @tech_support_admin
 """
 
             user_state[user_id]["current_step"] = None
@@ -1248,7 +1248,7 @@ async def handle_access_token_login(message, user_id):
                     InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
                 ],
                 [
-                    InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat")
+                    InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/tech_support_admin")
                 ]
             ])
 
@@ -1387,7 +1387,7 @@ async def handle_access_token_login(message, user_id):
 
 💡 <b>Please try again or contact support</b>
 
-📞 <b>Support:</b> @achal_parvat
+📞 <b>Support:</b> @tech_support_admin
 """
 
         user_state[user_id]["current_step"] = None
@@ -1395,7 +1395,7 @@ async def handle_access_token_login(message, user_id):
         error_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="🔄 Try Again", callback_data="login_with_token"),
-                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/achal_parvat")
+                InlineKeyboardButton(text="📞 Contact Support", url=f"https://t.me/tech_support_admin")
             ]
         ])
 
