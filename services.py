@@ -115,12 +115,12 @@ def format_uptime():
         uptime_seconds = time.time() - START_TIME
     except ImportError:
         uptime_seconds = time.time() - bot_start_time
-    
+
     # Calculate days, hours, minutes, seconds
     days, remainder = divmod(uptime_seconds, 86400)  # 86400 seconds = 1 day
     hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
-    
+
     # Format as requested: 2d20m22s (days, minutes, seconds)
     if days > 0:
         return f"{int(days)}d{int(hours)}h{int(minutes)}m{int(seconds)}s"
@@ -1815,7 +1815,7 @@ def register_service_handlers(dp, require_account):
             "current_step": "admin_broadcast_message",
             "data": {"target": "all"}
         }
-        
+
         print(f"🔍 BROADCAST DEBUG: Set user_state for admin {user_id}: {user_state[user_id]}")
 
         text = """
@@ -2136,7 +2136,7 @@ def get_bot_status_info() -> dict:
         display_start_time = START_TIME
     except ImportError:
         display_start_time = bot_start_time
-    
+
     status_text = f"""
 🤖 <b>India Social Panel Bot Status</b>
 
@@ -2280,7 +2280,7 @@ def get_broadcast_interface() -> dict:
 
     total_users = len(users_data)
     active_users = sum(1 for user in users_data.values() if user.get('status') == 'active')
-    
+
     # Debug user data
     print(f"🔍 BROADCAST INTERFACE DEBUG: Total users in data: {total_users}")
     print(f"🔍 BROADCAST INTERFACE DEBUG: Active users: {active_users}")
