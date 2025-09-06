@@ -703,74 +703,250 @@ def get_quality_config(quality: str):
 
 def generate_dynamic_description(platform: str, service_info: dict, quality_config: dict):
     """
-    Automatically generate unique description for each combination
-    This creates different descriptions automatically!
+    Generate custom descriptions only for Instagram platform
+    All other platforms will have empty descriptions
     """
-
+    
+    # Only generate descriptions for Instagram
+    if platform != 'instagram':
+        return ""  # Empty description for all non-Instagram services
+    
+    # Custom Instagram descriptions based on quality and service
     service_name = service_info['name']
     quality_name = quality_config['quality_name']
     quality_emoji = quality_config['quality_emoji']
-    # default_quality = 'standard'  # Removed broken line
-
-    # Platform-specific intro
-    platform_intros = {
-        'instagram': f"📷 <b>Instagram {service_name}</b> - Boost your Instagram presence!",
-        'youtube': f"🎥 <b>YouTube {service_name}</b> - Grow your YouTube channel fast!",
-        'facebook': f"📘 <b>Facebook {service_name}</b> - Increase your Facebook engagement!",
-        'telegram': f"📞 <b>Telegram {service_name}</b> - Expand your Telegram reach!",
-        'tiktok': f"🎵 <b>TikTok {service_name}</b> - Go viral on TikTok!",
-        'twitter': f"🐦 <b>Twitter {service_name}</b> - Boost your Twitter influence!",
-        'linkedin': f"💼 <b>LinkedIn {service_name}</b> - Professional growth guaranteed!"
-    }
-
-    intro = platform_intros.get(platform, f"🌟 <b>{service_name}</b> - Premium social media growth!")
-
-    # Dynamic description based on quality and service type
+    
+    # Create dynamic description for Instagram only
     description = f"""
-{intro}
+📷 <b>{service_name}</b> - Professional Instagram Growth Service
 
-{quality_emoji} <b>{quality_name} Selected</b>
+{quality_emoji} <b>{quality_name} Package</b>
 
-⚡ <b>Service Details:</b>
+⚡ <b>Service Specifications:</b>
 💰 Rate: ₹{quality_config['rate_multiplier'] * service_info['base_rate']:.2f} per unit
-📊 Min: {quality_config['min_quantity']} | Max: {service_info['max_quantity']:,}
-⏰ Delivery: {quality_config['delivery_time']}
-🚀 Speed: {quality_config['speed']}
-🛡️ Guarantee: {quality_config['guarantee']}
-💧 Drop rate: {quality_config['drop_rate']}
+📊 Minimum: {quality_config['min_quantity']} | Maximum: {service_info['max_quantity']:,}
+⏰ Delivery Time: {quality_config['delivery_time']}
+🚀 Processing Speed: {quality_config['speed']}
+🛡️ Guarantee Period: {quality_config['guarantee']}
+💧 Drop Rate: {quality_config['drop_rate']}"""
 
-🎯 <b>Key Features:</b>"""
+    # Quality-specific features and guarantees
+    if quality_config['quality_name'] == 'Premium Quality':
+        description += f"""
 
-    # Add service features
-    for feature in service_info['features'][:3]:  # Top 3 features
+🌟 <b>Premium Features:</b>
+✅ Highest quality accounts
+✅ Maximum retention rate
+✅ Priority delivery
+✅ 24/7 support included
+
+🔒 <b>Premium Guarantee:</b>
+✅ {quality_config['refill_period']} refill warranty
+✅ Order cancellation allowed before processing
+✅ Full satisfaction guarantee
+
+🚀 <b>Premium Experience:</b> Best quality + Maximum results guaranteed!"""
+
+    elif quality_config['quality_name'] == 'High Quality':
+        description += f"""
+
+🔥 <b>High Quality Features:</b>
+✅ High-grade accounts
+✅ Excellent retention rate
+✅ Fast delivery
+✅ Dedicated support
+
+🔒 <b>Quality Guarantee:</b>
+✅ {quality_config['refill_period']} refill warranty
+✅ Order modifications allowed
+✅ High success rate
+
+🔥 <b>High Performance:</b> Excellent results with premium standards!"""
+
+    elif quality_config['quality_name'] == 'Standard Quality':
+        description += f"""
+
+⚡ <b>Standard Features:</b>
+✅ Quality verified accounts
+✅ Good retention rate
+✅ Regular delivery speed
+✅ Standard support
+
+🔒 <b>Standard Guarantee:</b>
+✅ {quality_config['refill_period']} refill warranty
+⚠️ Limited cancellation options
+✅ Reliable service
+
+⚡ <b>Balanced Choice:</b> Perfect balance of quality and affordability!"""
+
+    elif quality_config['quality_name'] == 'Economic Quality':
+        description += f"""
+
+💰 <b>Economic Features:</b>
+✅ Budget-friendly accounts
+✅ Basic retention rate
+✅ Standard processing
+✅ Basic support
+
+🔒 <b>Economic Guarantee:</b>
+✅ {quality_config['refill_period']} refill warranty
+⚠️ No order cancellation
+✅ Cost-effective solution
+
+💰 <b>Budget Option:</b> Great value for money with reliable delivery!"""
+
+    elif quality_config['quality_name'] == 'Basic Quality':
+        description += f"""
+
+💎 <b>Basic Features:</b>
+✅ Entry-level service
+✅ Minimum requirements met
+✅ Basic processing time
+✅ Limited support
+
+🔒 <b>Basic Guarantee:</b>
+✅ {quality_config['refill_period']} refill warranty
+⚠️ No cancellation after order
+✅ Budget-friendly option
+
+✅ <b>Starter Service:</b> Perfect for testing our services at low cost!"""
+
+    # Add completion time based on quality
+    completion_times = {
+        'Premium Quality': '0.5-2 hours',
+        'High Quality': '1-4 hours', 
+        'Standard Quality': '2-12 hours',
+        'Economic Quality': '6-24 hours',
+        'Basic Quality': '12-48 hours'
+    }
+    
+    completion_time = completion_times.get(quality_name, '1-24 hours')
+    
+    description += f"""
+
+⏱️ <b>Completion Time:</b> {completion_time}
+📞 <b>Support:</b> Contact @IndSocSupport for assistance
+
+💡 <b>Important:</b> Link must be public and accessible"""
+
+    return description
+
+def generate_order_description(order_record: dict, quality: str = 'standard'):
+    """
+    Generate dynamic description for Instagram orders with order details
+    """
+    platform = order_record.get('platform', '').lower()
+    
+    # Only for Instagram orders
+    if platform != 'instagram':
+        return ""
+    
+    # Get order details
+    order_id = order_record.get('order_id', 'N/A')
+    package_name = order_record.get('package_name', 'Instagram Service')
+    quantity = order_record.get('quantity', 0)
+    total_price = order_record.get('total_price', 0.0)
+    service_id = order_record.get('service_id', '')
+    
+    # Get quality config
+    quality_config = get_quality_config(quality)
+    
+    # Quality-specific descriptions
+    quality_descriptions = {
+        'premium': {
+            'emoji': '💎',
+            'name': 'Premium Quality',
+            'features': ['Highest quality accounts', 'Maximum retention rate', 'Priority delivery', '24/7 support'],
+            'guarantee': '90 days refill guarantee',
+            'completion': '0.5-2 hours',
+            'refill': '90d',
+            'speed': '10-50K/d'
+        },
+        'high': {
+            'emoji': '🔥', 
+            'name': 'High Quality',
+            'features': ['High-grade accounts', 'Excellent retention', 'Fast delivery', 'Dedicated support'],
+            'guarantee': '60 days refill guarantee',
+            'completion': '1-4 hours',
+            'refill': '60d',
+            'speed': '5-25K/d'
+        },
+        'standard': {
+            'emoji': '⚡',
+            'name': 'Standard Quality', 
+            'features': ['Quality accounts', 'Good retention', 'Regular delivery', 'Standard support'],
+            'guarantee': '30 days refill guarantee',
+            'completion': '2-12 hours',
+            'refill': '30d',
+            'speed': '2-15K/d'
+        },
+        'economic': {
+            'emoji': '💰',
+            'name': 'Economic Quality',
+            'features': ['Budget accounts', 'Basic retention', 'Standard processing', 'Basic support'],
+            'guarantee': '20 days refill guarantee', 
+            'completion': '6-24 hours',
+            'refill': '20d',
+            'speed': '1-10K/d'
+        },
+        'basic': {
+            'emoji': '💎',
+            'name': 'Basic Quality',
+            'features': ['Entry accounts', 'Minimum retention', 'Basic processing', 'Limited support'],
+            'guarantee': '15 days refill guarantee',
+            'completion': '12-48 hours', 
+            'refill': '15d',
+            'speed': '1-5K/d'
+        }
+    }
+    
+    quality_info = quality_descriptions.get(quality, quality_descriptions['standard'])
+    
+    # Generate dynamic description with order details
+    description = f"""
+📷 <b>{package_name}</b>
+
+{quality_info['emoji']} <b>{quality_info['name']} Package</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <b>ORDER DETAILS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Service:</b> {package_name}
+🔢 <b>Quantity:</b> {quantity:,}
+💰 <b>Total Price:</b> ₹{total_price:.2f}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ <b>SERVICE SPECIFICATIONS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 <b>Processing Speed:</b> {quality_info['speed']}
+⏱️ <b>Completion Time:</b> {quality_info['completion']}
+🔄 <b>Refill Period:</b> {quality_info['refill']}
+📊 <b>Drop Rate:</b> Minimal (Quality assured)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 <b>QUALITY FEATURES</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+
+    # Add features
+    for feature in quality_info['features']:
         description += f"\n✅ {feature}"
 
-    # Add quality-specific features
-    for feature in quality_config['bonus_features'][:2]:  # Top 2 bonus features
-        description += f"\n🌟 {feature}"
+    description += f"""
 
-    # Add platform-specific benefits
-    description += f"\n\n💡 <b>Platform Benefits:</b>"
-    for benefit in service_info.get('platform_features', [])[:2]:
-        description += f"\n🎯 {benefit}"
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 <b>GUARANTEE & SUPPORT</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    # Add quality-specific guarantee info
-    if quality_config['cancel_allowed']:
-        description += f"\n\n🔒 <b>Guarantee:</b>\n✅ {quality_config['refill_period']} refill guarantee\n✅ Cancellation allowed before start"
-    else:
-        description += f"\n\n🔒 <b>Guarantee:</b>\n✅ {quality_config['refill_period']} refill guarantee\n⚠️ No cancellation after order placed"
+🛡️ <b>Guarantee:</b> {quality_info['guarantee']}
+📞 <b>Support:</b> Contact @IndSocSupport
+💡 <b>Requirement:</b> Link must be public and accessible
 
-    # Add call to action based on quality
-    if quality_config['quality_name'] == 'Premium Quality':
-        description += f"\n\n🚀 <b>Premium Experience:</b> Best quality + Maximum results!"
-    elif quality_config['quality_name'] == 'Basic Quality':
-        description += f"\n\n💰 <b>Budget Option:</b> Great value for money!"
-    elif quality_config['quality_name'] == 'High Quality':
-        description += f"\n\n🔥 <b>High Performance:</b> Excellent results guaranteed!"
-    elif quality_config['quality_name'] == 'Medium Quality':
-        description += f"\n\n⚡ <b>Balanced Choice:</b> Good quality at fair price!"
-    else:
-        description += f"\n\n✅ <b>Standard Service:</b> Reliable and affordable!"
+🚀 <b>Professional Instagram Growth Service</b>
+"""
 
     return description
 
