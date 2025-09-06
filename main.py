@@ -50,7 +50,7 @@ OWNER_USERNAME = os.getenv("OWNER_USERNAME", "tech_support_admin")
 # Webhook settings
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_SECRET = "india_social_panel_secret_2025"
-WEBHOOK_URL = f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}" if BASE_WEBHOOK_URL else None
+WEBHOOK_URL = f"{BASE_WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}" if BASE_WEBHOOK_URL else None
 WEBHOOK_MODE = bool(BASE_WEBHOOK_URL)  # True if webhook URL available, False for polling
 
 # Server settings
@@ -518,6 +518,90 @@ def get_offers_rewards_menu() -> InlineKeyboardMarkup:
     ])
 
 # ========== BOT HANDLERS ==========
+
+@dp.message(Command("broadcast"))
+async def cmd_broadcast(message: Message):
+    """Simple admin broadcast command - NO STATE MANAGEMENT NEEDED"""
+    user = message.from_user
+    if not user or not is_admin(user.id):
+        await message.answer("⚠️ This command is for admins only!")
+        return
+    
+    # Get broadcast message from command
+    command_parts = message.text.split(' ', 1)
+    if len(command_parts) < 2:
+        await message.answer("""
+📢 <b>Broadcast Command Usage:</b>
+
+💬 <b>Format:</b> /broadcast your message here
+
+📝 <b>Example:</b> /broadcast Hello all users! New features available.
+
+⚠️ <b>This will send to ALL registered users!</b>
+""")
+        return
+    
+    broadcast_message = command_parts[1]
+    
+    # Get all registered users DIRECTLY from users_data
+    target_users = list(users_data.keys())
+    print(f"📢 BROADCAST: Admin {user.id} sending to {len(target_users)} users")
+    
+    if not target_users:
+        await message.answer("❌ No registered users found!")
+        return
+    
+    # Send confirmation to admin
+    await message.answer(f"""
+📢 <b>Broadcasting Message...</b>
+
+📊 <b>Target Users:</b> {len(target_users)}
+📝 <b>Message:</b> {broadcast_message}
+
+🔄 <b>Sending now...</b>
+""")
+    
+    # Send broadcast messages DIRECTLY
+    sent_count = 0
+    failed_count = 0
+    
+    for user_id in target_users:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text=f"""
+📢 <b>Message from Admin</b>
+
+{broadcast_message}
+
+---
+<i>India Social Panel Official Broadcast</i>
+""",
+                parse_mode="HTML"
+            )
+            sent_count += 1
+            print(f"✅ Broadcast sent to user {user_id}")
+            
+            # Rate limiting
+            import asyncio
+            await asyncio.sleep(0.5)  # 0.5 second delay
+            
+        except Exception as e:
+            failed_count += 1
+            print(f"❌ Failed to send to user {user_id}: {e}")
+    
+    # Send final report to admin
+    await message.answer(f"""
+✅ <b>Broadcast Complete!</b>
+
+📊 <b>Results:</b>
+• ✅ Successfully sent: {sent_count}
+• ❌ Failed: {failed_count}
+• 👥 Total attempted: {len(target_users)}
+
+🎯 <b>Broadcast finished!</b>
+""")
+
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     """Handle /start command with professional welcome"""
@@ -1016,7 +1100,7 @@ Unauthorized access attempts are logged and monitored.
     else:
         # Import admin menu from services.py
         from services import get_admin_main_menu, get_bot_status_info
-        
+
         # Show proper admin panel with all buttons
         text = """
 👑 <b>India Social Panel - Admin Control Center</b>
@@ -1026,7 +1110,7 @@ Unauthorized access attempts are logged and monitored.
 🚀 <b>Full administrative access granted</b>
 📊 <b>All systems operational</b>
 """
-        
+
         admin_menu = get_admin_main_menu()
         await safe_edit_message(callback, text, admin_menu)
 
@@ -2733,7 +2817,7 @@ async def cb_coupon_redeem(callback: CallbackQuery):
 """
 
     back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
+ �       [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
     ])
 
     await safe_edit_message(callback, text, back_keyboard)
@@ -3035,7 +3119,7 @@ For VIP customers and partners, we provide priority support with dedicated accou
             InlineKeyboardButton(text="🔧 Technical Help", url="https://t.me/TechnicalSupport_ISP")
         ],
         [
-            InlineKeyboardButton(text="⬅️ Back", callback_data="contact_about")
+            InlineKeyboardButton(text="⬅️ Back", callback_data="cont�act_about")
         ]
     ])
 
@@ -3051,9 +3135,12 @@ async def cb_create_ticket(callback: CallbackQuery):
 
     user_id = callback.from_user.id
 
-    # Initialize user state if not exists
+    # Initialize user state if not exists - PROTECT ADMIN BROADCAST
     if user_id not in user_state:
         user_state[user_id] = {"current_step": None, "data": {}}
+    elif user_state[user_id].get("protected") and is_admin(user_id):
+        print(f"🔒 PROTECTED: Not initializing protected admin state for {user_id}")
+        return  # Don't touch protected admin state
 
     user_state[user_id]["current_step"] = "waiting_ticket_subject"
 
@@ -3276,7 +3363,7 @@ async def cb_admin_refresh_status(callback: CallbackQuery):
     print(f"🔍 DEBUG: Refresh - Looking for order {order_id}")
     print(f"🔍 DEBUG: Refresh - orders_data has {len(orders_data)} orders")
 
-    # Check if we can access the order from different sources
+    # Check if we can access the order from differe�nt sources
     order_found = False
     order = None
 
@@ -3518,7 +3605,7 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
     # Parse callback data: cancel_reason_ORDER_ID_REASON
     callback_parts = callback.data.split("_")
     order_id = callback_parts[2]
-    reason_type = "_".join(callback_parts[3:])
+    reason_type = "_".join(callback_parts�[3:])
 
     # Get order details - check all possible sources
     global orders_data, order_temp
@@ -3668,9 +3755,13 @@ async def cb_admin_message(callback: CallbackQuery):
     # Get target user ID from callback data
     target_user_id = int(callback.data.replace("admin_message_", ""))
 
-    # Set admin state for message input
+    # Set admin state for message input - PROTECT BROADCAST STATE
     if admin_id not in user_state:
         user_state[admin_id] = {"current_step": None, "data": {}}
+    elif user_state[admin_id].get("protected") and is_admin(admin_id):
+        print(f"🔒 PROTECTED: Admin {admin_id} in protected broadcast mode, cancelling message setup")
+        await callback.answer("⚠️ Finish your current broadcast first!", show_alert=True)
+        return
 
     user_state[admin_id]["current_step"] = f"admin_messaging_{target_user_id}"
     user_state[admin_id]["data"] = {"target_user_id": target_user_id}
@@ -3759,7 +3850,7 @@ async def cb_admin_processing(callback: CallbackQuery):
             InlineKeyboardButton(text="📜 Track Order", callback_data="order_history"),
             InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
         ],
-        [
+   �     [
             InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
         ]
     ])
@@ -3842,6 +3933,15 @@ async def handle_text_input_wrapper(message: Message):
 
     print(f"🔍 TEXT DEBUG: User {user_id} sent text: '{message.text[:50]}...'")
     print(f"🔍 TEXT DEBUG: User {user_id} current_step: {current_step}")
+
+    # PRIORITY: Check for admin broadcast first
+    from services import handle_admin_broadcast_message, is_admin
+    if is_admin(user_id):
+        print(f"🔍 ADMIN CHECK: User {user_id} is admin, current_step: {current_step}")
+        if current_step == "admin_broadcast_message":
+            print(f"📢 Processing admin broadcast message from {user_id}")
+            await handle_admin_broadcast_message(message, user_id)
+            return
 
     # Account creation steps that should be handled by account_creation.py
     account_creation_steps = ["waiting_login_phone", "waiting_custom_name", "waiting_manual_phone", "waiting_email", "waiting_access_token", "waiting_contact_permission"]
@@ -3974,7 +4074,7 @@ async def handle_contact_input(message: Message):
     from account_creation import handle_contact_sharing
     await handle_contact_sharing(message)
 
-
+�
 # ========== STARTUP FUNCTIONS ==========
 async def on_startup():
     """Initialize bot on startup"""
