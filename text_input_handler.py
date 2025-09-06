@@ -206,7 +206,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         if matching_user and matching_user == user_id:
             # Phone matches, complete login
             users_data[user_id]['account_created'] = True
-            
+
             # Only clear state if it's not an admin broadcast operation
             current_step = user_state[user_id].get("current_step")
             if current_step != "admin_broadcast_message":
