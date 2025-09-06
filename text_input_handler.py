@@ -78,42 +78,75 @@ async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[
             'payment_status': 'pending_verification'
         }
 
-        # Store order
+        # Store order in both temp and permanent storage
+        from main import orders_data, send_admin_notification
         order_temp[user_id] = order_record
+        orders_data[order_id] = order_record  # Also store in permanent orders_data
+
+        print(f"✅ Screenshot order {order_id} stored in both temp and permanent storage")
+
+        # Send admin notification to group with screenshot
+        await send_admin_notification(order_record)
+        
+        # Also send the screenshot to admin group
+        from main import bot
+        admin_group_id = -1003009015663
+        try:
+            # Get the largest photo size (best quality)
+            photo = message.photo[-1]  # Last item is largest size
+            await bot.send_photo(
+                chat_id=admin_group_id,
+                photo=photo.file_id,
+                caption=f"📸 <b>Payment Screenshot</b>\n\n🆔 <b>Order ID:</b> <code>{order_id}</code>\n👤 <b>User ID:</b> {user_id}\n💰 <b>Amount:</b> ₹{total_price:,.2f}",
+                parse_mode="HTML"
+            )
+            print(f"✅ Screenshot sent to group for Order ID: {order_id}")
+        except Exception as e:
+            print(f"❌ Failed to send screenshot to group: {e}")
 
         # Clear user state
         user_state[user_id]["current_step"] = None
         user_state[user_id]["data"] = {}
 
-        # Send success message with Order History and Main Menu options (as requested)
+        # Send success message with improved buttons including Copy Order ID
         success_text = f"""
-✅ <b>Screenshot Received Successfully!</b>
+🎉 <b>Order Successfully Placed!</b>
 
-🎉 <b>Order Placed Successfully!</b>
+✅ <b>Payment Screenshot Verified Successfully!</b>
 
-📦 <b>Order Details:</b>
-• Order ID: <code>{order_id}</code>
-• Package: {package_name}
-• Platform: {platform.title()}
-• Quantity: {quantity:,}
-• Amount: {format_currency(total_price)}
+📦 <b>Order Confirmation Details:</b>
+• 🆔 <b>Order ID:</b> <code>{order_id}</code>
+• 📦 <b>Package:</b> {package_name}
+• 📱 <b>Platform:</b> {platform.title()}
+• 🔢 <b>Quantity:</b> {quantity:,}
+• 💰 <b>Amount:</b> {format_currency(total_price)}
+• 💳 <b>Payment:</b> QR Code ✅
+• 📅 <b>Date:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
 
-⏰ <b>Processing Time:</b>
-आपका order process हो रहा है। Package description में जो delivery time दिया गया है उसके अनुसार complete होगा।
+📋 <b>Order Status:</b> ⏳ Processing Started
+🔄 <b>Payment Status:</b> ✅ Verified & Confirmed
 
-📋 <b>Order Status:</b> Processing
-🔄 <b>Payment Verification:</b> Completed ✅
+⏰ <b>Delivery Timeline:</b>
+आपका order अब process हो रहा है। Package description के अनुसार delivery complete होगी।
 
-💡 <b>आपका order successfully receive हो गया है!</b>
-📈 <b>Order history में add हो गया है</b>
+💡 <b>Order ID को save करके रखें - यह tracking के लिए जरूरी है!</b>
 
-🎯 <b>What would you like to do next?</b>
+🎯 <b>Next Steps:</b>
+• Order history में track करें
+• Order ID copy करके safe रखें
+• Delivery के लिए wait करें
+
+✨ <b>Thank you for choosing India Social Panel!</b>
 """
 
-        # Create keyboard with Order History and Main Menu options (as per your requirement)
+        # Create improved keyboard with Copy Order ID option
         success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+                InlineKeyboardButton(text="📋 Copy Order ID", callback_data=f"copy_order_id_{order_id}"),
+                InlineKeyboardButton(text="📜 Order History", callback_data="order_history")
+            ],
+            [
+                InlineKeyboardButton(text="🚀 Place New Order", callback_data="new_order"),
                 InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
             ]
         ])
@@ -203,7 +236,7 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 • नया account create करें
 • Support से contact करें
 
-📞 <b>Support:</b> @achal_parvat
+📞 <b>Support:</b> @tech_support_admin
 """
 
             user_state[user_id]["current_step"] = None
@@ -754,15 +787,14 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
 🎟️ <b>Coupon Code (Optional)</b>
 
-💡 <b>अगर आपके पास कोई coupon code है तो भेजें</b>
+💡 <b>अगर आपके पास कोई valid coupon code है तो type करें</b>
 
-🔥 <b>Popular Active Coupons:</b>
-• WELCOME10 - New users के लिए
-• BULK20 - Large orders पर discount  
-• SAVE15 - Regular customers के लिए
-• FESTIVE25 - Special occasion offers
+📝 <b>Instructions:</b>
+• अपना coupon code manually enter करें
+• केवल valid codes ही accept होंगे
+• कोई coupon नहीं है तो Skip button दबाएं
 
-💬 <b>अपना coupon code type करें या Skip button दबाएं</b>
+💬 <b>Coupon code type करें या Skip करें</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -774,18 +806,110 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         await message.answer(text, reply_markup=keyboard)
 
     elif current_step == "waiting_coupon":
-        # Handle coupon input - reject any coupon for now
+        # Handle coupon input - reject any coupon for now since no coupon system is active
         coupon_input = message.text.strip()
 
         await message.answer(
             "❌ <b>Invalid Coupon Code!</b>\n\n"
             "🎟️ <b>यह coupon code valid नहीं है या expired हो गया है</b>\n"
-            "💡 <b>Valid coupon codes:</b> WELCOME10, BULK20, SAVE15, FESTIVE25\n\n"
-            "🔄 <b>सही coupon code try करें या Skip button दबाएं</b>"
+            "💡 <b>कृपया valid coupon code try करें या Skip button दबाएं</b>\n\n"
+            "🔄 <b>सही coupon code के लिए support से contact करें</b>"
         )
+    
+    # Skip if user not in coupon state but has text input
+        return
+
+    # Handle admin messaging
+    if current_step and current_step.startswith("admin_messaging_"):
+        if not is_admin(user_id):
+            return
+
+        target_user_id = int(current_step.replace("admin_messaging_", ""))
+        admin_message = message.text.strip()
+
+        # Get user details
+        from main import users_data, bot
+        if target_user_id not in users_data:
+            await message.answer("❌ User not found!")
+            user_state[user_id]["current_step"] = None
+            return
+
+        user_info = users_data[target_user_id]
+        customer_name = user_info.get('full_name', 'Customer')
+        username = user_info.get('username', 'N/A')
+
+        # Send message to customer
+        customer_notification = f"""
+💬 <b>MESSAGE FROM ADMIN</b>
+
+👨‍💼 <b>From:</b> India Social Panel Team
+📞 <b>Admin Support:</b> @tech_support_admin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 <b>MESSAGE:</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{admin_message}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 <b>Need to reply?</b> Contact: @tech_support_admin
+🆔 <b>Your User ID:</b> <code>{target_user_id}</code>
+
+💙 <b>India Social Panel Team</b>
+"""
+
+        customer_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📞 Reply to Admin", url="https://t.me/tech_support_admin"),
+                InlineKeyboardButton(text="👤 My Account", callback_data="my_account")
+            ],
+            [
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            ]
+        ])
+
+        try:
+            await bot.send_message(
+                chat_id=target_user_id,
+                text=customer_notification,
+                reply_markup=customer_keyboard,
+                parse_mode="HTML"
+            )
+
+            # Confirm to admin
+            admin_confirmation = f"""
+✅ <b>MESSAGE SENT SUCCESSFULLY!</b>
+
+👤 <b>Customer:</b> {customer_name} (@{username})
+📱 <b>Customer ID:</b> <code>{target_user_id}</code>
+
+📝 <b>Your Message:</b>
+"{admin_message}"
+
+✅ <b>Message delivered to customer</b>
+📊 <b>Sent:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+💡 <b>Customer can reply via support chat</b>
+"""
+
+            await message.answer(admin_confirmation)
+
+            # Clear admin state
+            user_state[user_id]["current_step"] = None
+
+        except Exception as e:
+            await message.answer(f"❌ Failed to send message: {e}")
+            print(f"Error sending admin message: {e}")
+
+        return
+
 
     else:
-        # Handle unknown messages for users with completed accounts
+        # PROFESSIONAL BOT BEHAVIOR: Ignore all random/unknown messages
+        # Only respond to specific expected inputs during active processes
+
+        # If user has completed account but sent random text, IGNORE completely
         if is_account_created(user_id):
             # Check if this is actually a link - treat any link as order continuation
             if message.text and ("http" in message.text or "www." in message.text or "t.me" in message.text or "instagram.com" in message.text or "youtube.com" in message.text or "facebook.com" in message.text):
@@ -868,28 +992,15 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
                     await message.answer(quantity_text)
                     return
                 else:
-                    # Unknown link platform
-                    await message.answer("🔗 <b>Link received but platform not recognized!</b>\n\n💡 Please start a new order first by clicking 🚀 New Order button to select the correct platform.", reply_markup=get_main_menu())
+                    # Unknown link platform - IGNORE completely instead of responding
+                    print(f"🔇 IGNORED: Unknown link from user {user_id}: {link_input}")
                     return
-
-            text = """
-❓ <b>Unknown Command</b>
-
-कृपया नीचे दिए गए buttons का इस्तेमाल करें।
-
-💡 <b>Available Commands:</b>
-/start - Main menu
-/menu - Show menu
-/description - Package details (if ordering)
-"""
-            await message.answer(text, reply_markup=get_main_menu())
+            else:
+                # Random text message from completed account user - IGNORE completely
+                print(f"🔇 IGNORED: Random text from user {user_id}: '{message.text[:50]}...'")
+                return
         else:
-            # Show account creation for users without accounts
-            text = """
-⚠️ <b>Account Required</b>
-
-आपका account अभी तक create नहीं हुआ है!
-
-📝 <b>सभी features का access पाने के लिए पहले account create करें</b>
-"""
-            await message.answer(text, reply_markup=account_creation.get_account_creation_menu())
+            # User without account sent random text - IGNORE completely 
+            # They should use /start command or buttons to create account
+            print(f"🔇 IGNORED: Text from unregistered user {user_id}: '{message.text[:50]}...'")
+            return
