@@ -178,7 +178,7 @@ async def send_admin_notification(order_record: Dict[str, Any]):
         created_at = order_record.get('created_at', '')
 
         # Get user info if available - with better fallback
-        user_info = users_data.get(user_id, {})
+        user_info = [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
         username = user_info.get('username', '')
         first_name = user_info.get('first_name', '')
         full_name = user_info.get('full_name', '')
@@ -210,7 +210,7 @@ async def send_admin_notification(order_record: Dict[str, Any]):
                 f"• Payment Method: {payment_method}\n"
                 f"• Order Time: {format_time(created_at)}\n\n"
                 f"📸 <b>Payment screenshot uploaded by user</b>\n\n"
-                f"⚡ <b>Action Required: Verify payment and manage order</b>"
+                f"⚡️ <b>Action Required: Verify payment and manage order</b>"
             )
         else: # Generic notification for screenshot upload if no order_id
             message_text = (
@@ -951,7 +951,7 @@ async def cb_new_order(callback: CallbackQuery):
 ✅ Secure & Safe Methods
 
 🔒 <b>100% Money Back Guarantee</b>
-⚡ <b>Instant Start Guarantee</b>
+⚡️ <b>Instant Start Guarantee</b>
 
 💡 <b>कृपया अपना platform चुनें:</b>
 """
@@ -1133,7 +1133,7 @@ High-quality, affordable social media marketing services प्रदान क�
 
 ✨ <b>Why Choose Us:</b>
 • ✅ 100% Real & Active Users
-• ⚡ Instant Start Guarantee
+• ⚡️ Instant Start Guarantee
 • 🔒 Safe & Secure Services
 • 💬 24/7 Customer Support
 • 💰 Best Prices in Market
@@ -1197,7 +1197,7 @@ async def cb_service_list(callback: CallbackQuery):
 <b>Platform चुनें pricing देखने के लिए:</b>
 
 💎 <b>High Quality Services</b>
-⚡ <b>Instant Start</b>
+⚡️ <b>Instant Start</b>
 🔒 <b>100% Safe & Secure</b>
 """
 
@@ -1364,7 +1364,7 @@ async def cb_final_confirm_order(callback: CallbackQuery):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="💰 Pay from Balance", callback_data="pay_from_balance"),
-                InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr")
+                InlineKeyboardButton(text="⚡️ Quick QR Payment", callback_data="payment_qr")
             ],
             [
                 InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi"),
@@ -1421,7 +1421,7 @@ async def cb_final_confirm_order(callback: CallbackQuery):
         balance_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="💰 Add Balance First", callback_data="add_balance_first"),
-                InlineKeyboardButton(text="⚡ Direct Payment Now", callback_data="direct_payment_emergency")
+                InlineKeyboardButton(text="⚡️ Direct Payment Now", callback_data="direct_payment_emergency")
             ],
             [
                 InlineKeyboardButton(text="⬅️ Back to Order", callback_data="skip_coupon")
@@ -1475,7 +1475,7 @@ async def cb_payment_qr(callback: CallbackQuery):
 4. Take screenshot of success message
 5. Click "Payment Done" after successful payment
 
-⚡ <b>QR Code ready for scanning!</b>
+⚡️ <b>QR Code ready for scanning!</b>
 
 💡 <b>Payment complete होने के बाद "Payment Done" button दबाएं</b>
 """
@@ -1604,7 +1604,7 @@ async def cb_add_balance_first(callback: CallbackQuery):
 
 💳 <b>Current Balance:</b> ₹{current_balance:,.2f}
 💸 <b>Required for Order:</b> ₹{total_price:,.2f}
-⚡ <b>Minimum to Add:</b> ₹{shortfall:,.2f}
+⚡️ <b>Minimum to Add:</b> ₹{shortfall:,.2f}
 
 🎯 <b>Recommended Amounts:</b>
 • ₹{max(500, shortfall):,.0f} (Minimum for order)
@@ -1614,7 +1614,7 @@ async def cb_add_balance_first(callback: CallbackQuery):
 💡 <b>Amount चुनें या custom amount type करें:</b>
 
 🔥 <b>Benefits of Adding Balance:</b>
-• ⚡ Instant order processing
+• ⚡️ Instant order processing
 • 💰 No payment hassle every time
 • 🎁 Exclusive member benefits
 • 🚀 Faster checkout process
@@ -1666,7 +1666,7 @@ async def cb_direct_payment_emergency(callback: CallbackQuery):
     current_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
     emergency_payment_text = f"""
-⚡ <b>Direct Payment (Emergency Mode)</b>
+⚡️ <b>Direct Payment (Emergency Mode)</b>
 
 🚨 <b>Emergency Order Processing</b>
 
@@ -1682,7 +1682,7 @@ async def cb_direct_payment_emergency(callback: CallbackQuery):
 🎯 <b>सभी payment methods available हैं:</b>
 
 🔥 <b>Instant Payment Features:</b>
-• ⚡ QR Code scan करके pay करें
+• ⚡️ QR Code scan करके pay करें
 • 💳 UPI से direct transfer
 • 🏦 Bank transfer options
 • 📱 All UPI apps supported
@@ -1692,7 +1692,7 @@ async def cb_direct_payment_emergency(callback: CallbackQuery):
 
     emergency_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr"),
+            InlineKeyboardButton(text="⚡️ Quick QR Payment", callback_data="payment_qr"),
             InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
         ],
         [
@@ -1872,7 +1872,7 @@ async def cb_wallet_specific_order(callback: CallbackQuery):
 4. Enter amount: ₹{total_price:,.2f}
 5. Complete payment with PIN/Password
 
-⚡ <b>Payment के बाद screenshot भेजना जरूरी है!</b>
+⚡️ <b>Payment के बाद screenshot भेजना जरूरी है!</b>
 
 💡 <b>Most users prefer {name} for reliability!</b>
 """
@@ -2080,7 +2080,7 @@ async def cb_proceed_netbank(callback: CallbackQuery):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="⚡ Quick QR Payment", callback_data="payment_qr"),
+            InlineKeyboardButton(text="⚡️ Quick QR Payment", callback_data="payment_qr"),
             InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
         ],
         [
@@ -2621,7 +2621,7 @@ async def cb_hashtag_generator(callback: CallbackQuery):
 • Festival-based tags
 
 🤖 <b>AI-powered hashtag generator coming soon!</b>
-⚡ <b>Will generate optimized hashtags for maximum reach</b>
+⚡️ <b>Will generate optimized hashtags for maximum reach</b>
 """
 
     back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -2817,7 +2817,7 @@ async def cb_coupon_redeem(callback: CallbackQuery):
 """
 
     back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
- �       [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
+        [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
     ])
 
     await safe_edit_message(callback, text, back_keyboard)
@@ -2924,7 +2924,7 @@ async def cb_daily_reward(callback: CallbackQuery):
 • Day 15: ₹50 bonus
 • Day 30: ₹100 bonus
 
-⚡ <b>Special Rewards:</b>
+⚡️ <b>Special Rewards:</b>
 • Weekend bonus (2x rewards)
 • Festival special rewards
 • Birthday month bonus
@@ -3040,7 +3040,7 @@ async def cb_ai_support(callback: CallbackQuery):
 
 🧠 <b>Intelligent Assistant - 24/7 Available</b>
 
-⚡ <b>AI Features:</b>
+⚡️ <b>AI Features:</b>
 • Instant query resolution
 • Smart troubleshooting
 • Order tracking assistance
@@ -3060,7 +3060,7 @@ async def cb_ai_support(callback: CallbackQuery):
 • Learning from interactions
 
 🤖 <b>AI Support system under development!</b>
-⚡ <b>Will provide instant, intelligent assistance 24/7</b>
+⚡️ <b>Will provide instant, intelligent assistance 24/7</b>
 
 📞 <b>For now, contact human support:</b> @{OWNER_USERNAME}
 """
@@ -3096,7 +3096,7 @@ async def cb_contact_admin(callback: CallbackQuery):
 • @BillingSupport_ISP
 • @AccountManager_ISP
 
-⚡ <b>Quick Support Categories:</b>
+⚡️ <b>Quick Support Categories:</b>
 • 🆘 Emergency issues
 • 💰 Payment problems
 • 🔧 Technical difficulties
@@ -3119,7 +3119,7 @@ For VIP customers and partners, we provide priority support with dedicated accou
             InlineKeyboardButton(text="🔧 Technical Help", url="https://t.me/TechnicalSupport_ISP")
         ],
         [
-            InlineKeyboardButton(text="⬅️ Back", callback_data="cont�act_about")
+            InlineKeyboardButton(text="⬅️ Back", callback_data="contact_about")
         ]
     ])
 
@@ -3267,7 +3267,7 @@ async def cb_admin_order_details(callback: CallbackQuery):
 💰 <b>Amount:</b> ₹{order.get('total_price', 0.0):,.2f}
 💳 <b>Payment Method:</b> {order.get('payment_method', 'N/A')}
 📅 <b>Created:</b> {format_time(order.get('created_at', ''))}
-⚡ <b>Status:</b> {order.get('status', 'pending').title()}
+⚡️ <b>Status:</b> {order.get('status', 'pending').title()}
 
 👤 <b>Customer Details:</b>
 • User ID: {order.get('user_id', 'N/A')}
@@ -3340,7 +3340,7 @@ async def cb_admin_user_profile(callback: CallbackQuery):
 💸 <b>Total Spent:</b> ₹{user.get('total_spent', 0.0):,.2f}
 📦 <b>Orders:</b> {user.get('orders_count', 0)}
 📅 <b>Joined:</b> {format_time(user.get('join_date', ''))}
-⚡ <b>Status:</b> {user.get('status', 'active').title()}
+⚡️ <b>Status:</b> {user.get('status', 'active').title()}
 """
 
     await callback.answer(profile_text, show_alert=True)
@@ -3363,7 +3363,7 @@ async def cb_admin_refresh_status(callback: CallbackQuery):
     print(f"🔍 DEBUG: Refresh - Looking for order {order_id}")
     print(f"🔍 DEBUG: Refresh - orders_data has {len(orders_data)} orders")
 
-    # Check if we can access the order from differe�nt sources
+    # Check if we can access the order from different sources
     order_found = False
     order = None
 
@@ -3463,7 +3463,7 @@ async def cb_admin_complete_order(callback: CallbackQuery):
 
 ✅ <b>Status:</b> Completed
 📅 <b>Completed:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
-⚡ <b>Delivery:</b> Service is now active
+⚡️ <b>Delivery:</b> Service is now active
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 💝 <b>THANK YOU!</b>
@@ -3605,7 +3605,7 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
     # Parse callback data: cancel_reason_ORDER_ID_REASON
     callback_parts = callback.data.split("_")
     order_id = callback_parts[2]
-    reason_type = "_".join(callback_parts�[3:])
+    reason_type = "_".join(callback_parts[3:])
 
     # Get order details - check all possible sources
     global orders_data, order_temp
@@ -3820,7 +3820,7 @@ async def cb_admin_processing(callback: CallbackQuery):
     customer_message = f"""
 🔄 <b>ORDER PROCESSING STARTED!</b>
 
-⚡ <b>Great news! Your order is now being processed.</b>
+⚡️ <b>Great news! Your order is now being processed.</b>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 <b>ORDER DETAILS</b>
@@ -3834,7 +3834,7 @@ async def cb_admin_processing(callback: CallbackQuery):
 ⏰ <b>Expected Completion:</b> 0-6 hours
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚡ <b>WHAT HAPPENS NEXT?</b>
+⚡️ <b>WHAT HAPPENS NEXT?</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🎯 <b>Our team is working on your order</b>
@@ -3850,7 +3850,7 @@ async def cb_admin_processing(callback: CallbackQuery):
             InlineKeyboardButton(text="📜 Track Order", callback_data="order_history"),
             InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
         ],
-   �     [
+        [
             InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
         ]
     ])
@@ -3879,7 +3879,7 @@ async def cb_admin_processing(callback: CallbackQuery):
 
 📊 <b>Processing Started:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
 
-⚡ <b>Order is now in active processing queue!</b>
+⚡️ <b>Order is now in active processing queue!</b>
 """
 
         await safe_edit_message(callback, admin_update)
@@ -4074,7 +4074,7 @@ async def handle_contact_input(message: Message):
     from account_creation import handle_contact_sharing
     await handle_contact_sharing(message)
 
-�
+
 # ========== STARTUP FUNCTIONS ==========
 async def on_startup():
     """Initialize bot on startup"""
