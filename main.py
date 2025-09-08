@@ -161,7 +161,7 @@ def is_message_old(message: Message) -> bool:
     return message_timestamp < START_TIME
 
 async def send_admin_notification(order_record: Dict[str, Any]):
-    """Send notification to admin group about a new order or important event"""
+    """Send enhanced notification to admin group about a new order"""
     # Group ID where notifications will be sent
     admin_group_id = -1003009015663
 
@@ -177,50 +177,65 @@ async def send_admin_notification(order_record: Dict[str, Any]):
         service_id = order_record.get('service_id', 'N/A')
         created_at = order_record.get('created_at', '')
 
-        # Get user info if available - with better fallback
-        user_info = [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
+        # Get complete user information from users_data
+        user_info = users_data.get(user_id, {})
         username = user_info.get('username', '')
         first_name = user_info.get('first_name', '')
         full_name = user_info.get('full_name', '')
         phone = user_info.get('phone_number', '')
+        email = user_info.get('email', '')
+        balance = user_info.get('balance', 0.0)
+        total_spent = user_info.get('total_spent', 0.0)
+        orders_count = user_info.get('orders_count', 0)
+        join_date = user_info.get('join_date', '')
+        referral_code = user_info.get('referral_code', '')
 
-        # Use better display values
-        display_username = f"@{username}" if username else "No Username"
-        display_name = full_name or first_name or "No Name Set"
-        display_phone = phone if phone else "No Phone Set"
+        # Format display values
+        display_username = f"@{username}" if username else "Not Set"
+        display_name = full_name or first_name or "Not Set"
+        display_phone = phone if phone else "Not Set"
+        display_email = email if email else "Not Set"
 
-        print(f"📊 DEBUG: User {user_id} info - username: {username}, first_name: {first_name}, full_name: {full_name}, phone: {phone}")
+        print(f"📊 DEBUG: Enhanced user {user_id} info loaded successfully")
 
-        if order_id: # Notification for new order with screenshot
-            message_text = (
-                f"🚨 <b>नया Order Received - Screenshot Upload!</b>\n\n"
-                f"👤 <b>User Details:</b>\n"
-                f"• User ID: {user_id}\n"
-                f"• Name: {display_name}\n"
-                f"• Username: {display_username}\n"
-                f"• Phone: {display_phone}\n\n"
-                f"📦 <b>Order Details:</b>\n"
-                f"• Order ID: <code>{order_id}</code>\n"
-                f"• Package: {package_name}\n"
-                f"• Platform: {platform.title()}\n"
-                f"• Service ID: {service_id}\n"
-                f"• Link: {link}\n"
-                f"• Quantity: {quantity:,}\n"
-                f"• Amount: ₹{total_price:,.2f}\n"
-                f"• Payment Method: {payment_method}\n"
-                f"• Order Time: {format_time(created_at)}\n\n"
-                f"📸 <b>Payment screenshot uploaded by user</b>\n\n"
-                f"⚡️ <b>Action Required: Verify payment and manage order</b>"
-            )
+        if order_id: # Enhanced notification for new order with screenshot
+            message_text = f"""🚨 <b>New Order Received - Payment Screenshot!</b>
+
+👤 <b>Customer Information:</b>
+• 🆔 <b>User ID:</b> <code>{user_id}</code>
+• 👤 <b>Name:</b> {display_name}
+• 📱 <b>Username:</b> {display_username}
+• 📞 <b>Phone:</b> {display_phone}
+• 📧 <b>Email:</b> {display_email}
+• 💰 <b>Balance:</b> ₹{balance:,.2f}
+• 💸 <b>Total Spent:</b> ₹{total_spent:,.2f}
+• 📦 <b>Previous Orders:</b> {orders_count}
+• 📅 <b>Member Since:</b> {format_time(join_date)}
+• 🔗 <b>Referral Code:</b> {referral_code}
+
+📦 <b>Order Information:</b>
+• 🆔 <b>Order ID:</b> <code>{order_id}</code>
+• 📦 <b>Package:</b> {package_name}
+• 📱 <b>Platform:</b> {platform.title()}
+• 🔧 <b>Service ID:</b> <code>{service_id}</code>
+• 🔗 <b>Target Link:</b> {link}
+• 🔢 <b>Quantity:</b> {quantity:,}
+• 💰 <b>Amount:</b> ₹{total_price:,.2f}
+• 💳 <b>Payment Method:</b> {payment_method}
+• 🕐 <b>Order Time:</b> {format_time(created_at)}
+
+📸 <b>Payment screenshot uploaded - Verification Required!</b>
+
+⚡️ <b>Quick Actions Available Below</b>"""
         else: # Generic notification for screenshot upload if no order_id
-            message_text = (
-                f"📸 <b>Screenshot Upload Received!</b>\n\n"
-                f"👤 <b>User ID:</b> {user_id}\n"
-                f"📝 <b>Details:</b> A user has uploaded a screenshot for payment verification.\n\n"
-                f"👉 <b>Please check user's messages for context.</b>"
-            )
+            message_text = f"""📸 <b>Screenshot Upload Received!</b>
 
-        # Create management buttons for order handling
+👤 <b>User ID:</b> {user_id}
+📝 <b>Details:</b> Payment screenshot uploaded
+
+👉 <b>Please check for context</b>"""
+
+        # Enhanced management buttons for professional order handling
         management_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="✅ Complete Order", callback_data=f"admin_complete_{order_id}"),
@@ -228,19 +243,21 @@ async def send_admin_notification(order_record: Dict[str, Any]):
             ],
             [
                 InlineKeyboardButton(text="💬 Send Message", callback_data=f"admin_message_{user_id}"),
-                InlineKeyboardButton(text="📊 Order Details", callback_data=f"admin_details_{order_id}")
+                InlineKeyboardButton(text="👤 User Details", callback_data=f"admin_profile_{user_id}")
             ],
             [
-                InlineKeyboardButton(text="👤 User Profile", callback_data=f"admin_profile_{user_id}"),
+                InlineKeyboardButton(text="📊 Order Details", callback_data=f"admin_details_{order_id}"),
                 InlineKeyboardButton(text="🔄 Refresh Status", callback_data=f"admin_refresh_{order_id}")
             ]
         ])
 
         await bot.send_message(admin_group_id, message_text, parse_mode="HTML", reply_markup=management_keyboard)
-        print(f"✅ Group notification sent for Order ID: {order_id or 'Screenshot Upload'}")
+        print(f"✅ Enhanced group notification sent for Order ID: {order_id or 'Screenshot Upload'}")
 
     except Exception as e:
-        print(f"❌ Failed to send group notification: {e}")
+        print(f"❌ Failed to send enhanced group notification: {e}")
+        import traceback
+        traceback.print_exc()
 
 async def send_first_interaction_notification(user_id: int, first_name: str = "", username: str = ""):
     """Send notification to user on first interaction after restart"""
@@ -526,7 +543,7 @@ async def cmd_broadcast(message: Message):
     if not user or not is_admin(user.id):
         await message.answer("⚠️ This command is for admins only!")
         return
-    
+
     # Get broadcast message from command
     command_parts = message.text.split(' ', 1)
     if len(command_parts) < 2:
@@ -540,17 +557,17 @@ async def cmd_broadcast(message: Message):
 ⚠️ <b>This will send to ALL registered users!</b>
 """)
         return
-    
+
     broadcast_message = command_parts[1]
-    
+
     # Get all registered users DIRECTLY from users_data
     target_users = list(users_data.keys())
     print(f"📢 BROADCAST: Admin {user.id} sending to {len(target_users)} users")
-    
+
     if not target_users:
         await message.answer("❌ No registered users found!")
         return
-    
+
     # Send confirmation to admin
     await message.answer(f"""
 📢 <b>Broadcasting Message...</b>
@@ -560,11 +577,11 @@ async def cmd_broadcast(message: Message):
 
 🔄 <b>Sending now...</b>
 """)
-    
+
     # Send broadcast messages DIRECTLY
     sent_count = 0
     failed_count = 0
-    
+
     for user_id in target_users:
         try:
             await bot.send_message(
@@ -581,15 +598,15 @@ async def cmd_broadcast(message: Message):
             )
             sent_count += 1
             print(f"✅ Broadcast sent to user {user_id}")
-            
+
             # Rate limiting
             import asyncio
             await asyncio.sleep(0.5)  # 0.5 second delay
-            
+
         except Exception as e:
             failed_count += 1
             print(f"❌ Failed to send to user {user_id}: {e}")
-    
+
     # Send final report to admin
     await message.answer(f"""
 ✅ <b>Broadcast Complete!</b>
@@ -3327,23 +3344,69 @@ async def cb_admin_user_profile(callback: CallbackQuery):
 
     user = users_data[target_user_id]
 
+    # Enhanced user profile with more details
+    join_date = format_time(user.get('join_date', ''))
+    referral_code = user.get('referral_code', 'N/A')
+    api_key = user.get('api_key', 'Not Generated')
+    
+    # Get recent order history count
+    recent_orders = 0
+    for order in orders_data.values():
+        if order.get('user_id') == target_user_id:
+            recent_orders += 1
+    
     profile_text = f"""
-👤 <b>User Profile Details</b>
+👤 <b>Complete User Profile</b>
 
-🆔 <b>User ID:</b> {target_user_id}
-👤 <b>Name:</b> {user.get('full_name', 'N/A')}
-📱 <b>Username:</b> @{user.get('username', 'N/A')}
-📞 <b>Phone:</b> {user.get('phone_number', 'N/A')}
-📧 <b>Email:</b> {user.get('email', 'N/A')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <b>BASIC INFORMATION</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 <b>Balance:</b> ₹{user.get('balance', 0.0):,.2f}
-💸 <b>Total Spent:</b> ₹{user.get('total_spent', 0.0):,.2f}
-📦 <b>Orders:</b> {user.get('orders_count', 0)}
-📅 <b>Joined:</b> {format_time(user.get('join_date', ''))}
+🆔 <b>User ID:</b> <code>{target_user_id}</code>
+👤 <b>Full Name:</b> {user.get('full_name', 'Not Set')}
+📱 <b>Username:</b> @{user.get('username', 'Not Set')}
+📞 <b>Phone:</b> {user.get('phone_number', 'Not Set')}
+📧 <b>Email:</b> {user.get('email', 'Not Set')}
+📅 <b>Joined:</b> {join_date}
 ⚡️ <b>Status:</b> {user.get('status', 'active').title()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 <b>ACCOUNT STATISTICS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💳 <b>Current Balance:</b> ₹{user.get('balance', 0.0):,.2f}
+💸 <b>Total Spent:</b> ₹{user.get('total_spent', 0.0):,.2f}
+📦 <b>Total Orders:</b> {user.get('orders_count', 0)}
+📋 <b>Recent Orders:</b> {recent_orders}
+🔗 <b>Referral Code:</b> {referral_code}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 <b>TECHNICAL DETAILS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔑 <b>API Status:</b> {'Active' if api_key != 'Not Generated' else 'Not Generated'}
+✅ <b>Account Created:</b> {'Yes' if user.get('account_created') else 'No'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 <b>Admin Actions Available</b>
 """
 
-    await callback.answer(profile_text, show_alert=True)
+    profile_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💬 Send Message", callback_data=f"admin_message_{target_user_id}"),
+            InlineKeyboardButton(text="📜 Order History", callback_data=f"admin_user_orders_{target_user_id}")
+        ],
+        [
+            InlineKeyboardButton(text="💰 Add Balance", callback_data=f"admin_add_balance_{target_user_id}"),
+            InlineKeyboardButton(text="🚫 Suspend User", callback_data=f"admin_suspend_{target_user_id}")
+        ],
+        [
+            InlineKeyboardButton(text="🔄 Refresh Data", callback_data=f"admin_profile_{target_user_id}")
+        ]
+    ])
+
+    await safe_edit_message(callback, profile_text, profile_keyboard)
+    await callback.answer("👤 User profile loaded")
 
 @dp.callback_query(F.data.startswith("admin_refresh_"))
 async def cb_admin_refresh_status(callback: CallbackQuery):
@@ -3440,10 +3503,13 @@ async def cb_admin_complete_order(callback: CallbackQuery):
     orders_data[order_id]['completed_at'] = datetime.now().isoformat()
     orders_data[order_id]['completed_by_admin'] = user_id
 
-    # Update user's order count and spending
+    # Update user's order count and spending - enhanced with validation
     if customer_id in users_data:
-        users_data[customer_id]['orders_count'] += 1
-        users_data[customer_id]['total_spent'] += total_price
+        users_data[customer_id]['orders_count'] = users_data[customer_id].get('orders_count', 0) + 1
+        users_data[customer_id]['total_spent'] = users_data[customer_id].get('total_spent', 0.0) + total_price
+        print(f"✅ DEBUG: Updated user {customer_id} stats - Orders: {users_data[customer_id]['orders_count']}, Spent: ₹{users_data[customer_id]['total_spent']}")
+    else:
+        print(f"⚠️ DEBUG: Customer {customer_id} not found in users_data during order completion")
 
     # Send completion message to customer
     customer_message = f"""
