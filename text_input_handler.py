@@ -39,6 +39,69 @@ def get_order_confirm_menu(price: float):
         ]
     ])
 
+async def handle_admin_direct_message(message: Message, admin_id: int, target_user_id: int):
+    """Handle admin direct message sending to specific user"""
+    try:
+        from main import bot, user_state, users_data
+        
+        # Get admin and target user info
+        admin_info = users_data.get(admin_id, {})
+        target_info = users_data.get(target_user_id, {})
+        
+        admin_name = admin_info.get('full_name', 'Admin')
+        target_name = target_info.get('full_name', 'User')
+        
+        # Clear admin state
+        if admin_id in user_state:
+            user_state[admin_id]["current_step"] = None
+            user_state[admin_id]["data"] = {}
+        
+        # Send message to target user
+        user_message = f"""
+📩 <b>Message from Admin</b>
+
+👨‍💼 <b>From:</b> {admin_name} (India Social Panel)
+
+💬 <b>Message:</b>
+{message.text}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 <b>Need help?</b> Contact @tech_support_admin
+"""
+        
+        from main import InlineKeyboardMarkup, InlineKeyboardButton
+        user_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            ]
+        ])
+        
+        await bot.send_message(
+            chat_id=target_user_id, 
+            text=user_message, 
+            parse_mode="HTML",
+            reply_markup=user_keyboard
+        )
+        
+        # Confirm to admin
+        admin_confirmation = f"""
+✅ <b>Message Sent Successfully!</b>
+
+👤 <b>Sent to:</b> {target_name} (ID: {target_user_id})
+💬 <b>Message:</b> "{message.text}"
+🕐 <b>Time:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+📊 <b>Message delivered successfully!</b>
+"""
+        
+        await message.answer(admin_confirmation, parse_mode="HTML")
+        print(f"✅ Admin {admin_id} sent message to user {target_user_id}: {message.text}")
+        
+    except Exception as e:
+        print(f"❌ Error sending admin message: {e}")
+        await message.answer("❌ Error sending message. Please try again.")
+
 async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[str, Any]], 
                                   order_temp: Dict[int, Dict[str, Any]], generate_order_id,
                                   format_currency, get_main_menu):
@@ -180,6 +243,11 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         if current_step == "admin_broadcast_message":
             print(f"📢 Processing admin broadcast message from {user_id}")
             await handle_admin_broadcast_message(message, user_id)
+            return
+        elif current_step and current_step.startswith("admin_messaging_"):
+            # Handle admin messaging to specific user
+            target_user_id = int(current_step.replace("admin_messaging_", ""))
+            await handle_admin_direct_message(message, user_id, target_user_id)
             return
         elif current_step:
             print(f"🔍 ADMIN DEBUG: Admin {user_id} in step: {current_step}")
