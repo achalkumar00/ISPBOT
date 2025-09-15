@@ -11,7 +11,9 @@ import random
 from datetime import datetime
 from typing import Dict, Any, Optional
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
 import account_creation
+from states import OrderStates
 
 
 def generate_ticket_id() -> str:
@@ -43,19 +45,19 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
     """Handle admin direct message sending to specific user"""
     try:
         from main import bot, user_state, users_data
-        
+
         # Get admin and target user info
         admin_info = users_data.get(admin_id, {})
         target_info = users_data.get(target_user_id, {})
-        
+
         admin_name = admin_info.get('full_name', 'Admin')
         target_name = target_info.get('full_name', 'User')
-        
+
         # Clear admin state
         if admin_id in user_state:
             user_state[admin_id]["current_step"] = None
             user_state[admin_id]["data"] = {}
-        
+
         # Send message to target user
         user_message = f"""
 📩 <b>Message from Admin</b>
@@ -68,7 +70,7 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📞 <b>Need help?</b> Contact @tech_support_admin
 """
-        
+
         from main import InlineKeyboardMarkup, InlineKeyboardButton
         user_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -76,14 +78,14 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
                 InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
             ]
         ])
-        
+
         await bot.send_message(
             chat_id=target_user_id, 
             text=user_message, 
             parse_mode="HTML",
             reply_markup=user_keyboard
         )
-        
+
         # Confirm to admin
         admin_confirmation = f"""
 ✅ <b>Message Sent Successfully!</b>
@@ -94,18 +96,20 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
 
 📊 <b>Message delivered successfully!</b>
 """
-        
+
         await message.answer(admin_confirmation, parse_mode="HTML")
         print(f"✅ Admin {admin_id} sent message to user {target_user_id}: {message.text}")
-        
+
     except Exception as e:
         print(f"❌ Error sending admin message: {e}")
         await message.answer("❌ Error sending message. Please try again.")
 
-async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[str, Any]], 
+async def handle_screenshot_upload(message: Message, 
                                   order_temp: Dict[int, Dict[str, Any]], generate_order_id,
                                   format_currency, get_main_menu):
     """Handle screenshot upload for payment verification"""
+    from main import user_state
+
     if not message.from_user or not message.photo:
         return False
 
@@ -142,9 +146,12 @@ async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[
         }
 
         # Store order in both temp and permanent storage
-        from main import orders_data, send_admin_notification
+        from main import orders_data, send_admin_notification, save_data_to_json
         order_temp[user_id] = order_record
         orders_data[order_id] = order_record  # Also store in permanent orders_data
+
+        # Save order data to persistent storage
+        save_data_to_json(orders_data, "orders.json")
 
         print(f"✅ Screenshot order {order_id} stored in both temp and permanent storage")
 
@@ -219,12 +226,14 @@ async def handle_screenshot_upload(message: Message, user_state: Dict[int, Dict[
 
     return False
 
-async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, Any]], 
+async def handle_text_input(message: Message, 
                            users_data: Dict[int, Dict[str, Any]], order_temp: Dict[int, Dict[str, Any]],
                            tickets_data: Dict[str, Dict[str, Any]], is_message_old, 
                            mark_user_for_notification, is_account_created, 
                            format_currency, get_main_menu, OWNER_USERNAME: str):
     """Handle text input for account creation"""
+    from main import user_state
+
     if not message.from_user or not message.text:
         return
 
@@ -274,6 +283,10 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         if matching_user and matching_user == user_id:
             # Phone matches, complete login
             users_data[user_id]['account_created'] = True
+
+            # Save user data to persistent storage
+            from main import save_data_to_json
+            save_data_to_json(users_data, "users.json")
 
             # Only clear state if it's not an admin broadcast operation
             current_step = user_state[user_id].get("current_step")
@@ -706,6 +719,10 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
             "account_created": True
         })
 
+        # Save user data to persistent storage
+        from main import save_data_to_json
+        save_data_to_json(users_data, "users.json")
+
         # Clear user state
         user_state[user_id]["current_step"] = None
         user_state[user_id]["data"] = {}
@@ -727,175 +744,8 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
 
         await message.answer(success_text, reply_markup=get_main_menu())
 
-    elif current_step == "waiting_link":
-        # Handle link input for order processing
-        link_input = message.text.strip()
-
-        # Validate link format
-        if not link_input.startswith(('http://', 'https://', 'www.')):
-            await message.answer(
-                "⚠️ <b>Invalid Link Format!</b>\n\n"
-                "🔗 <b>Link proper format में नहीं है</b>\n"
-                "💡 <b>Link https:// या http:// से start होना चाहिए</b>\n"
-                "💡 <b>Example:</b> https://instagram.com/username\n\n"
-                "🔄 <b>Correct format में link भेजें</b>"
-            )
-            return
-
-        # Get platform from user state
-        platform = user_state[user_id]["data"].get("platform", "")
-        service_id = user_state[user_id]["data"].get("service_id", "")
-        package_name = user_state[user_id]["data"].get("package_name", "")
-        package_rate = user_state[user_id]["data"].get("package_rate", "")
-
-        # Validate link belongs to correct platform
-        platform_domains = {
-            "instagram": ["instagram.com", "www.instagram.com"],
-            "youtube": ["youtube.com", "www.youtube.com", "youtu.be"],
-            "facebook": ["facebook.com", "www.facebook.com", "fb.com"],
-            "telegram": ["t.me", "telegram.me"],
-            "tiktok": ["tiktok.com", "www.tiktok.com"],
-            "twitter": ["twitter.com", "www.twitter.com", "x.com"],
-            "linkedin": ["linkedin.com", "www.linkedin.com"],
-            "whatsapp": ["chat.whatsapp.com", "wa.me"]
-        }
-
-        valid_domains = platform_domains.get(platform, [])
-        is_valid_platform = any(domain in link_input.lower() for domain in valid_domains)
-
-        if not is_valid_platform:
-            await message.answer(
-                f"⚠️ <b>Wrong Platform Link!</b>\n\n"
-                f"🚫 <b>आपने {platform.title()} के लिए order किया है</b>\n"
-                f"🔗 <b>लेकिन link किसी और platform का है</b>\n"
-                f"💡 <b>Valid domains for {platform.title()}:</b> {', '.join(valid_domains)}\n\n"
-                f"🔄 <b>Correct {platform.title()} link भेजें</b>"
-            )
-            return
-
-        # Store link and move to quantity step
-        user_state[user_id]["data"]["link"] = link_input
-        user_state[user_id]["current_step"] = "waiting_quantity"
-
-        # First message - Link received confirmation
-        success_text = f"""
-✅ <b>Your Link Successfully Received!</b>
-
-🔗 <b>Received Link:</b> {link_input}
-
-📦 <b>Package Info:</b>
-• Name: {package_name}
-• ID: {service_id}
-• Rate: {package_rate}
-• Platform: {platform.title()}
-
-💡 <b>Link verification successful! Moving to next step...</b>
-"""
-
-        await message.answer(success_text)
-
-        # Second message - Quantity input page
-        quantity_text = f"""
-📊 <b>Step 3: Enter Quantity</b>
-
-💡 <b>कितनी quantity चाहिए?</b>
-
-📋 <b>Order Details:</b>
-• Package: {package_name}
-• Rate: {package_rate}
-• Target: {platform.title()}
-
-⚠️ <b>Quantity Guidelines:</b>
-• केवल numbers में भेजें
-• Minimum: 100
-• Maximum: 1,000,000
-• Example: 1000, 5000, 10000
-
-💬 <b>अपनी quantity type करके send करें:</b>
-
-🔢 <b>Example Messages:</b>
-• 1000
-• 5000
-• 10000
-"""
-
-        await message.answer(quantity_text)
-
-    elif current_step == "waiting_quantity":
-        # Handle quantity input
-        quantity_input = message.text.strip()
-
-        # Validate quantity is a number
-        try:
-            quantity = int(quantity_input)
-            if quantity <= 0:
-                await message.answer(
-                    "⚠️ <b>Invalid Quantity!</b>\n\n"
-                    "🔢 <b>Quantity 0 से ज्यादा होनी चाहिए</b>\n"
-                    "💡 <b>Example:</b> 1000\n\n"
-                    "🔄 <b>Valid quantity number भेजें</b>"
-                )
-                return
-        except ValueError:
-            await message.answer(
-                "⚠️ <b>Invalid Number!</b>\n\n"
-                "🔢 <b>केवल numbers allowed हैं</b>\n"
-                "💡 <b>Example:</b> 1000\n\n"
-                "🔄 <b>Number format में quantity भेजें</b>"
-            )
-            return
-
-        # Store quantity and move to coupon step
-        user_state[user_id]["data"]["quantity"] = quantity
-        user_state[user_id]["current_step"] = "waiting_coupon"
-
-        package_name = user_state[user_id]["data"].get("package_name", "")
-        service_id = user_state[user_id]["data"].get("service_id", "")
-        package_rate = user_state[user_id]["data"].get("package_rate", "")
-        link = user_state[user_id]["data"].get("link", "")
-
-        text = f"""
-✅ <b>Quantity Successfully Selected!</b>
-
-📦 <b>Package:</b> {package_name}
-🆔 <b>ID:</b> {service_id}
-💰 <b>Rate:</b> {package_rate}
-🔗 <b>Link:</b> {link}
-📊 <b>Quantity:</b> {quantity:,}
-
-🎟️ <b>Coupon Code (Optional)</b>
-
-💡 <b>अगर आपके पास कोई valid coupon code है तो type करें</b>
-
-📝 <b>Instructions:</b>
-• अपना coupon code manually enter करें
-• केवल valid codes ही accept होंगे
-• कोई coupon नहीं है तो Skip button दबाएं
-
-💬 <b>Coupon code type करें या Skip करें</b>
-"""
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="⏭️ Skip Coupon", callback_data="skip_coupon")
-            ]
-        ])
-
-        await message.answer(text, reply_markup=keyboard)
-
-    elif current_step == "waiting_coupon":
-        # Handle coupon input - reject any coupon for now since no coupon system is active
-        coupon_input = message.text.strip()
-
-        await message.answer(
-            "❌ <b>Invalid Coupon Code!</b>\n\n"
-            "🎟️ <b>यह coupon code valid नहीं है या expired हो गया है</b>\n"
-            "💡 <b>कृपया valid coupon code try करें या Skip button दबाएं</b>\n\n"
-            "🔄 <b>सही coupon code के लिए support से contact करें</b>"
-        )
-
-    # Skip if user not in coupon state but has text input
-        return
+    # Order flow states (waiting_link, waiting_quantity, waiting_coupon) 
+    # are now handled by dedicated FSM handlers in fsm_handlers.py
 
     # Handle admin messaging
     if current_step and current_step.startswith("admin_messaging_"):
@@ -983,102 +833,3 @@ async def handle_text_input(message: Message, user_state: Dict[int, Dict[str, An
         return
 
 
-    else:
-        # PROFESSIONAL BOT BEHAVIOR: Ignore all random/unknown messages
-        # Only respond to specific expected inputs during active processes
-
-        # If user has completed account but sent random text, IGNORE completely
-        if is_account_created(user_id):
-            # Check if this is actually a link - treat any link as order continuation
-            if message.text and ("http" in message.text or "www." in message.text or "t.me" in message.text or "instagram.com" in message.text or "youtube.com" in message.text or "facebook.com" in message.text):
-                # This might be a link for ordering - check if we can detect platform
-                link_input = message.text.strip()
-                detected_platform = None
-
-                # Detect platform from link
-                if "instagram.com" in link_input.lower():
-                    detected_platform = "instagram"
-                elif "youtube.com" in link_input.lower() or "youtu.be" in link_input.lower():
-                    detected_platform = "youtube"
-                elif "facebook.com" in link_input.lower() or "fb.com" in link_input.lower():
-                    detected_platform = "facebook"
-                elif "t.me" in link_input.lower() or "telegram.me" in link_input.lower():
-                    detected_platform = "telegram"
-                elif "tiktok.com" in link_input.lower():
-                    detected_platform = "tiktok"
-                elif "twitter.com" in link_input.lower() or "x.com" in link_input.lower():
-                    detected_platform = "twitter"
-                elif "linkedin.com" in link_input.lower():
-                    detected_platform = "linkedin"
-                elif "chat.whatsapp.com" in link_input.lower() or "wa.me" in link_input.lower():
-                    detected_platform = "whatsapp"
-
-                if detected_platform:
-                    # Set up a basic order state with detected platform
-                    user_state[user_id] = {
-                        "current_step": "waiting_quantity",
-                        "data": {
-                            "platform": detected_platform,
-                            "service_id": "AUTO_DETECTED",
-                            "package_name": f"{detected_platform.title()} Service Package",
-                            "package_rate": "₹1.00 per unit",
-                            "link": link_input
-                        }
-                    }
-
-                    # First message - Link received confirmation
-                    success_text = f"""
-✅ <b>Your Link Successfully Received!</b>
-
-🔗 <b>Received Link:</b> {link_input}
-
-📦 <b>Package Info:</b>
-• Platform: {detected_platform.title()}
-• Auto-detected service
-• Standard pricing applicable
-
-💡 <b>Link verification successful! Moving to next step...</b>
-"""
-
-                    await message.answer(success_text)
-
-                    # Second message - Quantity input page
-                    quantity_text = f"""
-📊 <b>Step 3: Enter Quantity</b>
-
-💡 <b>कितनी quantity चाहिए?</b>
-
-📋 <b>Order Details:</b>
-• Package: {detected_platform.title()} Service Package
-• Rate: ₹1.00 per unit
-• Target: {detected_platform.title()}
-
-⚠️ <b>Quantity Guidelines:</b>
-• केवल numbers में भेजें
-• Minimum: 100
-• Maximum: 1,000,000
-• Example: 1000, 5000, 10000
-
-💬 <b>अपनी quantity type करके send करें:</b>
-
-🔢 <b>Example Messages:</b>
-• 1000
-• 5000
-• 10000
-"""
-
-                    await message.answer(quantity_text)
-                    return
-                else:
-                    # Unknown link platform - IGNORE completely instead of responding
-                    print(f"🔇 IGNORED: Unknown link from user {user_id}: {link_input}")
-                    return
-            else:
-                # Random text message from completed account user - IGNORE completely
-                print(f"🔇 IGNORED: Random text from user {user_id}: '{message.text[:50]}...'")
-                return
-        else:
-            # User without account sent random text - IGNORE completely 
-            # They should use /start command or buttons to create account
-            print(f"🔇 IGNORED: Text from unregistered user {user_id}: '{message.text[:50]}...'")
-            return
