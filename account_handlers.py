@@ -262,36 +262,48 @@ async def cb_order_history(callback: CallbackQuery):
 
     user_id = callback.from_user.id
 
-    # Get orders from multiple sources
-    from main import order_temp, orders_data as main_orders_data
+    # CRITICAL FIX: Force fresh data reload to avoid cached references
+    from main import load_data_from_json
+    import main
+    
+    # Force reload fresh data directly from JSON file every time
+    print(f"🔄 DEBUG: Force reloading fresh data from files...")
+    fresh_orders_data = load_data_from_json("orders.json") 
     user_orders = []
 
     print(f"🔍 DEBUG: Checking order history for user {user_id}")
-    print(f"🔍 DEBUG: main_orders_data has {len(main_orders_data)} orders")
-    print(f"🔍 DEBUG: order_temp has user {user_id}: {user_id in order_temp}")
+    print(f"🔍 DEBUG: fresh_orders_data has {len(fresh_orders_data)} orders")
+    print(f"🔍 DEBUG: main.order_temp has user {user_id}: {user_id in main.order_temp}")
     print(f"🔍 DEBUG: local orders_data has {len(orders_data)} orders")
 
-    # Get from main orders_data
-    for order_id, order in main_orders_data.items():
-        if order.get('user_id') == user_id:
-            print(f"🔍 Found order in main_orders_data: {order_id}")
+    # Get from fresh_orders_data (guaranteed fresh from file)
+    for order_id, order in fresh_orders_data.items():
+        # CRITICAL FIX: Check both user_id and customer_id for compatibility
+        order_user_id = order.get('user_id') or order.get('customer_id')
+        if order_user_id == user_id:
+            order_status = order.get('status', 'pending')
+            print(f"🔍 Found order in fresh_orders_data: {order_id} - Status: {order_status} - UserID: {order_user_id}")
             user_orders.append(order)
 
-    # Get from order_temp (recent orders) 
-    if user_id in order_temp:
-        temp_order = order_temp[user_id].copy()
+    # Get from main.order_temp (recent orders) 
+    if user_id in main.order_temp:
+        temp_order = main.order_temp[user_id].copy()
         temp_order['is_recent'] = True
-        print(f"🔍 Found recent order in order_temp: {temp_order.get('order_id', 'NO_ID')}")
+        temp_order_status = temp_order.get('status', 'processing')
+        print(f"🔍 Found recent order in main.order_temp: {temp_order.get('order_id', 'NO_ID')} - Status: {temp_order_status}")
         user_orders.append(temp_order)
 
     # Also get from local orders_data if it exists
     if orders_data:
         for order_id, order in orders_data.items():
-            if order.get('user_id') == user_id:
+            # CRITICAL FIX: Check both user_id and customer_id for compatibility
+            order_user_id = order.get('user_id') or order.get('customer_id')
+            if order_user_id == user_id:
                 # Check if not already added
                 existing_ids = [o.get('order_id') for o in user_orders]
                 if order.get('order_id') not in existing_ids:
-                    print(f"🔍 Found order in local orders_data: {order_id}")
+                    order_status = order.get('status', 'pending')
+                    print(f"🔍 Found order in local orders_data: {order_id} - Status: {order_status} - UserID: {order_user_id}")
                     user_orders.append(order)
 
     print(f"🔍 DEBUG: Total orders found for user {user_id}: {len(user_orders)}")
@@ -577,6 +589,10 @@ async def cb_create_api_key(callback: CallbackQuery):
     users_data[user_id]['api_key'] = new_api_key
     users_data[user_id]['api_created_at'] = timestamp
 
+    # Save user data to persistent storage
+    from main import save_data_to_json
+    save_data_to_json(users_data, "users.json")
+
     text = f"""
 🎉 <b>API Key Successfully Created!</b>
 
@@ -753,6 +769,10 @@ async def cb_confirm_regenerate_api(callback: CallbackQuery):
     old_key = users_data.get(user_id, {}).get('api_key', 'N/A')
     users_data[user_id]['api_key'] = new_api_key
     users_data[user_id]['api_regenerated_at'] = timestamp
+
+    # Save user data to persistent storage
+    from main import save_data_to_json
+    save_data_to_json(users_data, "users.json")
 
     text = f"""
 🎉 <b>API Key Successfully Regenerated!</b>
@@ -1638,6 +1658,10 @@ async def cb_sync_telegram_data(callback: CallbackQuery):
         users_data[user_id]['language_code'] = telegram_user.language_code or "en"
         users_data[user_id]['is_premium'] = getattr(telegram_user, 'is_premium', False)
         users_data[user_id]['last_sync'] = time.time()
+
+        # Save user data to persistent storage
+        from main import save_data_to_json
+        save_data_to_json(users_data, "users.json")
 
     text = f"""
 🔄 <b>Telegram Data Synced Successfully!</b>
