@@ -13,6 +13,7 @@ from aiogram.types import (
     Message
 )
 from aiogram import F
+from aiogram.fsm.context import FSMContext
 
 # ========== ADMIN CONFIGURATION ==========
 ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "7437014244"))  # Main admin user ID from environment
@@ -215,7 +216,7 @@ def get_package_description(platform: str, service_id: str) -> dict:
             "delivery_time": "12-24 hours start, 5-7 days completion",
             "quality": "Basic Quality Users",
             "description": "Budget-friendly Instagram followers for beginners. Perfect for those who want to increase their follower count without spending much. Basic quality accounts with minimal profile pictures.",
-            "features": ["✅ Real Accounts", "✅ Safe Methods", "✅ Slow & Steady Growth", "✅ Email Support Only", "✅ 60% Retention Rate", "⚠️ No Refill Guarantee"]
+            "features": ["✅ Real Accounts", "✅ Saf Methods", "✅ Slow & Steady Growth", "✅ Email Support Only", "✅ 60% Retention Rate", "⚠️ No Refill Guarantee"]
         },
         "2002": {
             "name": "👥 Instagram Followers - 📈 Standard",
@@ -1008,7 +1009,7 @@ def get_package_description(platform: str, service_id: str) -> dict:
         ]
     ])
 
-    return {"text": text, "keyboard": keyboard}
+    return {"text": text, "keyboard": keyboard, "package_info": {"name": package_info["name"], "price": package_info["price"]}}
 
 def get_service_packages(platform: str) -> InlineKeyboardMarkup:
     """Get packages for specific platform"""
@@ -1421,24 +1422,25 @@ def register_service_handlers(dp, require_account):
 
         if platform == "instagram":
             text = """
-📷 <b>Instagram Services</b>
+📸 <b>Instagram Services</b>
 
-🌟 <b>Premium Instagram Growth Services</b>
+🚀 <b>Select a service below to start boosting your Instagram profile.</b>
 
-✅ <b>High Quality Features:</b>
-• Real & Active Users Only
-• Instant Start (0-30 minutes)
-• High Retention Rate (90%+)
-• Safe & Secure Methods
-• 24/7 Customer Support
+🎯 <b>Inside each service, you'll find a variety of packages:</b>
+• 💰 <b>Economy</b> - Budget-friendly options
+• 📈 <b>Standard</b> - Best value for money  
+• ⭐ <b>Premium</b> - High-quality guaranteed
+• 🇮🇳 <b>Indian Premium</b> - Local targeting
+• 👑 <b>VIP Elite</b> - Ultimate quality & speed
 
-💰 <b>Competitive Pricing:</b>
-• Followers: ₹0.50 per follower
-• Likes: ₹0.30 per like
-• Views: ₹0.10 per view
-• Comments: ₹0.80 per comment
+✨ <b>Features:</b>
+• 🔥 100% Real & Active Users
+• ⚡ Lightning Fast Delivery
+• 🛡️ High Retention Guarantee
+• 🔒 Safe & Secure Methods
+• 💬 24/7 Premium Support
 
-💡 <b>अपनी जरूरत का package चुनें:</b>
+💡 <b>Please select the service you require:</b>
 """
             await safe_edit_message(callback, text, get_service_packages("instagram"))
 
@@ -1539,8 +1541,9 @@ def register_service_handlers(dp, require_account):
         await callback.answer()
 
     @dp.callback_query(F.data.startswith("confirm_order_"))
-    async def cb_confirm_order(callback: CallbackQuery):
+    async def cb_confirm_order(callback: CallbackQuery, state: FSMContext):
         """Handle order confirmation - show package details and description command"""
+        from states import OrderStates
         if not callback.message:
             return
 
@@ -1550,21 +1553,16 @@ def register_service_handlers(dp, require_account):
             platform = parts[2]
             service_id = parts[3]
 
-            # Get package details from the description function
-            # package_details = get_package_description(platform, service_id)  # Not used
-
-            # Extract package name and price from the description data
-            package_data = {
-                "5629": {"name": "📷 Instagram Followers - Real & Active", "price": "₹0.45 per follower"},
-                "5630": {"name": "📷 Instagram Followers - Premium Quality", "price": "₹0.65 per follower"},
-                "5631": {"name": "📷 Instagram Followers - High Retention", "price": "₹0.55 per follower"}
-            }
-
-            # Get package info or default
-            pkg_info = package_data.get(service_id, {
-                "name": f"Service Package ID:{service_id}",
-                "price": "₹1.00 per unit"
-            })
+            try:
+                description_data = get_package_description(platform, service_id)
+                pkg_info = description_data.get("package_info", {})
+            except Exception as e:
+                print(f"Warning: Could not get package details for {service_id}: {e}")
+                # Fallback to default if original database fails
+                pkg_info = {
+                    "name": f"Service Package ID:{service_id}",
+                    "price": "₹1.00 per unit"
+                }
 
             # Get example link based on platform
             example_links = {
@@ -1604,18 +1602,15 @@ def register_service_handlers(dp, require_account):
 💬 <b>अपना link message के रूप में भेजें...</b>
 """
 
-            # Store order data in user state
-            from main import user_state
-            user_id = callback.from_user.id if callback.from_user else 0
-            if user_id not in user_state:
-                user_state[user_id] = {"current_step": None, "data": {}}
-
-            user_state[user_id]["current_step"] = "waiting_link"
-            user_state[user_id]["data"]["service"] = f"{platform}_{service_id}"
-            user_state[user_id]["data"]["platform"] = platform
-            user_state[user_id]["data"]["service_id"] = service_id
-            user_state[user_id]["data"]["package_name"] = pkg_info["name"]
-            user_state[user_id]["data"]["package_rate"] = pkg_info["price"]
+            # Store order data in FSM state
+            await state.update_data(
+                service=f"{platform}_{service_id}",
+                platform=platform,
+                service_id=service_id,
+                package_name=pkg_info["name"],
+                package_rate=pkg_info["price"]
+            )
+            await state.set_state(OrderStates.waiting_link)
 
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [
@@ -1794,7 +1789,7 @@ def register_service_handlers(dp, require_account):
             await callback.answer("⚠️ Access Denied", show_alert=True)
             return
 
-        from main import user_state, users_data, init_user
+        from main import users_data, init_user, user_state
         user_id = callback.from_user.id
 
         # Ensure user exists in users_data first
@@ -1809,6 +1804,9 @@ def register_service_handlers(dp, require_account):
             users_data[user_id]['email'] = "admin@indiasocialpanel.com"
             users_data[user_id]['phone_number'] = "+91XXXXXXXXXX"
             print(f"🔧 Force-completed admin account for broadcast user {user_id}")
+            # Save admin account data to persistent storage
+            from main import save_data_to_json
+            save_data_to_json(users_data, "users.json")
 
         # Set user state for message input
         user_state[user_id] = {
@@ -2110,7 +2108,7 @@ def get_admin_main_menu() -> InlineKeyboardMarkup:
 
 def get_bot_status_info() -> dict:
     """Get comprehensive bot status information"""
-    from main import users_data, orders_data, tickets_data
+    from main import users_data, orders_data, tickets_data, user_state
 
     uptime = format_uptime()
     system_stats = get_system_stats()
