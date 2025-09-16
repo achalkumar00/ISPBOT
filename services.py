@@ -1587,19 +1587,19 @@ def register_service_handlers(dp, require_account):
 
 📋 <b>Description Command:</b> /description
 
-💡 <b>Package के बारे में detailed जानकारी के लिए /description command type करें</b>
+💡 <b>For detailed information about the package, type /description command</b>
 
 🔗 <b>Example Link for {platform.title()}:</b>
 {example_link}
 
-📝 <b>अब आपका {platform.title()} link भेजें:</b>
+📝 <b>Now send your {platform.title()} link:</b>
 
 ⚠️ <b>Important:</b>
-• Link public होना चाहिए
-• Correct format में हो
-• Working link होना चाहिए
+• Link should be public
+• Should be in correct format
+• Should be a working link
 
-💬 <b>अपना link message के रूप में भेजें...</b>
+💬 <b>Send your link as a message...</b>
 """
 
             # Store order data in FSM state
