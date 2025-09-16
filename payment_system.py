@@ -285,7 +285,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
             text = """
 💰 <b>Custom Amount Entry</b>
 
-💬 <b>कृपया amount enter करें:</b>
+💬 <b>Please enter the amount:</b>
 
 ⚠️ <b>Minimum:</b> ₹100
 ⚠️ <b>Maximum:</b> ₹50,000
@@ -295,6 +295,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 🔒 <b>Secure Payment Processing</b>
 ✅ <b>Multiple payment options available</b>
 """
+
             await safe_edit_message(callback, text)
         else:
             # Fixed amount selected - show payment methods
@@ -326,7 +327,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 
 📝 <b>Net Banking Steps:</b>
 1. Login to your bank's net banking
-2. Go to "Fund Transfer" या "IMPS/NEFT"
+2. Go to "Fund Transfer" or "IMPS/NEFT"
 3. Add beneficiary with above details
 4. Transfer required amount
 5. Save transaction reference number
@@ -376,7 +377,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 
 📝 <b>Payment Steps:</b>
 1. Open {name} app
-2. Select "Send Money" या "Pay"
+2. Select "Send Money" or "Pay"
 3. Enter UPI ID: <code>{upi_id}</code>
 4. Enter amount
 5. Complete payment with PIN
@@ -506,27 +507,50 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
             await state.set_state(OrderStates.waiting_screenshot)
 
             text = f"""
-📸 <b>Payment Screenshot Required</b>
-✅ <b>Payment Details:</b>
-• 💰 <b>Amount:</b> {format_currency(amount)}
-• 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
-• 📱 <b>Method:</b> UPI Payment
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📸 <b>PAYMENT VERIFICATION REQUIRED</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📸 <b>कृपया payment का screenshot भेजें:</b>
-📋 <b>Screenshot Requirements:</b>
-• Clear और readable होना चाहिए
-• Payment amount दिखना चाहिए
-• Transaction status "Success" हो
+🎯 <b>Payment Confirmation Step - Screenshot Submission</b>
 
-💬 <b>Screenshot को image के रूप में send करें...</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💳 <b>PAYMENT SUMMARY</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 💰 <b>Payment Amount:</b> {format_currency(amount)}
+┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+┃ • 📱 <b>Payment Method:</b> UPI Gateway
+┃ • ⏰ <b>Status:</b> Awaiting Verification
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📸 <b>SCREENSHOT SUBMISSION REQUIREMENTS:</b>
+
+┌─────────────────────────────────────┐
+│ ✅ <b>MANDATORY REQUIREMENTS:</b>           │
+│ • High-quality, clear image          │
+│ • Payment amount clearly visible     │
+│ • Transaction status shows "SUCCESS" │
+│ • Date and timestamp visible         │
+│ • UPI reference number included      │
+└─────────────────────────────────────┘
+
+⚠️ <b>CRITICAL WARNING:</b>
+<b>Screenshot submission is MANDATORY for order processing. Failure to provide valid payment proof will result in automatic order cancellation and no service delivery.</b>
+
+📤 <b>Upload your payment screenshot now:</b>
+
+💡 <b>Pro Tip:</b> Take screenshot immediately after successful payment for best quality and clarity.
+
+🔒 <b>Your payment security is guaranteed with bank-grade verification protocols.</b>
 """
 
             await safe_edit_message(callback, text)
-            await callback.answer("📸 Screenshot भेजें...")
+            await callback.answer("📸 Please upload payment screenshot now...")
 
         except Exception as e:
             print(f"CRITICAL ERROR in cb_payment_completed: {e}")
             await callback.answer("An error occurred. Please try again.", show_alert=True)
+
+    @main_dp.callback_query(F.data.startswith("cancel_qr_order_"))
 
     @main_dp.callback_query(F.data.startswith("cancel_qr_order_"))
     async def cb_cancel_qr_order(callback: CallbackQuery):
@@ -577,11 +601,11 @@ Click "New Order" to start fresh!
 
 🔸 <b>Method 1: UPI ID Payment</b>
 1. Open any UPI app (GPay, PhonePe, Paytm)
-2. Select "Send Money" या "Pay to Contact"
+2. Select "Send Money" or "Pay to Contact"
 3. Enter UPI ID: <code>indiasmm@paytm</code>
 4. Enter amount
 5. Add remark (optional)
-6. Enter UPI PIN और pay करें
+6. Enter UPI PIN and pay
 
 🔸 <b>Method 2: QR Code Payment</b>
 1. Generate QR code from payment menu
@@ -593,10 +617,10 @@ Click "New Order" to start fresh!
 🔸 <b>Method 3: UPI App Link</b>
 1. Click "Open UPI App" button
 2. Copy payment link
-3. Paste in browser या UPI app
+3. Paste in browser or UPI app
 4. Complete payment
 
-⚡ <b>सभी methods instant हैं और 100% secure हैं!</b>
+⚡ <b>All methods are instant and 100% secure!</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -664,16 +688,16 @@ Send transaction screenshot to @tech_support_admin
 📊 <b>Your Payment Transactions</b>
 
 📋 <b>Recent Payments:</b>
-कोई payment history नहीं मिली
+No payment history found
 
-💡 <b>Payment history में दिखेगा:</b>
+💡 <b>Payment history will show:</b>
 • Transaction date & time
 • Payment method used
-• Amount और fees
+• Amount and fees
 • Transaction status
 • Reference numbers
 
-🔔 <b>जैसे ही आप payment करेंगे, यहाँ history दिख जाएगी!</b>
+🔔 <b>History will be updated after your first payment!</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -717,7 +741,7 @@ Send transaction screenshot to @tech_support_admin
 • Keep transaction reference numbers
 • Check internet connection during payment
 
-🎯 <b>हमारी team आपकी जल्दी help करेगी!</b>
+🎯 <b>Our team will help you quickly!</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -820,12 +844,12 @@ Send transaction screenshot to @tech_support_admin
 
 📝 <b>Next Steps:</b>
 1. Open any UPI app (Google Pay, PhonePe, Paytm, JioMoney)
-2. Select "Send Money" या "Pay to Contact"
-3. UPI ID paste करें: <code>{PAYMENT_CONFIG['upi_id']}</code>
-4. Amount enter करें: ₹{amount:,}
-5. Payment complete करें
+2. Select "Send Money" or "Pay to Contact"
+3. Paste UPI ID: <code>{PAYMENT_CONFIG['upi_id']}</code>
+4. Enter amount: ₹{amount:,}
+5. Complete payment
 
-💡 <b>या फिर QR code generate करके scan करें!</b>
+💡 <b>Or generate QR code and scan!</b>
 """
 
         try:
@@ -834,7 +858,7 @@ Send transaction screenshot to @tech_support_admin
             # If edit fails, send new message
             await callback.message.answer(text, reply_markup=get_upi_payment_menu(amount, transaction_id))
 
-        await callback.answer("✅ UPI ID copied: 0m12vx8@jio", show_alert=True)
+        await callback.answer("✅ UPI ID copied!", show_alert=True)
 
     # QR generation handler
     @main_dp.callback_query(F.data.startswith("qr_generate_"))
@@ -856,7 +880,7 @@ Send transaction screenshot to @tech_support_admin
                 await state.clear()
                 return
 
-            await callback.answer("🔄 QR Code generate kar rahe hain...")
+            await callback.answer("🔄 Generating QR Code...")
 
             # Generate QR code
             qr_data = generate_payment_qr(
@@ -868,20 +892,47 @@ Send transaction screenshot to @tech_support_admin
 
             # Prepare QR code message text
             qr_text = f"""
-📊 <b>Payment QR Code Generated!</b>
-💰 <b>Amount:</b> {format_currency(amount)}
-📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
-🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
-📝 <b>Payment Instructions:</b>
-1. Scan this QR code with any UPI app.
-2. Pay the exact amount: {format_currency(amount)}
-3. After payment, click "Payment Done" below.
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📊 <b>QR CODE PAYMENT PORTAL</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 <b>Instant Payment Gateway - QR Code Generated Successfully!</b>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💳 <b>PAYMENT DETAILS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 💰 <b>Amount:</b> {format_currency(amount)}
+┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
+┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+┃ • 🔒 <b>Payment Method:</b> QR Code Scan
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 <b>STEP-BY-STEP PAYMENT INSTRUCTIONS:</b>
+
+🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
+🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
+🔸 <b>Step 3:</b> Scan the QR code displayed above
+🔸 <b>Step 4:</b> Verify amount: {format_currency(amount)}
+🔸 <b>Step 5:</b> Complete payment with your UPI PIN
+🔸 <b>Step 6:</b> Click "Payment Completed" button below
+
+✨ <b>BENEFITS:</b>
+• ⚡ Instant payment processing
+• 🔒 100% secure encryption
+• 💡 No manual data entry needed
+• 🎯 Automatic amount detection
+
+💎 <b>Your order will be processed immediately after payment verification!</b>
 """
 
             qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="✅ Payment Done", callback_data=f"payment_completed_{transaction_id}"),
+                    InlineKeyboardButton(text="✅ Payment Completed", callback_data=f"payment_completed_{transaction_id}"),
                     InlineKeyboardButton(text="❌ Cancel Order", callback_data="cancel_qr_order_{transaction_id}")
+                ],
+                [
+                    InlineKeyboardButton(text="🔄 Generate New QR", callback_data="payment_qr"),
+                    InlineKeyboardButton(text="📱 Other Payment Methods", callback_data="final_confirm_order")
                 ]
             ])
 
@@ -902,9 +953,9 @@ Send transaction screenshot to @tech_support_admin
             print(f"CRITICAL ERROR in cb_qr_generate: {e}")
             await callback.answer("An error occurred. Please try again.", show_alert=True)
 
-async def send_manual_payment_fallback(message, amount: float, transaction_id: str, keyboard):
-    """Send manual payment fallback when QR fails"""
-    fallback_text = f"""
+    async def send_manual_payment_fallback(message, amount: float, transaction_id: str, keyboard):
+        """Send manual payment fallback when QR fails"""
+        fallback_text = f"""
 💳 <b>Manual UPI Payment</b>
 
 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
@@ -913,19 +964,19 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
 
 📝 <b>Manual Payment Steps:</b>
 1. Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
-2. Select "Send Money" या "Pay to Contact"
+2. Select "Send Money" or "Pay to Contact"
 3. Enter UPI ID: <code>{PAYMENT_CONFIG['upi_id']}</code>
 4. Enter amount: ₹{amount:,}
 5. Add remark: {transaction_id}
 6. Complete payment with UPI PIN
 
 ⚠️ <b>QR code generation issue - Please use manual payment</b>
-💡 <b>Payment complete होने के बाद "Payment Done" button दबाएं</b>
+💡 <b>After payment, click the "Payment Completed" button below</b>
 
-✅ <b>Payment successful होने के बाद screenshot भी भेज सकते हैं</b>
+✅ <b>You can also send a screenshot after successful payment</b>
 """
 
-    await message.answer(fallback_text, reply_markup=keyboard, parse_mode="HTML")
+        await message.answer(fallback_text, reply_markup=keyboard, parse_mode="HTML")
 
     @main_dp.callback_query(F.data.startswith("open_upi_"))
     async def cb_open_upi(callback: CallbackQuery):
@@ -963,7 +1014,7 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
 🟢 <b>Method 1: Copy UPI ID</b>
 • UPI ID: <code>{PAYMENT_CONFIG['upi_id']}</code>
 • Amount: ₹{amount:,}
-• Manual transfer करें
+• Transfer manually
 
 🔵 <b>Method 2: UPI Apps</b>
 • JioMoney (recommended for Jio users)
@@ -995,7 +1046,7 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
         except Exception:
             await callback.message.answer(text, reply_markup=payment_keyboard)
 
-        await callback.answer("💡 UPI ID copied! ₹{amount:,} transfer करें")
+        await callback.answer("💡 UPI ID copied! Transfer ₹{amount:,}")
 
     @main_dp.callback_query(F.data == "payment_bank")
     async def cb_payment_bank(callback: CallbackQuery):
@@ -1018,7 +1069,7 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
 • NEFT (2-4 hours)
 • RTGS (For amounts ₹2,00,000+)
 
-💡 <b>सबसे suitable method choose करें:</b>
+💡 <b>Choose the most suitable method:</b>
 """
 
         await safe_edit_message(callback, text, get_bank_transfer_menu())
@@ -1048,7 +1099,7 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
 • Secure & encrypted
 • 24/7 customer support
 
-💡 <b>अपना preferred wallet चुनें:</b>
+💡 <b>Choose your preferred wallet:</b>
 """
 
         await safe_edit_message(callback, text, get_wallet_payment_menu())
@@ -1136,7 +1187,7 @@ async def cb_payment_qr(callback: CallbackQuery):
     import random
     transaction_id = f"QR{int(time.time())}{random.randint(100, 999)}"
 
-    await callback.answer("🔄 QR Code generate कर रहे हैं...")
+    await callback.answer("🔄 Generating QR Code...")
 
     # Generate QR code using same function as UPI payment
     qr_data = generate_payment_qr(
@@ -1148,29 +1199,48 @@ async def cb_payment_qr(callback: CallbackQuery):
 
     # Prepare QR code message text (same as UPI QR)
     qr_text = f"""
-📊 <b>Payment QR Code Generated!</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📊 <b>QR CODE PAYMENT PORTAL</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 <b>Amount:</b> ₹{total_price:,.2f}
-📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
-🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+🚀 <b>Instant Payment Gateway - QR Code Generated Successfully!</b>
 
-📱 <b>Payment Instructions:</b>
-1. QR code scan करें any UPI app से (GPay, PhonePe, Paytm)
-2. Amount ₹{total_price:,.2f} verify करें
-3. UPI PIN डालकर payment complete करें
-4. Payment successful होने के बाद "Payment Done" दबाएं
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💳 <b>PAYMENT DETAILS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 💰 <b>Amount:</b> {format_currency(total_price)}
+┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
+┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+┃ • 🔒 <b>Payment Method:</b> QR Code Scan
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚡ <b>QR code scan करने से amount automatic भर जाएगी!</b>
-🔒 <b>100% Safe & Secure Payment Method</b>
+📋 <b>STEP-BY-STEP PAYMENT INSTRUCTIONS:</b>
 
-💡 <b>Payment हो जाने के बाद नीचे "Payment Done" button दबाएं</b>
+🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
+🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
+🔸 <b>Step 3:</b> Scan the QR code displayed above
+🔸 <b>Step 4:</b> Verify amount: {format_currency(total_price)}
+🔸 <b>Step 5:</b> Complete payment with your UPI PIN
+🔸 <b>Step 6:</b> Click "Payment Completed" button below
+
+✨ <b>BENEFITS:</b>
+• ⚡ Instant payment processing
+• 🔒 100% secure encryption
+• 💡 No manual data entry needed
+• 🎯 Automatic amount detection
+
+💎 <b>Your order will be processed immediately after payment verification!</b>
 """
 
     # Create payment completion keyboard (same as UPI QR)
     qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Payment Done", callback_data=f"payment_completed_{transaction_id}"),
+            InlineKeyboardButton(text="✅ Payment Completed", callback_data=f"payment_completed_{transaction_id}"),
             InlineKeyboardButton(text="❌ Cancel Order", callback_data=f"cancel_qr_order_{transaction_id}")
+        ],
+        [
+            InlineKeyboardButton(text="🔄 Generate New QR", callback_data="payment_qr"),
+            InlineKeyboardButton(text="📱 Other Payment Methods", callback_data="final_confirm_order")
         ]
     ])
 
@@ -1214,22 +1284,22 @@ async def cb_payment_done_qr(callback: CallbackQuery):
 
     # Check if user is in correct state
     if user_id not in user_state or user_state[user_id].get("current_step") != "waiting_screenshot_upload":
-        await callback.answer("⚠️ Order state invalid!")
+        await callback.answer("⚠️ Invalid order state!")
         return
 
     # Ask for screenshot
     screenshot_text = """
 📸 <b>Payment Screenshot Required</b>
 
-💡 <b>कृपया payment का screenshot भेजें</b>
+💡 <b>Please upload the payment screenshot</b>
 
 📋 <b>Screenshot Requirements:</b>
-• Clear और readable हो
-• Payment amount दिखना चाहिए
-• Transaction status "Success" हो
-• Date और time visible हो
+• Must be clear and readable
+• Payment amount must be visible
+• Transaction status must be "Success"
+• Date and time should be visible
 
-💬 <b>Screenshot को image के रूप में send करें...</b>
+💬 <b>Please send the screenshot as an image...</b>
 """
 
     await callback.message.answer(screenshot_text)
@@ -1252,9 +1322,9 @@ async def cb_payment_cancel(callback: CallbackQuery):
 
 📋 <b>Payment process cancelled</b>
 
-💡 <b>आप कभी भी नया order place कर सकते हैं!</b>
+💡 <b>You can place a new order anytime!</b>
 
-🏠 <b>Main menu पर वापस जा रहे हैं...</b>
+🏠 <b>Returning to the Main Menu...</b>
 """
 
     # Import get_main_menu from main.py
