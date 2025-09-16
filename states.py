@@ -15,3 +15,27 @@ class OrderStates(StatesGroup):
     confirming_final_order = State()
     selecting_payment = State()
     waiting_screenshot = State()
+
+
+class CreateOfferStates(StatesGroup):
+    """States for creating new offers (admin only)"""
+    getting_message = State()
+    getting_package_name = State()
+    getting_rate = State()
+    asking_fixed_quantity = State()
+    getting_fixed_quantity = State()
+
+
+class AdminSendOfferStates(StatesGroup):
+    """States for sending offers to users (admin only)"""
+    getting_offer_id = State()
+    choosing_target = State()
+    getting_specific_user_id = State()
+
+
+class OfferOrderStates(StatesGroup):
+    """States for the simplified offer order process flow"""
+    getting_link = State()
+    getting_quantity = State()
+    confirming_order = State()
+    waiting_screenshot = State()
