@@ -80,8 +80,8 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
         ])
 
         await bot.send_message(
-            chat_id=target_user_id, 
-            text=user_message, 
+            chat_id=target_user_id,
+            text=user_message,
             parse_mode="HTML",
             reply_markup=user_keyboard
         )
@@ -104,7 +104,7 @@ async def handle_admin_direct_message(message: Message, admin_id: int, target_us
         print(f"❌ Error sending admin message: {e}")
         await message.answer("❌ Error sending message. Please try again.")
 
-async def handle_screenshot_upload(message: Message, 
+async def handle_screenshot_upload(message: Message,
                                   order_temp: Dict[int, Dict[str, Any]], generate_order_id,
                                   format_currency, get_main_menu):
     """Handle screenshot upload for payment verification"""
@@ -197,14 +197,14 @@ async def handle_screenshot_upload(message: Message,
 🔄 <b>Payment Status:</b> ✅ Verified & Confirmed
 
 ⏰ <b>Delivery Timeline:</b>
-आपका order अब process हो रहा है। Package description के अनुसार delivery complete होगी।
+Your order is now being processed and will be completed according to the package description.
 
-💡 <b>Order ID को save करके रखें - यह tracking के लिए जरूरी है!</b>
+💡 <b>Save your Order ID for tracking!</b>
 
 🎯 <b>Next Steps:</b>
-• Order history में track करें
-• Order ID copy करके safe रखें
-• Delivery के लिए wait करें
+• Track your order in order history
+• Copy and save your Order ID
+• Wait for delivery
 
 ✨ <b>Thank you for choosing India Social Panel!</b>
 """
@@ -226,10 +226,10 @@ async def handle_screenshot_upload(message: Message,
 
     return False
 
-async def handle_text_input(message: Message, 
+async def handle_text_input(message: Message,
                            users_data: Dict[int, Dict[str, Any]], order_temp: Dict[int, Dict[str, Any]],
-                           tickets_data: Dict[str, Dict[str, Any]], is_message_old, 
-                           mark_user_for_notification, is_account_created, 
+                           tickets_data: Dict[str, Dict[str, Any]], is_message_old,
+                           mark_user_for_notification, is_account_created,
                            format_currency, get_main_menu, OWNER_USERNAME: str):
     """Handle text input for account creation"""
     from main import user_state
@@ -310,7 +310,7 @@ async def handle_text_input(message: Message,
 • Balance: {format_currency(users_data[user_id].get('balance', 0.0))}
 
 🚀 <b>All features are now accessible!</b>
-💡 <b>आप अब सभी services का इस्तेमाल कर सकते हैं</b>
+💡 <b>You can now use all services.</b>
 """
 
             await message.answer(success_text, reply_markup=get_main_menu())
@@ -320,12 +320,12 @@ async def handle_text_input(message: Message,
             text = """
 ⚠️ <b>Account Mismatch</b>
 
-📱 <b>यह phone number किसी और account से linked है</b>
+📱 <b>This phone number is linked to another account.</b>
 
 💡 <b>Solutions:</b>
-• अपना correct phone number try करें
-• नया account create करें
-• Support से contact करें
+• Try your correct phone number.
+• Create a new account.
+• Contact support for assistance.
 
 📞 <b>Support:</b> @tech_support_admin
 """
@@ -349,14 +349,14 @@ async def handle_text_input(message: Message,
             text = """
 ❌ <b>Account Not Found</b>
 
-📱 <b>इस phone number से कोई account registered नहीं है</b>
+📱 <b>No account is registered with this phone number.</b>
 
 💡 <b>Options:</b>
-• Phone number double-check करें
-• नया account create करें
-• Support से help लें
+• Double-check your phone number.
+• Create a new account.
+• Get help from support.
 
-🤔 <b>पहले से account नहीं है?</b>
+🤔 <b>Don't have an account yet?</b>
 """
 
             user_state[user_id]["current_step"] = None
@@ -413,20 +413,20 @@ async def handle_text_input(message: Message,
 
 📱 <b>Phone Number Selection</b>
 
-💡 <b>आप phone number कैसे provide करना चाहते हैं?</b>
+💡 <b>How would you like to provide your phone number?</b>
 
-🔸 <b>Telegram Contact:</b> आपका Telegram में saved contact number
-🔸 <b>Manual Entry:</b> अपनी पसंद का कोई भी number
+🔸 <b>Telegram Contact:</b> Share your saved Telegram contact.
+🔸 <b>Manual Entry:</b> Enter any number manually.
 
-⚠️ <b>Note:</b> Contact share करने से आपकी permission माँगी जाएगी और आपका number automatically भर जाएगा
+⚠️ <b>Note:</b> Sharing contact will require your permission and fill the number automatically.
 
-💬 <b>आप क्या choose करना चाहते हैं?</b>
+💬 <b>What do you choose?</b>
 """
 
         phone_choice_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="📱 Telegram Contact Share करूं", callback_data="share_telegram_contact"),
-                InlineKeyboardButton(text="✏️ Manual Number डालूं", callback_data="manual_phone_entry")
+                InlineKeyboardButton(text="📱 Share Telegram Contact", callback_data="share_telegram_contact"),
+                InlineKeyboardButton(text="✏️ Enter Manually", callback_data="manual_phone_entry")
             ]
         ])
 
@@ -443,10 +443,10 @@ async def handle_text_input(message: Message,
         if any(char.isalpha() for char in phone_cleaned):
             await message.answer(
                 "⚠️ <b>Letters Not Allowed!</b>\n\n"
-                "🔤 <b>Phone number में letters नहीं हो सकते</b>\n"
-                "🔢 <b>केवल numbers और +91 allowed है</b>\n"
+                "🔤 <b>Phone numbers cannot contain letters.</b>\n"
+                "🔢 <b>Only numbers and +91 are accepted.</b>\n"
                 "💡 <b>Example:</b> +919876543210\n\n"
-                "🔄 <b>Try again with only numbers</b>"
+                "🔄 <b>Try again with only numbers.</b>"
             )
             return
 
@@ -454,10 +454,10 @@ async def handle_text_input(message: Message,
         if not phone_cleaned.startswith('+91'):
             await message.answer(
                 "⚠️ <b>Country Code Missing!</b>\n\n"
-                "🇮🇳 <b>Indian numbers must start with +91</b>\n"
-                "❌ <b>Numbers without +91 are not accepted</b>\n"
+                "🇮🇳 <b>Indian numbers must start with +91.</b>\n"
+                "❌ <b>Numbers without +91 are not accepted.</b>\n"
                 "💡 <b>Example:</b> +919876543210\n\n"
-                "🔄 <b>Add +91 before your number</b>"
+                "🔄 <b>Add +91 before your number.</b>"
             )
             return
 
@@ -469,7 +469,7 @@ async def handle_text_input(message: Message,
                 "📏 <b>Required: Exactly 13 characters</b>\n"
                 "💡 <b>Format:</b> +91 followed by 10 digits\n"
                 "💡 <b>Example:</b> +919876543210\n\n"
-                "🔄 <b>Check your number length</b>"
+                "🔄 <b>Check your number length.</b>"
             )
             return
 
@@ -480,10 +480,10 @@ async def handle_text_input(message: Message,
         if not digits_part.isdigit():
             await message.answer(
                 "⚠️ <b>Invalid Characters!</b>\n\n"
-                "🔢 <b>Only numbers allowed after +91</b>\n"
-                "❌ <b>No spaces, letters, or special characters</b>\n"
+                "🔢 <b>Only numbers allowed after +91.</b>\n"
+                "❌ <b>No spaces, letters, or special characters.</b>\n"
                 "💡 <b>Example:</b> +919876543210\n\n"
-                "🔄 <b>Use only digits after +91</b>"
+                "🔄 <b>Use only digits after +91.</b>"
             )
             return
 
@@ -494,10 +494,10 @@ async def handle_text_input(message: Message,
         if first_digit in invalid_starting_digits:
             await message.answer(
                 "⚠️ <b>Invalid Starting Digit!</b>\n\n"
-                f"📱 <b>Indian mobile numbers cannot start with {first_digit}</b>\n"
+                f"📱 <b>Indian mobile numbers cannot start with {first_digit}.</b>\n"
                 "✅ <b>Valid starting digits:</b> 6, 7, 8, 9\n"
                 "💡 <b>Example:</b> +919876543210, +917894561230\n\n"
-                "🔄 <b>Use a valid Indian mobile number</b>"
+                "🔄 <b>Enter a valid Indian mobile number.</b>"
             )
             return
 
@@ -506,10 +506,10 @@ async def handle_text_input(message: Message,
         if len(set(digits_part)) == 1:
             await message.answer(
                 "⚠️ <b>Invalid Number Pattern!</b>\n\n"
-                "🚫 <b>सभी digits same नहीं हो सकते</b>\n"
+                "🚫 <b>All digits cannot be the same.</b>\n"
                 "❌ <b>Example of invalid:</b> +919999999999\n"
                 "💡 <b>Valid example:</b> +919876543210\n\n"
-                "🔄 <b>Enter a real mobile number</b>"
+                "🔄 <b>Enter a real mobile number.</b>"
             )
             return
 
@@ -517,10 +517,10 @@ async def handle_text_input(message: Message,
         if digits_part == "1234567890" or digits_part == "0123456789":
             await message.answer(
                 "⚠️ <b>Sequential Pattern Detected!</b>\n\n"
-                "🚫 <b>Sequential numbers invalid हैं</b>\n"
-                "❌ <b>Pattern like 1234567890 not allowed</b>\n"
-                "💡 <b>Enter your real mobile number</b>\n\n"
-                "🔄 <b>Try with valid number</b>"
+                "🚫 <b>Sequential numbers are invalid.</b>\n"
+                "❌ <b>Patterns like 1234567890 are not allowed.</b>\n"
+                "💡 <b>Enter your real mobile number.</b>\n\n"
+                "🔄 <b>Try with a valid number.</b>"
             )
             return
 
@@ -529,10 +529,10 @@ async def handle_text_input(message: Message,
         if zero_count >= 5:
             await message.answer(
                 "⚠️ <b>Too Many Zeros!</b>\n\n"
-                "🚫 <b>इतने सारे zeros वाला number invalid है</b>\n"
-                "❌ <b>Real mobile numbers में इतने zeros नहीं होते</b>\n"
-                "💡 <b>Enter your actual mobile number</b>\n\n"
-                "🔄 <b>Try again with valid number</b>"
+                "🚫 <b>Numbers with this many zeros are invalid.</b>\n"
+                "❌ <b>Real mobile numbers don't have this many zeros.</b>\n"
+                "💡 <b>Enter your actual mobile number.</b>\n\n"
+                "🔄 <b>Try again with a valid number.</b>"
             )
             return
 
@@ -544,10 +544,10 @@ async def handle_text_input(message: Message,
                 if digits_part.startswith(repeated[:len(digits_part)]):
                     await message.answer(
                         "⚠️ <b>Repeated Pattern Detected!</b>\n\n"
-                        f"🚫 <b>Pattern '{segment}' बार-बार repeat हो रहा है</b>\n"
-                        "❌ <b>Real mobile numbers में repeating patterns नहीं होते</b>\n"
-                        "💡 <b>Enter your actual mobile number</b>\n\n"
-                        "🔄 <b>Try with different number</b>"
+                        f"🚫 <b>The pattern '{segment}' is repeating too much.</b>\n"
+                        "❌ <b>Real mobile numbers don't have repeating patterns.</b>\n"
+                        "💡 <b>Enter your actual mobile number.</b>\n\n"
+                        "🔄 <b>Try with a different number.</b>"
                     )
                     return
 
@@ -567,13 +567,13 @@ async def handle_text_input(message: Message,
         if first_two in invalid_first_two:
             await message.answer(
                 "⚠️ <b>Invalid Number Range!</b>\n\n"
-                f"🚫 <b>Number range {first_two}XXXXXXXX reserved है</b>\n"
+                f"🚫 <b>The number range {first_two}XXXXXXXX is reserved.</b>\n"
                 "📱 <b>Valid Indian mobile ranges:</b>\n"
                 "• 6XXXXXXXXX (some ranges)\n"
                 "• 7XXXXXXXXX ✅\n"
                 "• 8XXXXXXXXX ✅\n"
                 "• 9XXXXXXXXX (most ranges) ✅\n\n"
-                "🔄 <b>Enter valid Indian mobile number</b>"
+                "🔄 <b>Enter a valid Indian mobile number.</b>"
             )
             return
 
@@ -588,10 +588,10 @@ async def handle_text_input(message: Message,
         if digits_part in simple_patterns:
             await message.answer(
                 "⚠️ <b>Common Test Number!</b>\n\n"
-                "🚫 <b>यह एक common test number है</b>\n"
-                "❌ <b>Real mobile number का use करें</b>\n"
-                "💡 <b>अपना actual registered number डालें</b>\n\n"
-                "🔄 <b>Try with your real number</b>"
+                "🚫 <b>This is a common test number.</b>\n"
+                "❌ <b>Please use a real mobile number.</b>\n"
+                "💡 <b>Enter your actual registered number.</b>\n\n"
+                "🔄 <b>Try with your real number.</b>"
             )
             return
 
@@ -613,15 +613,44 @@ async def handle_text_input(message: Message,
 
 📋 <b>Account Creation - Step 3/3</b>
 
-📧 <b>कृपया अपना Email Address भेजें:</b>
+📧 <b>Please enter your Email Address:</b>
 
 ⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
+💬 <b>Instruction:</b> Type your email address and send it.
 """
 
         await message.answer(success_text)
 
     elif current_step == "waiting_phone":
+        # Handle manual phone entry processing text to professional English
+        text = """
+📱 <b>Manual Phone Number Entry</b>
+
+📝 <b>Account Creation - Step 2/3</b>
+
+🔐 <b>Secure Phone Number Registration</b>
+
+<i>Enter your mobile number for account verification and security</i>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📋 <b>FORMATTING REQUIREMENTS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🇮🇳 Must include +91 (India)
+┃ • 📱 Exactly 13 characters total
+┃ • 🔢 Only digits after +91
+┃ • ⚠️ No spaces, dashes, or symbols
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 <b>Format Examples:</b>
+┌─────────────────────────────────────┐
+│ ✅ <b>Correct:</b> +919876543210         │
+│ ❌ <b>Wrong:</b> +91 9876543210          │
+│ ❌ <b>Wrong:</b> 9876543210              │
+│ ❌ <b>Wrong:</b> +91-987-654-3210        │
+└─────────────────────────────────────┘
+
+🚀 <b>Type your complete phone number in correct format:</b>
+"""
         # Legacy handler for old phone waiting (keeping for compatibility)
         # Initialize user state if not exists
         if user_id not in user_state:
@@ -636,10 +665,10 @@ async def handle_text_input(message: Message,
 
 📋 <b>Account Creation - Step 3/3</b>
 
-📧 <b>कृपया अपना Email Address भेजें:</b>
+📧 <b>Please enter your Email Address:</b>
 
 ⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
+💬 <b>Instruction:</b> Type your email address and send it.
 """
 
         await message.answer(success_text)
@@ -658,9 +687,9 @@ async def handle_text_input(message: Message,
         if "@" not in email_cleaned or "." not in email_cleaned:
             await message.answer(
                 "⚠️ <b>Invalid Email Format!</b>\n\n"
-                "📧 <b>Email में @ और . होना जरूरी है</b>\n"
+                "📧 <b>Email must contain @ and .</b>\n"
                 "💡 <b>Example:</b> yourname@gmail.com\n"
-                "🔄 <b>Correct format में email भेजें</b>"
+                "🔄 <b>Please send the email in the correct format.</b>"
             )
             return
 
@@ -669,9 +698,9 @@ async def handle_text_input(message: Message,
         if not re.match(email_pattern, email_cleaned):
             await message.answer(
                 "⚠️ <b>Invalid Email Format!</b>\n\n"
-                "📧 <b>Email format proper नहीं है</b>\n"
+                "📧 <b>The email format is not proper.</b>\n"
                 "💡 <b>Example:</b> yourname@gmail.com\n"
-                "🔄 <b>Correct format में email भेजें</b>"
+                "🔄 <b>Please send the email in the correct format.</b>"
             )
             return
 
@@ -681,9 +710,9 @@ async def handle_text_input(message: Message,
         if domain_part in invalid_domains:
             await message.answer(
                 "⚠️ <b>Invalid Email Domain!</b>\n\n"
-                "🚫 <b>Fake या test email domains allowed नहीं हैं</b>\n"
+                "🚫 <b>Fake or test email domains are not allowed.</b>\n"
                 "💡 <b>Valid domains:</b> gmail.com, yahoo.com, outlook.com etc.\n"
-                "🔄 <b>Real email address use करें</b>"
+                "🔄 <b>Use a real email address.</b>"
             )
             return
 
@@ -691,9 +720,9 @@ async def handle_text_input(message: Message,
         if len(email_cleaned) < 5 or len(email_cleaned) > 254:
             await message.answer(
                 "⚠️ <b>Email Length Invalid!</b>\n\n"
-                "📏 <b>Email बहुत छोटा या बहुत लंबा है</b>\n"
+                "📏 <b>Email is too short or too long.</b>\n"
                 "💡 <b>Valid length: 5-254 characters</b>\n"
-                "🔄 <b>Proper email address enter करें</b>"
+                "🔄 <b>Please enter a proper email address.</b>"
             )
             return
 
@@ -701,9 +730,9 @@ async def handle_text_input(message: Message,
         if ' ' in email_cleaned or '\t' in email_cleaned:
             await message.answer(
                 "⚠️ <b>Spaces Not Allowed!</b>\n\n"
-                "🚫 <b>Email में spaces allowed नहीं हैं</b>\n"
+                "🚫 <b>Spaces are not allowed in emails.</b>\n"
                 "💡 <b>Example:</b> myname@gmail.com (no spaces)\n"
-                "🔄 <b>Spaces remove करके भेजें</b>"
+                "🔄 <b>Send it by removing spaces.</b>"
             )
             return
 
@@ -739,12 +768,12 @@ async def handle_text_input(message: Message,
 • Email: {validated_email}
 
 🎯 <b>Now you can access all features!</b>
-💡 <b>अब आप सभी services का इस्तेमाल कर सकते हैं!</b>
+💡 <b>You can now use all services!</b>
 """
 
         await message.answer(success_text, reply_markup=get_main_menu())
 
-    # Order flow states (waiting_link, waiting_quantity, waiting_coupon) 
+    # Order flow states (waiting_link, waiting_quantity, waiting_coupon)
     # are now handled by dedicated FSM handlers in fsm_handlers.py
 
     # Handle admin messaging
@@ -831,5 +860,3 @@ async def handle_text_input(message: Message,
             print(f"Error sending admin message: {e}")
 
         return
-
-
