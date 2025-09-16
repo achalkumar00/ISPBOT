@@ -265,7 +265,7 @@ async def cb_order_history(callback: CallbackQuery):
     # CRITICAL FIX: Force fresh data reload to avoid cached references
     from main import load_data_from_json
     import main
-    
+
     # Force reload fresh data directly from JSON file every time
     print(f"🔄 DEBUG: Force reloading fresh data from files...")
     fresh_orders_data = load_data_from_json("orders.json") 
