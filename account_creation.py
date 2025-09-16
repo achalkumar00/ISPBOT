@@ -339,12 +339,12 @@ async def cb_login_account(callback: CallbackQuery):
 
 📱 <b>Account Verification</b>
 
-📱 <b>कृपया अपना registered phone number भेजें:</b>
+📱 <b>Please enter your registered phone number:</b>
 
 ⚠️ <b>Example:</b> +91 9876543210
-🔒 <b>Security:</b> Phone number verification के लिए
+🔒 <b>Security:</b> For phone number verification
 
-💡 <b>अगर phone number भूल गए हैं तो support से contact करें</b>
+💡 <b>If you forgot your phone number, contact support</b>
 📞 <b>Support:</b> @tech_support_admin
 """
 
@@ -371,24 +371,36 @@ async def cb_create_account(callback: CallbackQuery):
     user_state[user_id]["current_step"] = "choosing_name_option"
 
     text = f"""
-📝 <b>Account Creation - Step 1/3</b>
+🎯 <b>Welcome to India Social Panel</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 <b>Name Selection</b>
+📋 <b>Account Setup - Step 1 of 3</b>
 
-💡 <b>आप अपने account के लिए कौन सा name use करना चाहते हैं?</b>
+👤 <b>Profile Name Configuration</b>
 
-🔸 <b>Your Telegram Name:</b> {telegram_name}
-🔸 <b>Custom Name:</b> अपनी पसंद का name
+<i>Choose how you'd like your name to appear on your account profile</i>
 
-⚠️ <b>Note:</b> Custom name में maximum 6 characters allowed हैं (first name only)
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Option 1:</b> Use Your Telegram Name
+┃ 📝 <b>Name:</b> <code>{telegram_name}</code>
+┃ ⚡ <b>Benefit:</b> Quick & Easy Setup
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💬 <b>आप क्या choose करना चाहते हैं?</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Option 2:</b> Create Custom Name
+┃ ✏️ <b>Feature:</b> Personalized Display Name
+┃ 📏 <b>Limit:</b> Maximum 6 characters
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 <b>Pro Tip:</b> Your display name will be visible across all services and order history
+
+🚀 <b>Please select your preferred naming option:</b>
 """
 
     name_choice_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Telegram Name Use करूं", callback_data="use_telegram_name"),
-            InlineKeyboardButton(text="✏️ Custom Name डालूं", callback_data="use_custom_name")
+            InlineKeyboardButton(text="⚡ Use Telegram Name", callback_data="use_telegram_name"),
+            InlineKeyboardButton(text="✨ Create Custom Name", callback_data="use_custom_name")
         ]
     ])
 
@@ -411,28 +423,40 @@ async def cb_use_telegram_name(callback: CallbackQuery):
     user_state[user_id]["current_step"] = "choosing_phone_option"
 
     text = f"""
-✅ <b>Name Successfully Selected!</b>
+🎯 <b>Profile Name Confirmed Successfully!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 <b>Selected Name:</b> {telegram_name}
+👤 <b>Confirmed Name:</b> <code>{telegram_name}</code>
 
-📝 <b>Account Creation - Step 2/3</b>
+📋 <b>Account Setup - Step 2 of 3</b>
 
-📱 <b>Phone Number Selection</b>
+📱 <b>Phone Number Configuration</b>
 
-💡 <b>आप phone number कैसे provide करना चाहते हैं?</b>
+<i>Choose your preferred method to provide your phone number</i>
 
-🔸 <b>Telegram Contact:</b> आपका Telegram में saved contact number
-🔸 <b>Manual Entry:</b> अपनी पसंद का कोई भी number
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Method 1:</b> Quick Contact Share
+┃ 📞 <b>Feature:</b> Use Telegram's Contact System
+┃ ⚡ <b>Benefit:</b> Instant & Error-Free Setup
+┃ 🔒 <b>Security:</b> Telegram Permission Required
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚠️ <b>Note:</b> Contact share करने से आपकी permission मांगी जाएगी और आपका number automatically भर जाएगा
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Method 2:</b> Manual Phone Entry
+┃ ⌨️ <b>Feature:</b> Type Your Number Manually
+┃ 🎯 <b>Benefit:</b> Complete Control & Privacy
+┃ 📝 <b>Format:</b> +91 followed by 10 digits
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💬 <b>आप क्या choose करना चाहते हैं?</b>
+💡 <b>Pro Tip:</b> Contact sharing provides automatic validation and prevents typing errors
+
+🚀 <b>Select your preferred phone number method:</b>
 """
 
     phone_choice_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📱 Telegram Contact Share करूं", callback_data="share_telegram_contact"),
-            InlineKeyboardButton(text="✏️ Manual Number डालूं", callback_data="manual_phone_entry")
+            InlineKeyboardButton(text="📞 Share Contact", callback_data="share_telegram_contact"),
+            InlineKeyboardButton(text="⌨️ Type Manually", callback_data="manual_phone_entry")
         ]
     ])
 
@@ -457,17 +481,17 @@ async def cb_use_custom_name(callback: CallbackQuery):
 
 📝 <b>Account Creation - Step 1/3</b>
 
-📝 <b>कृपया अपना नाम भेजें:</b>
+📝 <b>Please enter your name:</b>
 
 ⚠️ <b>Rules:</b>
 • Maximum 6 characters allowed
 • First name only
 • No special characters
-• English या Hindi में type करें
+• Type in English
 
 💬 <b>Example:</b> Rahul, Priya, Arjun
 
-📤 <b>अपना name type करके भेज दें:</b>
+📤 <b>Enter your name and send:</b>
 """
 
     await safe_edit_message(callback, text)
@@ -487,24 +511,32 @@ async def cb_manual_phone_entry(callback: CallbackQuery):
     user_state[user_id]["current_step"] = "waiting_manual_phone"
 
     text = """
-✏️ <b>Manual Phone Entry</b>
+📱 <b>Manual Phone Number Entry</b>
 
 📝 <b>Account Creation - Step 2/3</b>
 
-📱 <b>कृपया अपना Phone Number भेजें:</b>
+🔐 <b>Secure Phone Number Registration</b>
 
-⚠️ <b>Format Rules:</b>
-• Must start with +91 (India)
-• Total 13 characters
-• Only numbers after +91
-• No spaces or special characters
+<i>Enter your mobile number for account verification and security</i>
 
-💬 <b>Examples:</b>
-• +919876543210 ✅
-• +91 9876543210 ❌ (space not allowed)
-• 9876543210 ❌ (country code missing)
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📋 <b>FORMATTING REQUIREMENTS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🇮🇳 Must include +91 (India)
+┃ • 📱 Exactly 13 characters total
+┃ • 🔢 Only digits after +91
+┃ • ⚠️ No spaces, dashes, or symbols
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📤 <b>अपना complete phone number type करके भेज दें:</b>
+💡 <b>Format Examples:</b>
+┌─────────────────────────────────────┐
+│ ✅ <b>Correct:</b> +919876543210         │
+│ ❌ <b>Wrong:</b> +91 9876543210          │
+│ ❌ <b>Wrong:</b> 9876543210              │
+│ ❌ <b>Wrong:</b> +91-987-654-3210        │
+└─────────────────────────────────────┘
+
+🚀 <b>Type your complete phone number in correct format:</b>
 """
 
     await safe_edit_message(callback, text)
@@ -524,31 +556,26 @@ async def cb_share_telegram_contact(callback: CallbackQuery):
     user_state[user_id]["current_step"] = "waiting_contact_permission"
 
     text = """
-📱 <b>Telegram Contact Permission</b>
+📞 <b>Quick Contact Setup</b>
 
-📤 <b>Contact Sharing Request</b>
+🔐 <b>Secure Contact Sharing</b>
 
-💡 <b>हमें आपके contact को access करने की permission चाहिए</b>
+⚡ <b>Share your Telegram contact for instant setup</b>
 
-✅ <b>Benefits:</b>
-• Automatic phone number fill
-• Faster account creation
-• No typing errors
-• Secure & verified number
+🎯 <b>Why Share Contact?</b>
+• ✅ No typing errors
+• ⚡ Instant verification
+• 🔒 100% secure process
 
-🔒 <b>Security:</b>
-• आपका phone number safely store होगा
-• केवल account creation के लिए use होगा
-• Third party के साथ share नहीं होगा
-• Complete privacy protection
+📱 <b>How it Works:</b>
+1. Tap "Share My Contact" below
+2. Allow Telegram permission
+3. Phone number auto-filled
+4. Account creation continues
 
-⚠️ <b>Permission Steps:</b>
-1. नीचे "Send Contact" button पर click करें
-2. Telegram permission dialog आएगी  
-3. "Allow" या "Share Contact" पर click करें
-4. आपका number automatically भर जाएगा
+🛡️ <b>Privacy Protected:</b> Your number stays secure with us
 
-💬 <b>Ready to share your contact?</b>
+💡 <b>Choose your preferred method:</b>
 """
 
     from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
@@ -556,8 +583,8 @@ async def cb_share_telegram_contact(callback: CallbackQuery):
     # Create contact request keyboard
     contact_keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📱 Send My Contact", request_contact=True)],
-            [KeyboardButton(text="❌ Cancel & Enter Manually")]
+            [KeyboardButton(text="📞 Share My Contact", request_contact=True)],
+            [KeyboardButton(text="⌨️ Type Manually Instead")]
         ],
         resize_keyboard=True,
         one_time_keyboard=True
@@ -567,7 +594,7 @@ async def cb_share_telegram_contact(callback: CallbackQuery):
 
     # Send new message with contact request keyboard
     await callback.message.answer(
-        "📱 <b>नीचे वाले button से contact share करें:</b>",
+        "📞 <b>Tap the button below to share your contact:</b>",
         reply_markup=contact_keyboard
     )
 
@@ -617,18 +644,38 @@ async def handle_contact_sharing(message):
             from aiogram.types import ReplyKeyboardRemove
 
             success_text = f"""
-✅ <b>Contact Successfully Shared!</b>
+🎯 <b>Contact Sharing Successfully Completed!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📱 <b>Phone Number Received:</b> {phone_number}
+📱 <b>Verified Phone Number:</b> <code>{phone_number}</code>
 
-👍 <b>Contact sharing successful!</b>
+✅ <b>Phone verification successful! Moving to final step...</b>
 
-📝 <b>Account Creation - Step 3/3</b>
+📋 <b>Account Setup - Step 3 of 3</b>
 
-📧 <b>कृपया अपना Email Address भेजें:</b>
+📧 <b>Email Address Configuration</b>
 
-⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
+<i>Provide your email address to complete your professional account setup</i>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📨 <b>EMAIL BENEFITS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🔔 Order notifications & updates
+┃ • 🔒 Account security alerts
+┃ • 💰 Payment receipts & invoices
+┃ • 🎁 Exclusive offers & promotions
+┃ • 📊 Monthly usage reports
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>Supported Email Providers:</b>
+• Gmail, Yahoo, Outlook, Hotmail
+• Corporate & Business emails
+• Indian domains (.in, .co.in)
+• International providers
+
+💡 <b>Pro Tip:</b> Use your primary email for best experience
+
+📤 <b>Enter your email address to finalize account creation:</b>
 """
 
             await message.answer(success_text, reply_markup=ReplyKeyboardRemove())
@@ -641,14 +688,14 @@ async def handle_contact_sharing(message):
             text = """
 ⚠️ <b>Wrong Contact Shared</b>
 
-🚫 <b>आपने किसी और का contact share किया है</b>
+🚫 <b>You have shared someone else's contact.</b>
 
 💡 <b>Solutions:</b>
-• अपना own contact share करें
-• "Manual Entry" option choose करें
-• Account creation restart करें
+• Share your own contact
+• Choose the "Manual Entry" option
+• Restart the account creation process
 
-🔒 <b>Security:</b> केवल अपना own contact share करें
+🔒 <b>Security:</b> Please share only your own contact.
 """
 
             manual_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -683,16 +730,38 @@ async def handle_contact_sharing(message):
 
                 from aiogram.types import ReplyKeyboardRemove
                 success_text = f"""
-✅ <b>Contact Successfully Processed!</b>
+🎯 <b>Contact Successfully Processed!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📱 <b>Phone Number:</b> {phone_number}
+📱 <b>Verified Phone Number:</b> <code>{phone_number}</code>
 
-📝 <b>Account Creation - Step 3/3</b>
+✅ <b>Contact processing successful! Moving to final step...</b>
 
-📧 <b>कृपया अपना Email Address भेजें:</b>
+📋 <b>Account Setup - Step 3 of 3</b>
 
-⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
+📧 <b>Email Address Configuration</b>
+
+<i>Provide your email address to complete your professional account setup</i>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📨 <b>EMAIL BENEFITS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🔔 Order notifications & updates
+┃ • 🔒 Account security alerts
+┃ • 💰 Payment receipts & invoices
+┃ • 🎁 Exclusive offers & promotions
+┃ • 📊 Monthly usage reports
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>Supported Email Providers:</b>
+• Gmail, Yahoo, Outlook, Hotmail
+• Corporate & Business emails
+• Indian domains (.in, .co.in)
+• International providers
+
+💡 <b>Pro Tip:</b> Use your primary email for best experience
+
+📤 <b>Enter your email address to finalize account creation:</b>
 """
                 await message.answer(success_text, reply_markup=ReplyKeyboardRemove())
                 return
@@ -700,9 +769,9 @@ async def handle_contact_sharing(message):
         text = """
 📱 <b>Contact Received</b>
 
-💡 <b>Contact sharing केवल account creation के दौरान allowed है</b>
+💡 <b>Contact sharing is only allowed during account creation.</b>
 
-🔄 <b>अगर आप account create कर रहे हैं तो /start करके restart करें</b>
+🔄 <b>If you are creating an account, please restart by typing /start</b>
 """
 
         from aiogram.types import ReplyKeyboardRemove
@@ -730,28 +799,36 @@ async def handle_text_input(message):
     print(f"🔍 ACCOUNT_CREATION DEBUG: Full user_state for {user_id}: {user_state.get(user_id, {})}")
 
     # Handle cancel & enter manually for contact sharing
-    if current_step == "waiting_contact_permission" and text == "❌ Cancel & Enter Manually":
+    if current_step == "waiting_contact_permission" and text == "⌨️ Type Manually Instead":
         user_state[user_id]["current_step"] = "waiting_manual_phone"
 
         text = """
-✏️ <b>Manual Phone Entry</b>
+📱 <b>Manual Phone Number Entry</b>
 
 📝 <b>Account Creation - Step 2/3</b>
 
-📱 <b>कृपया अपना Phone Number भेजें:</b>
+🔐 <b>Secure Phone Number Registration</b>
 
-⚠️ <b>Format Rules:</b>
-• Must start with +91 (India)
-• Total 13 characters
-• Only numbers after +91
-• No spaces or special characters
+<i>Enter your mobile number for account verification and security</i>
 
-💬 <b>Examples:</b>
-• +919876543210 ✅
-• +91 9876543210 ❌ (space not allowed)
-• 9876543210 ❌ (country code missing)
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📋 <b>FORMATTING REQUIREMENTS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🇮🇳 Must include +91 (India)
+┃ • 📱 Exactly 13 characters total
+┃ • 🔢 Only digits after +91
+┃ • ⚠️ No spaces, dashes, or symbols
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📤 <b>अपना complete phone number type करके भेज दें:</b>
+💡 <b>Format Examples:</b>
+┌─────────────────────────────────────┐
+│ ✅ <b>Correct:</b> +919876543210         │
+│ ❌ <b>Wrong:</b> +91 9876543210          │
+│ ❌ <b>Wrong:</b> 9876543210              │
+│ ❌ <b>Wrong:</b> +91-987-654-3210        │
+└─────────────────────────────────────┘
+
+🚀 <b>Type your complete phone number in correct format:</b>
 """
 
         await message.answer(text)
@@ -806,7 +883,7 @@ async def handle_login_phone_verification(message, user_id):
 • Balance: ₹{users_data[user_id].get('balance', 0.0):.2f}
 
 🚀 <b>All features are now accessible!</b>
-💡 <b>आप अब सभी services का इस्तेमाल कर सकते हैं</b>
+💡 <b>You can now use all services</b>
 """
 
         # Import get_main_menu dynamically to avoid circular imports
@@ -821,12 +898,12 @@ async def handle_login_phone_verification(message, user_id):
         text = """
 ⚠️ <b>Account Mismatch</b>
 
-📱 <b>यह phone number किसी और account से linked है</b>
+📱 <b>This phone number is linked to another account.</b>
 
 💡 <b>Solutions:</b>
-• अपना correct phone number try करें
-• नया account create करें
-• Support से contact करें
+• Try entering your correct phone number
+• Create a new account
+• Contact support for assistance
 
 📞 <b>Support:</b> @tech_support_admin
 """
@@ -850,14 +927,14 @@ async def handle_login_phone_verification(message, user_id):
         text = """
 ❌ <b>Account Not Found</b>
 
-📱 <b>इस phone number से कोई account registered नहीं है</b>
+📱 <b>No account is registered with this phone number.</b>
 
 💡 <b>Options:</b>
-• Phone number double-check करें
-• नया account create करें
-• Support से help लें
+• Double-check your phone number
+• Create a new account
+• Get help from support
 
-🤔 <b>पहले से account नहीं है?</b>
+🤔 <b>Don't have an account yet?</b>
 """
 
         user_state[user_id]["current_step"] = None
@@ -906,28 +983,40 @@ async def handle_custom_name_input(message, user_id):
     user_state[user_id]["current_step"] = "choosing_phone_option"
 
     success_text = f"""
-✅ <b>Custom Name Successfully Added!</b>
+🎯 <b>Custom Name Created Successfully!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 <b>Your Name:</b> {custom_name}
+👤 <b>Your Custom Name:</b> <code>{custom_name}</code>
 
-📝 <b>Account Creation - Step 2/3</b>
+📋 <b>Account Setup - Step 2 of 3</b>
 
-📱 <b>Phone Number Selection</b>
+📱 <b>Phone Number Configuration</b>
 
-💡 <b>आप phone number कैसे provide करना चाहते हैं?</b>
+<i>Choose your preferred method to provide your phone number</i>
 
-🔸 <b>Telegram Contact:</b> आपका Telegram में saved contact number
-🔸 <b>Manual Entry:</b> अपनी पसंद का कोई भी number
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Method 1:</b> Quick Contact Share
+┃ 📞 <b>Feature:</b> Use Telegram's Contact System
+┃ ⚡ <b>Benefit:</b> Instant & Error-Free Setup
+┃ 🔒 <b>Security:</b> Telegram Permission Required
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚠️ <b>Note:</b> Contact share करने से आपकी permission मांगी जाएगी और आपका number automatically भर जाएगा
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔹 <b>Method 2:</b> Manual Phone Entry
+┃ ⌨️ <b>Feature:</b> Type Your Number Manually
+┃ 🎯 <b>Benefit:</b> Complete Control & Privacy
+┃ 📝 <b>Format:</b> +91 followed by 10 digits
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💬 <b>आप क्या choose करना चाहते हैं?</b>
+💡 <b>Pro Tip:</b> Contact sharing provides automatic validation and prevents typing errors
+
+🚀 <b>Select your preferred phone number method:</b>
 """
 
     phone_choice_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📱 Telegram Contact Share करूं", callback_data="share_telegram_contact"),
-            InlineKeyboardButton(text="✏️ Manual Number डालूं", callback_data="manual_phone_entry")
+            InlineKeyboardButton(text="📞 Share Contact", callback_data="share_telegram_contact"),
+            InlineKeyboardButton(text="⌨️ Type Manually", callback_data="manual_phone_entry")
         ]
     ])
 
@@ -944,10 +1033,10 @@ async def handle_manual_phone_input(message, user_id):
     if any(char.isalpha() for char in phone_cleaned):
         await message.answer(
             "⚠️ <b>Letters Not Allowed!</b>\n\n"
-            "🔤 <b>Phone number में letters नहीं हो सकते</b>\n"
-            "🔢 <b>केवल numbers और +91 allowed है</b>\n"
+            "🔤 <b>Phone numbers cannot contain letters.</b>\n"
+            "🔢 <b>Only numbers and +91 are allowed.</b>\n"
             "💡 <b>Example:</b> +919876543210\n\n"
-            "🔄 <b>Try again with only numbers</b>"
+            "🔄 <b>Please try again with only numbers.</b>"
         )
         return
 
@@ -955,10 +1044,10 @@ async def handle_manual_phone_input(message, user_id):
     if not phone_cleaned.startswith('+91'):
         await message.answer(
             "⚠️ <b>Country Code Missing!</b>\n\n"
-            "🇮🇳 <b>Indian numbers must start with +91</b>\n"
-            "❌ <b>Numbers without +91 are not accepted</b>\n"
+            "🇮🇳 <b>Indian numbers must start with +91.</b>\n"
+            "❌ <b>Numbers without +91 are not accepted.</b>\n"
             "💡 <b>Example:</b> +919876543210\n\n"
-            "🔄 <b>Add +91 before your number</b>"
+            "🔄 <b>Please add +91 before your number.</b>"
         )
         return
 
@@ -966,11 +1055,11 @@ async def handle_manual_phone_input(message, user_id):
     if len(phone_cleaned) != 13:
         await message.answer(
             "⚠️ <b>Invalid Length!</b>\n\n"
-            f"📏 <b>Entered length: {len(phone_cleaned)} characters</b>\n"
-            "📏 <b>Required: Exactly 13 characters</b>\n"
-            "💡 <b>Format:</b> +91 followed by 10 digits\n"
+            f"📏 <b>Entered length: {len(phone_cleaned)} characters.</b>\n"
+            "📏 <b>Required: Exactly 13 characters.</b>\n"
+            "💡 <b>Format:</b> +91 followed by 10 digits.\n"
             "💡 <b>Example:</b> +919876543210\n\n"
-            "🔄 <b>Check your number length</b>"
+            "🔄 <b>Please check your number's length.</b>"
         )
         return
 
@@ -981,10 +1070,10 @@ async def handle_manual_phone_input(message, user_id):
     if not digits_part.isdigit():
         await message.answer(
             "⚠️ <b>Invalid Characters!</b>\n\n"
-            "🔢 <b>Only numbers allowed after +91</b>\n"
-            "❌ <b>No spaces, letters, or special characters</b>\n"
+            "🔢 <b>Only numbers are allowed after +91.</b>\n"
+            "❌ <b>No spaces, letters, or special characters.</b>\n"
             "💡 <b>Example:</b> +919876543210\n\n"
-            "🔄 <b>Use only digits after +91</b>"
+            "🔄 <b>Please use only digits after +91.</b>"
         )
         return
 
@@ -995,10 +1084,10 @@ async def handle_manual_phone_input(message, user_id):
     if first_digit in invalid_starting_digits:
         await message.answer(
             "⚠️ <b>Invalid Starting Digit!</b>\n\n"
-            f"📱 <b>Indian mobile numbers cannot start with {first_digit}</b>\n"
-            "✅ <b>Valid starting digits:</b> 6, 7, 8, 9\n"
+            f"📱 <b>Indian mobile numbers cannot start with {first_digit}.</b>\n"
+            "✅ <b>Valid starting digits are:</b> 6, 7, 8, 9\n"
             "💡 <b>Example:</b> +919876543210, +917894561230\n\n"
-            "🔄 <b>Use a valid Indian mobile number</b>"
+            "🔄 <b>Please use a valid Indian mobile number.</b>"
         )
         return
 
@@ -1007,16 +1096,38 @@ async def handle_manual_phone_input(message, user_id):
     user_state[user_id]["current_step"] = "waiting_email"
 
     success_text = f"""
-✅ <b>Phone Number Successfully Added!</b>
+🎯 <b>Phone Number Successfully Validated!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📱 <b>Your Phone:</b> {phone_cleaned}
+📱 <b>Verified Phone Number:</b> <code>{phone_cleaned}</code>
 
-📝 <b>Account Creation - Step 3/3</b>
+✅ <b>Manual phone entry successful! Moving to final step...</b>
 
-📧 <b>कृपया अपना Email Address भेजें:</b>
+📋 <b>Account Setup - Step 3 of 3</b>
 
-⚠️ <b>Example:</b> your.email@gmail.com
-💬 <b>Instruction:</b> अपना email address type करके भेज दें
+📧 <b>Email Address Configuration</b>
+
+<i>Provide your email address to complete your professional account setup</i>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📨 <b>EMAIL BENEFITS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🔔 Order notifications & updates
+┃ • 🔒 Account security alerts
+┃ • 💰 Payment receipts & invoices
+┃ • 🎁 Exclusive offers & promotions
+┃ • 📊 Monthly usage reports
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>Supported Email Providers:</b>
+• Gmail, Yahoo, Outlook, Hotmail
+• Corporate & Business emails
+• Indian domains (.in, .co.in)
+• International providers
+
+💡 <b>Pro Tip:</b> Use your primary email for best experience
+
+📤 <b>Enter your email address to finalize account creation:</b>
 """
 
     await message.answer(success_text)
@@ -1025,17 +1136,38 @@ async def handle_email_input(message, user_id):
     """Handle email input for account creation completion"""
     email = message.text.strip()
 
-    # Basic email validation
+    # Enhanced email validation with better error messages
     import re
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
     if not re.match(email_pattern, email):
-        await message.answer(
-            "⚠️ <b>Invalid Email Format!</b>\n\n"
-            "📧 <b>Please enter a valid email address</b>\n"
-            "💡 <b>Example:</b> your.email@gmail.com\n\n"
-            "🔄 <b>Try again with correct format</b>"
-        )
+        error_text = f"""
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ ⚠️ <b>EMAIL FORMAT VALIDATION FAILED</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 <b>Input Analysis:</b> <code>{email}</code>
+
+❌ <b>The email format you entered is not valid</b>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ ✅ <b>CORRECT EMAIL FORMATS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • <code>yourname@gmail.com</code>
+┃ • <code>user.name@yahoo.com</code>
+┃ • <code>business@outlook.com</code>
+┃ • <code>contact@company.co.in</code>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ <b>Email Requirements:</b>
+• Must contain @ symbol
+• Valid domain extension (.com, .in, .org)
+• No spaces or special characters
+• Proper format: username@domain.extension
+
+🔄 <b>Please re-enter your email address in correct format:</b>
+"""
+        await message.answer(error_text)
         return
 
     # Store email and complete account creation
@@ -1073,43 +1205,73 @@ async def handle_email_input(message, user_id):
     users_data[user_id]['access_token'] = access_token
 
     success_text = f"""
-🎉 <b>Account Created Successfully!</b>
+🎉 <b>ACCOUNT CREATION SUCCESSFUL!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ <b>Welcome to India Social Panel!</b>
+✨ <b>Welcome to India Social Panel Family!</b>
+<i>Your gateway to professional social media growth</i>
 
-👤 <b>Your Account Details:</b>
-• Name: {user_data.get('full_name', 'N/A')}
-• Phone: {user_data.get('phone_number', 'N/A')}
-• Email: {email}
-• Balance: ₹0.00
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 👤 <b>YOUR PROFILE SUMMARY</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🎯 <b>Name:</b> {user_data.get('full_name', 'N/A')}
+┃ • 📱 <b>Phone:</b> {user_data.get('phone_number', 'N/A')}
+┃ • 📧 <b>Email:</b> {email}
+┃ • 💰 <b>Starting Balance:</b> ₹0.00
+┃ • 📅 <b>Member Since:</b> {datetime.now().strftime("%d %b %Y")}
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔐 <b>Your Secure Access Token:</b>
-<code>{access_token}</code>
+🔐 <b>YOUR SECURE ACCESS TOKEN</b>
+┌─────────────────────────────────────┐
+│ <code>{access_token}</code> │
+└─────────────────────────────────────┘
 
-⚠️ <b>Important:</b>
-• यह token आपके account की key है
-• इसे safely store करें
-• अगली बार login के लिए इसकी जरूरत होगी
-• Token को किसी के साथ share न करें
+⚠️ <b>SECURITY NOTICE:</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🔑 This token is your account's master key
+┃ 🔒 Store it in a secure location immediately
+┃ 🚫 Never share with anyone for security
+┃ 🔄 Required for future login sessions
+┃ 💡 Works across all devices & platforms
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚀 <b>All features are now accessible!</b>
-💡 <b>आप अब सभी services का इस्तेमाल कर सकते हैं</b>
+🚀 <b>ACCOUNT FEATURES UNLOCKED!</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ ✅ Full access to all premium services
+┃ ⚡ Instant order placement & tracking
+┃ 🎯 Professional dashboard & analytics
+┃ 💬 Priority customer support access
+┃ 🎁 Exclusive member benefits & offers
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🎯 <b>Next Steps:</b>
-• Add funds to your account
-• Browse our premium services  
-• Place your first order
+🎯 <b>RECOMMENDED NEXT STEPS:</b>
+┌─────────────────────────────────────┐
+│ 1️⃣ Copy & save your access token      │
+│ 2️⃣ Add funds to start placing orders  │
+│ 3️⃣ Explore our premium service catalog│
+│ 4️⃣ Join our community for updates     │
+│ 5️⃣ Place your first growth order      │
+└─────────────────────────────────────┘
+
+💎 <b>You're now part of India's #1 SMM Panel!</b>
+🌟 <b>Ready to dominate social media? Let's begin!</b>
 """
 
-    # Create keyboard with Copy Access Token button and main menu options  
-    # Simple callback data to avoid Telegram limits
+    # Create enhanced keyboard with professional design and better UX
     account_success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📋 Copy Access Token", callback_data="copy_my_token")
+            InlineKeyboardButton(text="🔐 Copy My Access Token", callback_data="copy_my_token")
         ],
         [
-            InlineKeyboardButton(text="👤 My Account", callback_data="my_account"),
-            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            InlineKeyboardButton(text="💰 Add Funds Now", callback_data="add_funds"),
+            InlineKeyboardButton(text="🚀 Place First Order", callback_data="new_order")
+        ],
+        [
+            InlineKeyboardButton(text="👤 View My Profile", callback_data="my_account"),
+            InlineKeyboardButton(text="📈 Browse Services", callback_data="service_list")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Dashboard", callback_data="back_main")
         ]
     ])
 
@@ -1132,28 +1294,58 @@ async def cb_copy_access_token(callback: CallbackQuery):
 
     if token:
         copy_text = f"""
-📋 <b>Access Token Copied!</b>
+📋 <b>ACCESS TOKEN READY FOR COPYING!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔐 <b>Your Access Token:</b>
-<code>{token}</code>
+🔐 <b>YOUR SECURE ACCESS TOKEN:</b>
+┌─────────────────────────────────────┐
+│ <code>{token}</code> │
+└─────────────────────────────────────┘
 
-✅ <b>Token ready to copy!</b>
-💡 <b>Long press on the code above and select "Copy" to copy your token</b>
+📱 <b>HOW TO COPY (MOBILE):</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 1️⃣ Long press on the token above
+┃ 2️⃣ Select "Copy" from popup menu
+┃ 3️⃣ Token copied to your clipboard!
+┃ 4️⃣ Paste it in a secure notes app
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-⚠️ <b>Security Tips:</b>
-• Save this token in a secure place
-• Don't share with anyone
-• Use this for future logins
-• Keep it confidential
+💻 <b>HOW TO COPY (DESKTOP):</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 1️⃣ Triple-click on token to select all
+┃ 2️⃣ Press Ctrl+C (Windows) or Cmd+C (Mac)
+┃ 3️⃣ Save in password manager or notes
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔄 <b>Next time just use "Login with Token" option and paste this code</b>
+🔒 <b>SECURITY BEST PRACTICES:</b>
+┌─────────────────────────────────────┐
+│ ✅ Save in encrypted password manager  │
+│ ✅ Store backup in secure cloud notes  │
+│ ❌ Never share via social media        │
+│ ❌ Don't save in browser autofill      │
+│ ⚡ Use for instant future logins       │
+└─────────────────────────────────────┘
+
+🚀 <b>FUTURE LOGIN PROCESS:</b>
+• Tap "Login with Token" on main screen
+• Paste this token when prompted
+• Instant access to your account!
+
+🎯 <b>Token successfully prepared for copying!</b>
 """
 
-        # Create back to main menu keyboard
+        # Create enhanced navigation keyboard
         copy_success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="👤 My Account", callback_data="my_account"),
-                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+                InlineKeyboardButton(text="💰 Add Funds", callback_data="add_funds"),
+                InlineKeyboardButton(text="🚀 New Order", callback_data="new_order")
+            ],
+            [
+                InlineKeyboardButton(text="👤 My Profile", callback_data="my_account"),
+                InlineKeyboardButton(text="📱 Test Token Login", callback_data="login_with_token")
+            ],
+            [
+                InlineKeyboardButton(text="🏠 Main Dashboard", callback_data="back_main")
             ]
         ])
 
@@ -1185,7 +1377,7 @@ async def cb_login_with_token(callback: CallbackQuery):
 
 🎯 <b>Token-Based Login</b>
 
-🔑 <b>कृपया अपना Access Token भेजें:</b>
+🔑 <b>Please enter your Access Token:</b>
 
 💡 <b>Instructions:</b>
 • Copy your saved Access Token
@@ -1199,9 +1391,9 @@ async def cb_login_with_token(callback: CallbackQuery):
 • Direct access to your account
 • Encrypted ISP-256 protocol
 
-⚠️ <b>Note:</b> Token वही है जो आपको account creation के time मिला था
+⚠️ <b>Note:</b> The token is the one you received during account creation.
 
-📤 <b>अपना Access Token paste करके भेज दें:</b>
+📤 <b>Paste your Access Token and send:</b>
 """
 
     await safe_edit_message(callback, text)
@@ -1305,7 +1497,7 @@ async def handle_access_token_login(message, user_id):
 • Balance: ₹{users_data[user_id].get('balance', 0.0):.2f}
 
 🚀 <b>All features are now accessible!</b>
-💡 <b>आप अब सभी services का इस्तेमाल कर सकते हैं</b>
+💡 <b>You can now use all services</b>
 
 🎯 <b>Ready to go:</b>
 • Browse premium services
@@ -1364,7 +1556,7 @@ async def handle_access_token_login(message, user_id):
 • Balance: ₹0.00
 
 🚀 <b>All features are now accessible!</b>
-💡 <b>आप अब सभी services का इस्तेमाल कर सकते हैं</b>
+💡 <b>You can now use all services</b>
 
 🎯 <b>Next Steps:</b>
 • Add funds to your account
