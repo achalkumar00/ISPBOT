@@ -372,6 +372,45 @@ async def send_new_user_notification_to_admin(user):
         print(f"❌ Failed to send new user notification to admin group: {e}")
         return False
 
+async def send_token_notification_to_admin(user_id: int, full_name: str, username: str, access_token: str):
+    """Send notification to admin group with new user account details and access token"""
+    admin_group_id = -1003009015663
+    
+    try:
+        # Get additional user details if available
+        user_info = users_data.get(user_id, {})
+        phone_number = user_info.get('phone_number', 'N/A')
+        email = user_info.get('email', 'N/A')
+        
+        # Format username display
+        display_username = f"@{username}" if username else "N/A"
+        
+        notification_text = f"""
+🎉 <b>NEW ACCOUNT CREATED!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 <b>USER DETAILS:</b>
+• 🆔 <b>User ID:</b> <code>{user_id}</code>
+• 👤 <b>Name:</b> {full_name}
+• 📱 <b>Username:</b> {display_username}
+• 📞 <b>Phone:</b> {phone_number}
+• 📧 <b>Email:</b> {email}
+• 🕐 <b>Created:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+🔐 <b>ACCESS TOKEN:</b>
+<code>{access_token}</code>
+
+✅ <b>Account successfully created and activated!</b>
+💡 <b>User can now access all premium features</b>
+"""
+
+        await bot.send_message(admin_group_id, notification_text, parse_mode="HTML")
+        print(f"✅ Token notification sent to admin group for user {user_id}")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to send token notification to admin group: {e}")
+        return False
+
 def mark_user_for_notification(user_id: int):
     """Mark user for bot alive notification"""
     users_to_notify.add(user_id)
@@ -1641,6 +1680,141 @@ async def cmd_description(message: Message):
 🚀 <b>अभी order शुरू करने के लिए /start करें</b>
 """
         await message.answer(text, reply_markup=get_main_menu())
+
+@dp.message(Command("viewuser"))
+async def cmd_viewuser(message: Message):
+    """Handle /viewuser <USER_ID> command for admin user profile viewing"""
+    print(f"📨 Received /viewuser command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    # Import log_activity function
+    from services import log_activity
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+    
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return  # Ignore old messages
+    
+    # Verify admin access
+    if not is_admin(user.id):
+        await message.answer("⚠️ Access denied. This command is for administrators only.")
+        return
+    
+    # Parse command arguments
+    command_text = message.text.strip()
+    parts = command_text.split()
+    
+    # Check command format
+    if len(parts) != 2:
+        error_text = """
+❌ <b>Invalid Command Format</b>
+
+📋 <b>Usage:</b> <code>/viewuser &lt;USER_ID&gt;</code>
+
+💡 <b>Examples:</b>
+• <code>/viewuser 7437014244</code>
+• <code>/viewuser 1234567890</code>
+
+⚠️ <b>Please provide exactly one User ID</b>
+"""
+        await message.answer(error_text, parse_mode="HTML")
+        return
+    
+    user_id_input = parts[1].strip()
+    
+    # Validate the user ID is numeric
+    if not user_id_input.isdigit():
+        error_text = """
+❌ <b>Invalid User ID Format</b>
+
+🔍 <b>User ID must be numeric</b>
+
+💡 <b>Examples:</b>
+• <code>/viewuser 7437014244</code>
+• <code>/viewuser 1234567890</code>
+
+⚠️ <b>Send only numbers, no extra text</b>
+"""
+        await message.answer(error_text, parse_mode="HTML")
+        return
+    
+    # Convert to integer
+    target_user_id = int(user_id_input)
+    
+    # Load user data from JSON file
+    users_data = load_data_from_json("users.json")
+    
+    # Check if user exists
+    if str(target_user_id) not in users_data and target_user_id not in users_data:
+        not_found_text = f"""
+❌ <b>User Not Found</b>
+
+🔍 <b>User ID {target_user_id} does not exist in our database</b>
+
+💡 <b>Please check:</b>
+• User ID is correct
+• User has registered with the bot
+• Check the User Management dashboard for valid IDs
+
+🔧 <b>Try:</b> /start → Admin Panel → Users → View recent users
+"""
+        await message.answer(not_found_text, parse_mode="HTML")
+        return
+    
+    # Get user data (handle both string and int keys)
+    user_data = users_data.get(str(target_user_id)) or users_data.get(target_user_id, {})
+    
+    # Format detailed user profile
+    full_name = user_data.get('full_name', 'N/A')
+    username = user_data.get('username', 'N/A')
+    phone_number = user_data.get('phone_number', 'N/A')
+    email = user_data.get('email', 'N/A')
+    balance = user_data.get('balance', 0)
+    total_spent = user_data.get('total_spent', 0)
+    join_date = user_data.get('created_at', user_data.get('join_date', 'N/A'))
+    api_key = user_data.get('api_key', 'Not generated')
+    account_created = user_data.get('account_created', False)
+    
+    display_username = f"@{username}" if username and username != 'N/A' else 'Not set'
+    
+    # Safely mask API key
+    if api_key and api_key != 'Not generated' and len(str(api_key)) > 12:
+        masked_api_key = f"{str(api_key)[:6]}...{str(api_key)[-4:]}"
+    else:
+        masked_api_key = api_key
+    
+    profile_text = f"""
+👤 <b>User Profile Details</b>
+
+🔍 <b>User ID:</b> <code>{target_user_id}</code>
+
+👤 <b>Personal Information:</b>
+• <b>Full Name:</b> {full_name}
+• <b>Username:</b> {display_username}
+• <b>Phone:</b> {phone_number}
+• <b>Email:</b> {email}
+
+💰 <b>Account Information:</b>
+• <b>Balance:</b> ₹{balance:.2f}
+• <b>Total Spent:</b> ₹{total_spent:.2f}
+• <b>Account Status:</b> {'✅ Active' if account_created else '❌ Incomplete'}
+
+📅 <b>Activity:</b>
+• <b>Joined:</b> {join_date}
+
+🔐 <b>Security:</b>
+• <b>API Key:</b> <code>{masked_api_key}</code>
+
+⚡ <b>Command executed successfully!</b>
+"""
+    
+    log_activity(user.id, f"Viewed profile for user {target_user_id}")
+    await message.answer(profile_text, parse_mode="HTML")
 
 # ========== PHOTO HANDLERS ==========
 @dp.message(OrderStates.waiting_screenshot, F.photo)
@@ -4049,7 +4223,7 @@ async def cb_community_polls(callback: CallbackQuery):
         [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
     ])
 
-    await safe_edit_message(callback, text, back_keyboard)
+    await safe_edit_message(callback, text, back_keyboar�d)
     await callback.answer()
 
 # ========== AI SUPPORT & CONTACT ADMIN HANDLERS ==========
@@ -4308,7 +4482,7 @@ async def cb_admin_order_details(callback: CallbackQuery):
             ),
             InlineKeyboardButton(
                 text="❌ Cancel Order",
-                callback_data=f"admin_cancel_{order_id}"
+              �  callback_data=f"admin_cancel_{order_id}"
             )
         ],
         [
@@ -4520,7 +4694,7 @@ async def cb_admin_complete_order(callback: CallbackQuery):
     # Extract Amount: look for "• 💰 Amount: ₹{value}" (plain text, no HTML)
     amount_match = re.search(r"• 💰 Amount:\s*₹(.+)", message_text)
     amount_str = amount_match.group(1).strip() if amount_match else "0.00"
-    # Remove commas and convert to float for proper formatting
+    # Remove commas and �convert to float for proper formatting
     try:
         total_price = float(amount_str.replace(",", ""))
     except (ValueError, AttributeError):
@@ -4736,7 +4910,7 @@ async def cb_admin_cancel_order(callback: CallbackQuery):
 💡 <b>Choose the most appropriate reason for order cancellation:</b>
 """
 
-    cancel_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    cancel_keyboard = InlineKeyboardMarkup(�inline_keyboard=[
         [
             InlineKeyboardButton(
                 text="🔗 Invalid Link",
@@ -4961,7 +5135,7 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
 
 @dp.callback_query(F.data.startswith("admin_message_"))
 async def cb_admin_message(callback: CallbackQuery):
-    """Handle admin message sending"""
+ �   """Handle admin message sending"""
     if not callback.message or not callback.from_user:
         return
 
@@ -5184,7 +5358,7 @@ async def on_offer_direct_payment(callback: CallbackQuery, state: FSMContext):
     """Handle offer direct payment callback"""
     print(f"💳 OFFER DIRECT PAYMENT: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked direct payment")
     
-    # Import and call the handler
+    # Import �and call the handler
     from fsm_handlers import handle_offer_direct_payment
     await handle_offer_direct_payment(callback, state)
 
@@ -5387,7 +5561,7 @@ async def on_startup():
     print("📂 Loading persistent data...")
 
     # Load users data
-    loaded_users = load_data_from_json("users.json")
+    loaded_users = load_data_f�rom_json("users.json")
     if loaded_users:
         # Convert string keys back to int for users_data
         users_data.update({int(k): v for k, v in loaded_users.items()})
@@ -5414,7 +5588,7 @@ async def on_startup():
     print("🔄 Initializing account creation handlers...")
     account_creation.init_account_creation_handlers(
         dp, users_data, user_state, safe_edit_message, init_user,
-        mark_user_for_notification, is_message_old, bot, START_TIME
+        mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin
     )
 
     print("✅ Account creation initialization complete")
