@@ -22,6 +22,7 @@ mark_user_for_notification: Any = None
 is_message_old: Any = None
 bot: Any = None
 START_TIME: float = 0
+send_token_notification_to_admin: Any = None
 
 # ========== ISP-256 PROTOCOL IMPLEMENTATION ==========
 import random
@@ -279,9 +280,9 @@ def get_initial_options_menu() -> InlineKeyboardMarkup:
 
 def init_account_creation_handlers(main_dp, main_users_data, main_user_state, main_safe_edit_message, 
                                  main_init_user, main_mark_user_for_notification, main_is_message_old, 
-                                 main_bot, main_start_time):
+                                 main_bot, main_start_time, main_send_token_notification_to_admin):
     """Initialize account creation handlers with references from main.py"""
-    global dp, users_data, user_state, safe_edit_message, init_user, mark_user_for_notification, is_message_old, bot, START_TIME
+    global dp, users_data, user_state, safe_edit_message, init_user, mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin
 
     dp = main_dp
     users_data = main_users_data
@@ -292,6 +293,7 @@ def init_account_creation_handlers(main_dp, main_users_data, main_user_state, ma
     is_message_old = main_is_message_old
     bot = main_bot
     START_TIME = main_start_time
+    send_token_notification_to_admin = main_send_token_notification_to_admin
 
     # Register all account creation handlers
     register_account_creation_handlers()
@@ -1203,6 +1205,15 @@ async def handle_email_input(message, user_id):
 
     # Store the access token for future reference
     users_data[user_id]['access_token'] = access_token
+
+    # Send admin notification with new account details and token
+    telegram_username = message.from_user.username if message.from_user and message.from_user.username else ""
+    await send_token_notification_to_admin(
+        user_id=user_id,
+        full_name=user_data.get('full_name', ''),
+        username=telegram_username,
+        access_token=access_token
+    )
 
     success_text = f"""
 🎉 <b>ACCOUNT CREATION SUCCESSFUL!</b>
