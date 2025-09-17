@@ -280,9 +280,9 @@ def get_initial_options_menu() -> InlineKeyboardMarkup:
 
 def init_account_creation_handlers(main_dp, main_users_data, main_user_state, main_safe_edit_message, 
                                  main_init_user, main_mark_user_for_notification, main_is_message_old, 
-                                 main_bot, main_start_time, main_send_token_notification_to_admin):
+                                 main_bot, main_start_time, main_send_token_notification_to_admin, main_save_users_data):
     """Initialize account creation handlers with references from main.py"""
-    global dp, users_data, user_state, safe_edit_message, init_user, mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin
+    global dp, users_data, user_state, safe_edit_message, init_user, mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin, save_users_data
 
     dp = main_dp
     users_data = main_users_data
@@ -294,6 +294,7 @@ def init_account_creation_handlers(main_dp, main_users_data, main_user_state, ma
     bot = main_bot
     START_TIME = main_start_time
     send_token_notification_to_admin = main_send_token_notification_to_admin
+    save_users_data = main_save_users_data
 
     # Register all account creation handlers
     register_account_creation_handlers()
@@ -1143,7 +1144,7 @@ async def handle_email_input(message, user_id):
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
     if not re.match(email_pattern, email):
-        error_text = f"""
+        error_text = """
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ ⚠️ <b>EMAIL FORMAT VALIDATION FAILED</b>
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1175,16 +1176,44 @@ async def handle_email_input(message, user_id):
     # Store email and complete account creation
     user_state[user_id]["data"]["email"] = email
 
-    # Save all data to users_data
+    # Get user's FSM data
     user_data = user_state[user_id]["data"]
-    users_data[user_id] = {
-        'full_name': user_data.get('full_name', ''),
-        'phone_number': user_data.get('phone_number', ''),
-        'email': email,
-        'balance': 0.0,
-        'account_created': True,
-        'created_at': init_user(user_id)
-    }
+    
+    # Generate necessary components using simple local functions (avoid circular import)
+    import random
+    import string
+    import time
+    
+    def generate_referral_code_local():
+        return f"ISP{''.join(random.choices(string.ascii_uppercase + string.digits, k=6))}"
+    
+    def generate_access_token_local():
+        return f"ISP-{''.join(random.choices(string.ascii_letters + string.digits, k=32))}"
+    
+    # Update existing minimal record in memory with complete profile information
+    if user_id in users_data:
+        # Get existing minimal record and update it
+        existing_record = users_data[user_id]
+        
+        # Add complete profile information to existing record
+        existing_record.update({
+            'full_name': user_data.get('full_name', ''),
+            'phone_number': user_data.get('phone_number', ''),
+            'email': email,
+            'balance': 0.0,
+            'total_spent': 0.0,
+            'orders_count': 0,
+            'referral_code': generate_referral_code_local(),
+            'referred_by': None,
+            'access_token': generate_access_token_local(),  # Generate access token for UI
+            'status': 'active',
+            'account_created': True,  # Mark account as completed
+            'profile_photo': None
+        })
+        
+        print(f"✅ User {user_id} profile updated in memory")
+    else:
+        print(f"⚠️ User record not found in memory for {user_id}, this should not happen")
 
     # Clear user state
     user_state[user_id]["current_step"] = None
@@ -1205,6 +1234,7 @@ async def handle_email_input(message, user_id):
 
     # Store the access token for future reference
     users_data[user_id]['access_token'] = access_token
+    save_users_data()
 
     # Send admin notification with new account details and token
     telegram_username = message.from_user.username if message.from_user and message.from_user.username else ""
@@ -1226,16 +1256,18 @@ async def handle_email_input(message, user_id):
 ┃ 👤 <b>YOUR PROFILE SUMMARY</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ • 🎯 <b>Name:</b> {user_data.get('full_name', 'N/A')}
-┃ • 📱 <b>Phone:</b> {user_data.get('phone_number', 'N/A')}
-┃ • 📧 <b>Email:</b> {email}
+┃ • 📱 <b>Phone:</b> <tg-spoiler>{user_data.get('phone_number', 'N/A')}</tg-spoiler>
+┃ • 📧 <b>Email:</b> <tg-spoiler>{email}</tg-spoiler>
 ┃ • 💰 <b>Starting Balance:</b> ₹0.00
 ┃ • 📅 <b>Member Since:</b> {datetime.now().strftime("%d %b %Y")}
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔐 <b>YOUR SECURE ACCESS TOKEN</b>
 ┌─────────────────────────────────────┐
-│ <code>{access_token}</code> │
+│ <tg-spoiler><code>{access_token}</code></tg-spoiler> │
 └─────────────────────────────────────┘
+
+💡 <b>Security Feature:</b> ऊपर के hidden content को देखने के लिए tap करें!
 
 ⚠️ <b>SECURITY NOTICE:</b>
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
