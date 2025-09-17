@@ -673,8 +673,8 @@ async def cb_view_api_key(callback: CallbackQuery):
     text = f"""
 🔑 <b>Your API Key</b>
 
-🔐 <b>Full API Key:</b>
-<code>{api_key}</code>
+🔐 <b>Full API Key (Click to Reveal):</b>
+<tg-spoiler><code>{api_key}</code></tg-spoiler>
 
 📊 <b>Key Information:</b>
 • 🆔 <b>Key ID:</b> {api_key[:16]}...
@@ -686,15 +686,17 @@ async def cb_view_api_key(callback: CallbackQuery):
 <code>https://api.indiasocialpanel.com/v1</code>
 
 🔑 <b>Authentication Header:</b>
-<code>Authorization: Bearer {api_key}</code>
+<tg-spoiler><code>Authorization: Bearer {api_key}</code></tg-spoiler>
 
-⚠️ <b>Security Warning:</b>
-• API key को कभी भी public repositories में store न करें
-• Environment variables का use करें
-• Regular basis पर key को regenerate करें
-• Unauthorized access monitor करते रहें
+⚠️ <b>Enhanced Security Features:</b>
+• 🔒 API key hidden by default for maximum security
+• 👆 Click on hidden areas to reveal sensitive information
+• 🚫 API key को कभी भी public repositories में store न करें
+• 🔧 Environment variables का use करें
+• 🔄 Regular basis पर key को regenerate करें
+• 👀 Unauthorized access monitor करते रहें
 
-💡 <b>Tap on API key to copy it</b>
+💡 <b>Privacy Protected: Tap on hidden content to reveal API key</b>
 """
 
     view_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -1205,20 +1207,25 @@ async def cb_copy_api_key(callback: CallbackQuery):
         text = f"""
 📋 <b>Your API Key (Ready to Copy)</b>
 
-🔑 <b>Full API Key:</b>
-<code>{api_key}</code>
+🔑 <b>Full API Key (Click to Reveal):</b>
+<tg-spoiler><code>{api_key}</code></tg-spoiler>
 
 📱 <b>How to Copy:</b>
-• <b>Mobile:</b> Long press on key above → Copy
-• <b>Desktop:</b> Triple click to select → Ctrl+C
+• <b>Mobile:</b> Tap hidden area above, then long press → Copy
+• <b>Desktop:</b> Click hidden area, then triple click → Ctrl+C
 
-💡 <b>API key को secure place में store करें</b>
+💡 <b>Enhanced Privacy Features:</b>
+• 🔒 API key hidden by default
+• 👆 Tap to reveal sensitive information
+• 💾 API key को secure place में store करें
 
 ⚠️ <b>Security Reminder:</b>
 • Keep it confidential
 • Use environment variables  
 • Never share publicly
 • Monitor usage regularly
+
+🛡️ <b>Privacy Protected: Key hidden until you click!</b>
 """
 
         back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -2521,25 +2528,27 @@ async def cb_copy_access_token_myaccount(callback: CallbackQuery):
         text = f"""
 🔑 <b>Your Access Token</b>
 
-📋 <b>Access Token (Ready to Copy):</b>
-<code>{access_token}</code>
+📋 <b>Access Token (Click to Reveal):</b>
+<tg-spoiler><code>{access_token}</code></tg-spoiler>
 
 📱 <b>How to Copy:</b>
-• <b>Mobile:</b> Long press on token above → Copy
-• <b>Desktop:</b> Triple click to select → Ctrl+C
+• <b>Mobile:</b> Tap on hidden token above, then long press → Copy
+• <b>Desktop:</b> Click on hidden area, then triple click → Ctrl+C
 
-🔐 <b>Security Information:</b>
-• यह token आपके account की key है
-• इसे safely store करें  
-• अगली बार login के लिए इसकी जरूरत होगी
-• Token को किसी के साथ share न करें
+🔐 <b>Enhanced Security Features:</b>
+• 🔒 Token hidden by default for privacy
+• 👆 Tap to reveal sensitive information
+• 🛡️ यह token आपके account की master key है
+• 💾 इसे safely store करें  
+• 🔑 अगली बार login के लिए इसकी जरूरत होगी
+• ⚠️ Token को किसी के साथ share न करें
 
 💡 <b>Usage:</b>
 • New device पर login करने के लिए
 • Account recovery के लिए
 • Secure access के लिए
 
-⚠️ <b>Keep this token private and secure!</b>
+🔐 <b>Privacy Protected: Token hidden until you click on it!</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
