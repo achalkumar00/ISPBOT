@@ -41,3 +41,13 @@ class OfferOrderStates(StatesGroup):
     waiting_screenshot = State()
 
 
+class AdminCreateUserStates(StatesGroup):
+    """States for admin creating user accounts via tokens"""
+    waiting_for_token = State()
+
+
+class AdminDirectMessageStates(StatesGroup):
+    """States for admin sending direct messages to users"""
+    waiting_for_message = State()
+
+
