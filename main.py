@@ -347,12 +347,12 @@ Hello <b>{user_display_name}</b>! 👋
 async def send_new_user_notification_to_admin(user):
     """Send notification to admin group when a new user starts the bot for the first time"""
     admin_group_id = -1003009015663
-    
+
     try:
         user_id = user.id
         first_name = user.first_name or "N/A"
         username = f"@{user.username}" if user.username else "N/A"
-        
+
         notification_text = f"""
 🆕 <b>New User Alert!</b>
 
@@ -364,7 +364,7 @@ async def send_new_user_notification_to_admin(user):
 
 🎉 <b>A new user has started the bot!</b>
 """
-        
+
         await bot.send_message(admin_group_id, notification_text, parse_mode="HTML")
         print(f"✅ New user notification sent to admin group for user {user_id}")
         return True
@@ -739,9 +739,9 @@ async def cmd_restoreuser(message: Message):
 
     # Use the existing init_user function to create identical user record
     init_user(user_id)
-    
+
     print(f"🔧 RESTORE: Admin {user.id} restored user {user_id} to memory")
-    
+
     # Send confirmation message
     await message.answer(f"✅ User {user_id} has been successfully restored to memory.")
 
@@ -789,10 +789,10 @@ async def cmd_sendtouser(message: Message):
 """,
             parse_mode="HTML"
         )
-        
+
         print(f"💬 SEND_TO_USER: Admin {user.id} sent message to user {target_user_id}")
         await message.answer(f"✅ Message sent successfully to user {target_user_id}.")
-        
+
     except Exception as e:
         print(f"❌ Failed to send message to user {target_user_id}: {e}")
         await message.answer(f"❌ Failed to send message to user {target_user_id}. Error: {str(e)}")
@@ -837,7 +837,7 @@ async def cmd_create_offer(message: Message, state: FSMContext):
 
     # Start the offer creation FSM flow
     await state.set_state(CreateOfferStates.getting_message)
-    
+
     text = """
 🎯 <b>Create New Offer - Step 1/5</b>
 
@@ -858,7 +858,7 @@ async def cmd_create_offer(message: Message, state: FSMContext):
 
 📤 <b>अपना offer message type करके भेज दें:</b>
 """
-    
+
     await message.answer(text)
     print(f"🎯 CREATE_OFFER: Admin {user.id} started offer creation process")
 
@@ -870,11 +870,11 @@ async def handle_offer_message(message: Message, state: FSMContext):
         return
 
     offer_message = message.text.strip()
-    
+
     # Store the offer message and move to next step
     await state.update_data(offer_message=offer_message)
     await state.set_state(CreateOfferStates.getting_package_name)
-    
+
     text = f"""
 ✅ <b>Offer Message Saved!</b>
 
@@ -899,7 +899,7 @@ async def handle_offer_message(message: Message, state: FSMContext):
 
 📤 <b>Package name type करके भेज दें:</b>
 """
-    
+
     await message.answer(text)
 
 @dp.message(CreateOfferStates.getting_package_name)
@@ -910,11 +910,11 @@ async def handle_package_name(message: Message, state: FSMContext):
         return
 
     package_name = message.text.strip()
-    
+
     # Store the package name and move to next step
     await state.update_data(package_name=package_name)
     await state.set_state(CreateOfferStates.getting_rate)
-    
+
     text = f"""
 ✅ <b>Package Name Saved!</b>
 
@@ -939,7 +939,7 @@ async def handle_package_name(message: Message, state: FSMContext):
 
 📤 <b>Rate type करके भेज दें:</b>
 """
-    
+
     await message.answer(text)
 
 @dp.message(CreateOfferStates.getting_rate)
@@ -950,11 +950,11 @@ async def handle_rate(message: Message, state: FSMContext):
         return
 
     rate = message.text.strip()
-    
+
     # Store the rate and move to next step
     await state.update_data(rate=rate)
     await state.set_state(CreateOfferStates.asking_fixed_quantity)
-    
+
     text = f"""
 ✅ <b>Rate Saved!</b>
 
@@ -976,7 +976,7 @@ async def handle_rate(message: Message, state: FSMContext):
 
 📤 <b>Reply with "Yes" या "No":</b>
 """
-    
+
     await message.answer(text)
 
 @dp.message(CreateOfferStates.asking_fixed_quantity)
@@ -987,12 +987,12 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
         return
 
     choice = message.text.strip().lower()
-    
+
     if choice in ['yes', 'y', 'हां', 'हाँ']:
         # Ask for fixed quantity amount
         await state.update_data(has_fixed_quantity=True)
         await state.set_state(CreateOfferStates.getting_fixed_quantity)
-        
+
         text = """
 🔢 <b>Fixed Quantity Amount</b>
 
@@ -1010,14 +1010,14 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
 
 📤 <b>Quantity number भेज दें:</b>
 """
-        
+
         await message.answer(text)
-        
+
     elif choice in ['no', 'n', 'नहीं', 'nahi']:
         # Complete the offer creation
         await state.update_data(has_fixed_quantity=False, fixed_quantity=None)
         await complete_offer_creation(message, state)
-        
+
     else:
         await message.answer("⚠️ Please reply with 'Yes' or 'No' only.")
 
@@ -1045,7 +1045,7 @@ async def complete_offer_creation(message: Message, state: FSMContext):
     """Complete the offer creation process and save to JSON"""
     # Get all collected data
     data = await state.get_data()
-    
+
     # Create the offer dictionary
     offer = {
         "offer_id": generate_offer_id(),
@@ -1058,17 +1058,17 @@ async def complete_offer_creation(message: Message, state: FSMContext):
         "created_at": datetime.now().isoformat(),
         "created_by": message.from_user.id if message.from_user else 0
     }
-    
+
     # Load existing offers and add new one
     offers = load_offers_from_json()
     offers.append(offer)
-    
+
     # Save updated offers list
     save_offers_to_json(offers)
-    
+
     # Clear FSM state
     await state.clear()
-    
+
     # Send confirmation message
     text = f"""
 ✅ <b>Offer Created Successfully!</b>
@@ -1085,7 +1085,7 @@ async def complete_offer_creation(message: Message, state: FSMContext):
 
 🎉 <b>The offer has been saved to offers.json and is ready to use!</b>
 """
-    
+
     await message.answer(text)
     print(f"✅ CREATE_OFFER: Admin {message.from_user.id if message.from_user else 'Unknown'} created offer {offer['offer_id']}")
 
@@ -1102,15 +1102,15 @@ async def send_offer_to_user(user_id: int, offer: dict, bot: Bot) -> bool:
 📦 <b>Package:</b> {offer['package_name']}
 💰 <b>Rate:</b> {offer['rate']}
 """
-        
+
         if offer.get('has_fixed_quantity') and offer.get('fixed_quantity'):
             offer_text += f"🔢 <b>Quantity:</b> {offer['fixed_quantity']}\n"
-        
+
         offer_text += """
 ⚡ <b>Limited Time Offer!</b>
 🛒 <b>Click below to order now!</b>
 """
-        
+
         # Create Order Now button with offer_id in callback_data
         order_button = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
@@ -1118,7 +1118,7 @@ async def send_offer_to_user(user_id: int, offer: dict, bot: Bot) -> bool:
                 callback_data=f"order_offer_{offer['offer_id']}"
             )]
         ])
-        
+
         await bot.send_message(
             chat_id=user_id,
             text=offer_text,
@@ -1140,20 +1140,20 @@ async def cmd_send_offer(message: Message, state: FSMContext):
 
     # Start the offer sending FSM flow
     await state.set_state(AdminSendOfferStates.getting_offer_id)
-    
+
     # Load and display available offers
     offers = load_offers_from_json()
-    
+
     if not offers:
         await message.answer("❌ No offers found! Please create offers first using /create_offer")
         await state.clear()
         return
-    
+
     offer_list = "\n".join([
         f"🆔 <code>{offer['offer_id']}</code> - {offer['package_name']}"
         for offer in offers if offer.get('is_active', True)
     ])
-    
+
     text = f"""
 📤 <b>Send Offer to Users - Step 1/3</b>
 
@@ -1168,7 +1168,7 @@ async def cmd_send_offer(message: Message, state: FSMContext):
 
 📤 <b>Offer ID भेज दें:</b>
 """
-    
+
     await message.answer(text)
     print(f"📤 SEND_OFFER: Admin {user.id} started offer sending process")
 
@@ -1180,16 +1180,16 @@ async def handle_offer_id_input(message: Message, state: FSMContext):
         return
 
     offer_id = message.text.strip()
-    
+
     # Load offers and validate offer_id
     offers = load_offers_from_json()
     selected_offer = None
-    
+
     for offer in offers:
         if offer.get('offer_id') == offer_id and offer.get('is_active', True):
             selected_offer = offer
             break
-    
+
     if not selected_offer:
         await message.answer(
             "❌ <b>Invalid Offer ID!</b>\n\n"
@@ -1198,11 +1198,11 @@ async def handle_offer_id_input(message: Message, state: FSMContext):
             "📤 <b>Send correct Offer ID:</b>"
         )
         return
-    
+
     # Store selected offer and move to target selection
     await state.update_data(offer_id=offer_id, selected_offer=selected_offer)
     await state.set_state(AdminSendOfferStates.choosing_target)
-    
+
     text = f"""
 ✅ <b>Offer Selected Successfully!</b>
 
@@ -1222,7 +1222,7 @@ async def handle_offer_id_input(message: Message, state: FSMContext):
 
 📤 <b>Choose your target audience:</b>
 """
-    
+
     # Create target selection buttons
     target_buttons = InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -1230,7 +1230,7 @@ async def handle_offer_id_input(message: Message, state: FSMContext):
             InlineKeyboardButton(text="👤 Specific User", callback_data="send_to_specific_user")
         ]
     ])
-    
+
     await message.answer(text, reply_markup=target_buttons)
 
 @dp.callback_query(AdminSendOfferStates.choosing_target)
@@ -1239,20 +1239,20 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
     if not callback.data:
         await callback.answer("❌ Invalid selection!")
         return
-    
+
     # Get stored offer data
     data = await state.get_data()
     selected_offer = data.get('selected_offer')
-    
+
     if not selected_offer:
         await callback.answer("❌ Offer data lost! Please start again.")
         await state.clear()
         return
-    
+
     if callback.data == "send_to_all_users":
         # Send to all users
         await callback.answer("📤 Sending to all users...")
-        
+
         # Load all users
         users_list = load_data_from_json("users.json")
         if not users_list:
@@ -1263,15 +1263,15 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
                 )
             await state.clear()
             return
-        
+
         # Send offer to all users
         success_count = 0
         total_users = len(users_list)
-        
+
         for user_id in users_list:
             if await send_offer_to_user(int(user_id), selected_offer, bot):
                 success_count += 1
-        
+
         # Report results and clear state
         if callback.message:
             await callback.message.edit_text(
@@ -1285,11 +1285,11 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
             )
         await state.clear()
         print(f"📤 SEND_OFFER: Admin sent offer {selected_offer['offer_id']} to all {total_users} users")
-        
+
     elif callback.data == "send_to_specific_user":
         # Ask for specific user ID
         await state.set_state(AdminSendOfferStates.getting_specific_user_id)
-        
+
         if callback.message:
             await callback.message.edit_text(
                 f"👤 <b>Send to Specific User - Step 3/3</b>\n\n"
@@ -1301,7 +1301,7 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
                 f"📤 <b>User ID number भेज दें:</b>"
             )
         await callback.answer()
-    
+
     else:
         await callback.answer("❌ Invalid option!")
 
@@ -1321,7 +1321,7 @@ async def handle_specific_user_id(message: Message, state: FSMContext):
     # Get stored offer data
     data = await state.get_data()
     selected_offer = data.get('selected_offer')
-    
+
     if not selected_offer:
         await message.answer("❌ Offer data lost! Please start again with /send_offer")
         await state.clear()
@@ -1362,33 +1362,42 @@ async def handle_specific_user_id(message: Message, state: FSMContext):
 @dp.callback_query(F.data.startswith("order_offer_"))
 async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
     """Handle Order Now button clicks from offers using simplified OfferOrderStates flow"""
+    print(f"🔥 ORDER OFFER BUTTON: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked Order Now button")
+    print(f"🔥 ORDER OFFER BUTTON: Callback data: {callback.data}")
+    
     if not callback.data:
         await callback.answer("❌ Invalid offer!")
         return
-    
+
     # Extract offer_id from callback_data: "order_offer_OFFER-123456789-1234"
     offer_id = callback.data.replace("order_offer_", "")
-    
+    print(f"🔥 ORDER OFFER BUTTON: Extracted offer ID: {offer_id}")
+
     # Load offers and find the selected offer
     offers = load_offers_from_json()
     selected_offer = None
-    
+
     for offer in offers:
         if offer.get('offer_id') == offer_id and offer.get('is_active', True):
             selected_offer = offer
             break
-    
+
     if not selected_offer:
+        print(f"❌ ORDER OFFER BUTTON: Offer {offer_id} not found or inactive")
         await callback.answer("❌ This offer is no longer available!")
         return
-    
+
     user = callback.from_user
     if not user:
+        print(f"❌ ORDER OFFER BUTTON: No user found in callback")
         await callback.answer("❌ User not found!")
         return
-    
+
+    print(f"✅ ORDER OFFER BUTTON: Found offer: {selected_offer['package_name']} for user {user.id}")
+
     # Check if user account is created
     if not is_account_created(user.id):
+        print(f"⚠️ ORDER OFFER BUTTON: User {user.id} account not created")
         await callback.answer("⚠️ Please complete your account setup first!")
         if callback.message:
             await callback.message.edit_text(
@@ -1400,7 +1409,9 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
                 ])
             )
         return
-    
+
+    print(f"✅ ORDER OFFER BUTTON: User {user.id} account verified, starting offer order flow")
+
     # Store all offer details in FSM state for the new simplified flow
     await state.update_data(
         offer_id=offer_id,
@@ -1410,33 +1421,33 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
         has_fixed_quantity=selected_offer.get("has_fixed_quantity", False),
         fixed_quantity=selected_offer.get("fixed_quantity")
     )
-    
+
     # Set the new OfferOrderStates.getting_link state
     await state.set_state(OfferOrderStates.getting_link)
-    
+    print(f"🔥 ORDER OFFER BUTTON: Set FSM state to OfferOrderStates.getting_link for user {user.id}")
+
     # Send simple message asking for link
     link_request_text = f"""
-🎉 <b>Special Offer Order Started!</b>
+🚀 <b>Order Started - {selected_offer['package_name']}</b>
 
-📦 <b>Package:</b> {selected_offer['package_name']}
 💰 <b>Rate:</b> {selected_offer['rate']}
 {f"🔢 <b>Quantity:</b> {selected_offer['fixed_quantity']}" if selected_offer.get('has_fixed_quantity') and selected_offer.get('fixed_quantity') else ""}
 
-🔗 <b>Step 1: Please send your profile/page link</b>
+🔗 <b>Send your profile link:</b>
 
-💡 <b>Example:</b> 
-• https://instagram.com/yourprofile
-• https://youtube.com/channel/yourlink
-• https://facebook.com/yourpage
+💡 <b>Example:</b> https://instagram.com/yourprofile
 
-📤 <b>Send your link:</b>
+📤 <b>Type your link now</b>
 """
-    
+
     await callback.answer("🛒 Starting your order...")
-    
+
     if callback.message:
         await callback.message.edit_text(link_request_text)
-    
+        print(f"✅ ORDER OFFER BUTTON: Link request message sent to user {user.id}")
+    else:
+        print(f"❌ ORDER OFFER BUTTON: No callback.message found to edit")
+
     print(f"🛒 OFFER_ORDER: User {user.id} started offer order for {offer_id} - waiting for link")
 
 @dp.message(Command("start"))
@@ -1492,7 +1503,7 @@ Hello, <b>{user_display_name}</b>! We're ready to take your social media account
     else:
         # New user - show both create account and login options
         user_display_name = f"@{user.username}" if user.username else user.first_name or 'Friend'
-        
+
         # Send notification to admin group about new user
         await send_new_user_notification_to_admin(user)
 
@@ -1875,7 +1886,7 @@ Our system guarantees:
 @dp.callback_query(F.data == "add_funds")
 @require_account
 async def cb_add_funds(callback: CallbackQuery):
-    """Handle add funds request"""
+    """Handle add funds request with professional design"""
     if not callback.message:
         return
 
@@ -1883,39 +1894,67 @@ async def cb_add_funds(callback: CallbackQuery):
     current_balance = users_data.get(user_id, {}).get("balance", 0.0)
 
     text = f"""
-💰 <b>Add Funds</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💎 <b>PREMIUM WALLET RECHARGE PORTAL</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💳 <b>Current Balance:</b> {format_currency(current_balance)}
+🚀 <b>Instant Balance Top-Up Service</b>
+<i>Secure • Fast • Reliable</i>
 
-🔸 <b>Payment Methods Available:</b>
-• UPI (Instant)
-• Bank Transfer
-• Paytm
-• PhonePe
-• Google Pay
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💰 <b>CURRENT WALLET STATUS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 💳 <b>Available Balance:</b> <u>{format_currency(current_balance)}</u>
+┃ • 🎯 <b>Account Status:</b> ✅ <b>Active & Verified</b>
+┃ • 💎 <b>Membership:</b> Premium User
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 <b>Amount चुनें या custom amount type करें:</b>
+🔥 <b>PAYMENT METHODS AVAILABLE</b>
+
+🎯 <b>Instant Payment Options:</b>
+┌─────────────────────────────────────┐
+│ 📱 <b>UPI Payment</b> - ⚡ Instant Credit    │
+│ 🏦 <b>Bank Transfer</b> - 💯 Secure Process │
+│ 💙 <b>Paytm Wallet</b> - 🚀 Quick Transfer  │
+│ 🟢 <b>PhonePe</b> - ⭐ Most Popular        │
+│ 🔴 <b>Google Pay</b> - 🎊 Fastest Option   │
+│ 💳 <b>All UPI Apps</b> - 🏆 100% Support   │
+└─────────────────────────────────────┘
+
+✨ <b>SPECIAL FEATURES:</b>
+• 🔒 <b>Bank-Grade Security</b> - SSL Encrypted
+• ⚡ <b>Instant Processing</b> - Real-time Credit
+• 💯 <b>100% Success Rate</b> - Guaranteed
+• 🎁 <b>Bonus Rewards</b> - Extra Benefits
+
+💎 <b>Select your preferred recharge amount below:</b>
+
+🎯 <b>Popular choices for maximum value!</b>
 """
 
     amount_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="₹500", callback_data="fund_500"),
-            InlineKeyboardButton(text="₹1000", callback_data="fund_1000")
+            InlineKeyboardButton(text="💰 ₹500 Recharge", callback_data="fund_500"),
+            InlineKeyboardButton(text="💎 ₹1000 Top-Up", callback_data="fund_1000")
         ],
         [
-            InlineKeyboardButton(text="₹2000", callback_data="fund_2000"),
-            InlineKeyboardButton(text="₹5000", callback_data="fund_5000")
+            InlineKeyboardButton(text="🚀 ₹2000 Power Pack", callback_data="fund_2000"),
+            InlineKeyboardButton(text="👑 ₹5000 Premium", callback_data="fund_5000")
         ],
         [
-            InlineKeyboardButton(text="💬 Custom Amount", callback_data="fund_custom")
+            InlineKeyboardButton(text="✨ Custom Amount Entry", callback_data="fund_custom")
         ],
         [
-            InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
+            InlineKeyboardButton(text="📊 Payment History", callback_data="payment_history"),
+            InlineKeyboardButton(text="🎁 Bonus Offers", callback_data="bonus_offers")
+        ],
+        [
+            InlineKeyboardButton(text="⬅️ Back to Dashboard", callback_data="back_main")
         ]
     ])
 
     await safe_edit_message(callback, text, amount_keyboard)
-    await callback.answer()
+    await callback.answer("💎 Premium recharge portal loaded!")
 
 
 @dp.callback_query(F.data == "services_tools")
@@ -3172,7 +3211,7 @@ async def cb_instant_qr_generate(callback: CallbackQuery, state: FSMContext):
 
     try:
         user_id = callback.from_user.id
-        
+
         # Check if user has order data in FSM
         current_state = await state.get_state()
         if current_state != OrderStates.selecting_payment.state:
@@ -5131,11 +5170,32 @@ async def on_offer_screenshot_input(message: Message, state: FSMContext):
     from fsm_handlers import handle_offer_screenshot
     await handle_offer_screenshot(message, state)
 
-@dp.callback_query(F.data.in_(["confirm_offer_order", "cancel_offer_order"]))
+@dp.callback_query(F.data.in_(["offer_process_order_final_btn", "offer_cancel_order_final_btn"]))
 async def on_offer_confirmation(callback: CallbackQuery, state: FSMContext):
     """Handle offer order confirmation callbacks"""
+    print(f"🔥 OFFER CONFIRMATION: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked: {callback.data}")
+    
+    # Import and call the handler
     from fsm_handlers import handle_offer_confirmation
     await handle_offer_confirmation(callback, state)
+
+@dp.callback_query(F.data == "offer_direct_payment_btn")
+async def on_offer_direct_payment(callback: CallbackQuery, state: FSMContext):
+    """Handle offer direct payment callback"""
+    print(f"💳 OFFER DIRECT PAYMENT: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked direct payment")
+    
+    # Import and call the handler
+    from fsm_handlers import handle_offer_direct_payment
+    await handle_offer_direct_payment(callback, state)
+
+@dp.callback_query(F.data == "offer_add_fund_btn")
+async def on_offer_add_fund(callback: CallbackQuery, state: FSMContext):
+    """Handle offer add fund callback"""
+    print(f"💰 OFFER ADD FUND: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked add fund")
+    
+    # Import and call the handler
+    from fsm_handlers import handle_offer_add_fund
+    await handle_offer_add_fund(callback, state)
 
 # ========== INPUT HANDLERS ==========
 @dp.message(F.text)
