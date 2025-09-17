@@ -15,14 +15,16 @@ from aiogram.types import (
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 
+
 # ========== ADMIN CONFIGURATION ==========
 ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "7437014244"))  # Main admin user ID from environment
-# Import START_TIME from main.py to ensure consistency
+# Import START_TIME and dp from main.py to ensure consistency
 try:
-    from main import START_TIME
+    from main import START_TIME, dp
     bot_start_time = START_TIME
 except ImportError:
     bot_start_time = time.time()
+    dp = None  # Fallback if import fails
 error_logs = []  # Store recent errors
 maintenance_mode = False  # Global maintenance flag
 activity_logs = []  # Store recent activity
@@ -1782,6 +1784,46 @@ def register_service_handlers(dp, require_account):
         await safe_edit_message(callback, maintenance_info["text"], maintenance_info["keyboard"])
         await callback.answer()
 
+    @dp.callback_query(F.data == "admin_manage_user")
+    async def cb_admin_manage_user(callback: CallbackQuery):
+        """Handle admin manage user - show command instructions"""
+        if not callback.message or not is_admin(callback.from_user.id):
+            await callback.answer("⚠️ Access Denied", show_alert=True)
+            return
+
+        log_activity(callback.from_user.id, "Viewed User Management Instructions")
+        
+        instruction_text = """
+👤 <b>User Profile Management</b>
+
+📋 <b>To view a user's detailed profile, use the command:</b>
+
+<code>/viewuser &lt;USER_ID&gt;</code>
+
+💡 <b>Examples:</b>
+• <code>/viewuser 7437014244</code>
+• <code>/viewuser 1234567890</code>
+
+🔍 <b>You can get User IDs from:</b>
+• User Management dashboard
+• Recent users list
+• Order details
+• Support tickets
+
+⚡ <b>This command will instantly display:</b>
+• Personal information (name, username, phone, email)
+• Account details (balance, total spent, status)
+• Activity history (join date)
+• Security information (access token)
+"""
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="⬅️ Back to User Management", callback_data="admin_users")]
+        ])
+        
+        await safe_edit_message(callback, instruction_text, keyboard)
+        await callback.answer()
+
     @dp.callback_query(F.data == "admin_broadcast_all")
     async def cb_admin_broadcast_all(callback: CallbackQuery):
         """Handle broadcast to all users"""
@@ -1934,6 +1976,29 @@ def register_service_handlers(dp, require_account):
         # Handle various admin actions
         if action == "export_users":
             await callback.answer("📋 User export feature coming soon!")
+        elif action == "user_details":
+            from main import load_data_from_json
+            users_data = load_data_from_json("users.json")
+            
+            user_list_text = "👥 **Complete User List**\n\n"
+            if not users_data:
+                user_list_text += "No users found in the database."
+            else:
+                for user_id, user_data in users_data.items():
+                    username = user_data.get('username')
+                    display_name = f"@{username}" if username else user_data.get('full_name', 'N/A')
+                    user_list_text += f"• **ID:** `{user_id}` | **Name:** {display_name}\n"
+
+            # Create a new keyboard for this view
+            details_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="👤 Manage a User", callback_data="admin_manage_user")],
+                [InlineKeyboardButton(text="⬅️ Back to User Menu", callback_data="admin_users")]
+            ])
+            
+            await safe_edit_message(callback, user_list_text, details_keyboard)
+        elif action == "manage_user":
+            # Redirect to the main admin_manage_user handler which now shows command instructions
+            await cb_admin_manage_user(callback)
         elif action == "clear_cache":
             await callback.answer("🗑️ Cache cleared successfully!")
         elif action == "optimize":
@@ -2075,6 +2140,7 @@ async def handle_admin_broadcast_confirm(callback: CallbackQuery):
 
     await safe_edit_message(callback, completion_text, keyboard)
 
+
 # Export functions for main.py
 # ========== ADMIN PANEL FUNCTIONS ==========
 
@@ -2180,7 +2246,8 @@ def get_bot_status_info() -> dict:
 
 def get_user_management_info() -> dict:
     """Get user management interface"""
-    from main import users_data
+    from main import load_data_from_json
+    users_data = load_data_from_json("users.json")
 
     total_users = len(users_data)
     active_today = sum(1 for user in users_data.values() if user.get('status') == 'active')
@@ -2221,9 +2288,10 @@ def get_user_management_info() -> dict:
         ],
         [
             InlineKeyboardButton(text="📊 User Details", callback_data="admin_user_details"),
-            InlineKeyboardButton(text="🚫 Ban User", callback_data="admin_ban_user")
+            InlineKeyboardButton(text="👤 Manage a User", callback_data="admin_manage_user")
         ],
         [
+            InlineKeyboardButton(text="🚫 Ban User", callback_data="admin_ban_user"),
             InlineKeyboardButton(text="⬅️ Back to Admin", callback_data="admin_panel")
         ]
     ])
