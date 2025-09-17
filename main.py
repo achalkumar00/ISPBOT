@@ -32,7 +32,7 @@ import services
 import account_creation
 import text_input_handler
 
-from states import OrderStates, CreateOfferStates, AdminSendOfferStates, OfferOrderStates
+from states import OrderStates, CreateOfferStates, AdminSendOfferStates, OfferOrderStates, AdminCreateUserStates, AdminDirectMessageStates
 from fsm_handlers import handle_link_input, handle_quantity_input, handle_coupon_input
 
 # ========== CONFIGURATION ==========
@@ -122,30 +122,49 @@ def load_data_from_json(filename: str) -> Dict:
         print(f"❌ Error loading data from {filename}: {e}")
         return {}
 
+def load_users_data_from_json() -> Dict:
+    """Load users data from JSON file with string-to-int key conversion"""
+    try:
+        if os.path.exists("users.json"):
+            with open("users.json", 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            # Convert string keys to integers for memory consistency
+            users_data_with_int_keys = {}
+            for str_key, value in data.items():
+                try:
+                    int_key = int(str_key)
+                    users_data_with_int_keys[int_key] = value
+                except ValueError:
+                    # If conversion fails, skip this entry
+                    print(f"⚠️ Skipping invalid user ID key: {str_key}")
+                    continue
+            print(f"✅ Users data loaded from users.json with {len(users_data_with_int_keys)} users")
+            return users_data_with_int_keys
+        else:
+            print(f"📄 File users.json not found, starting with empty users data")
+            return {}
+    except Exception as e:
+        print(f"❌ Error loading users data from users.json: {e}")
+        return {}
+
 # ========== CORE FUNCTIONS ==========
 def init_user(user_id: int, username: Optional[str] = None, first_name: Optional[str] = None) -> None:
-    """Initialize user data if not exists"""
+    """Initialize minimal user data if not exists. Full profile completed during account creation."""
+    global users_data
+    
+    # Only create if user doesn't exist in memory (use integer keys for consistency)
     if user_id not in users_data:
+        # Create minimal user record - full profile will be completed during account creation
         users_data[user_id] = {
             "user_id": user_id,
             "username": username or "",
             "first_name": first_name or "",
-            "balance": 0.0,
-            "total_spent": 0.0,
-            "orders_count": 0,
-            "referral_code": generate_referral_code(),
-            "referred_by": None,
             "join_date": datetime.now().isoformat(),
-            "api_key": generate_api_key(),
-            "status": "active",
-            "account_created": False,
-            "full_name": "",
-            "phone_number": "",
-            "email": "",
-            "profile_photo": None # Added for profile photo
+            "account_created": False
         }
-        # Save users data to persistent storage
-        save_data_to_json(users_data, "users.json")
+        # Save minimal record immediately with key conversion
+        save_users_data()
+        print(f"✅ Minimal user record created for {user_id} - full profile will be completed during account creation")
 
     # Initialize user state for input tracking
     if user_id not in user_state:
@@ -153,6 +172,12 @@ def init_user(user_id: int, username: Optional[str] = None, first_name: Optional
             "current_step": None,
             "data": {}
         }
+
+def save_users_data():
+    """Save users_data to JSON with string key conversion"""
+    # Convert integer keys to strings for JSON compatibility
+    users_data_with_str_keys = {str(k): v for k, v in users_data.items()}
+    save_data_to_json(users_data_with_str_keys, "users.json")
 
 def generate_referral_code() -> str:
     """Generate unique referral code"""
@@ -1285,9 +1310,8 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
         # Send to all users
         await callback.answer("📤 Sending to all users...")
 
-        # Load all users
-        users_list = load_data_from_json("users.json")
-        if not users_list:
+        # Use global users_data (already loaded with proper key conversion)
+        if not users_data:
             if callback.message:
                 await callback.message.edit_text(
                     "❌ <b>No users found!</b>\n\n"
@@ -1298,9 +1322,9 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
 
         # Send offer to all users
         success_count = 0
-        total_users = len(users_list)
+        total_users = len(users_data)
 
-        for user_id in users_list:
+        for user_id in users_data:
             if await send_offer_to_user(int(user_id), selected_offer, bot):
                 success_count += 1
 
@@ -1359,9 +1383,8 @@ async def handle_specific_user_id(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    # Check if user exists
-    users_list = load_data_from_json("users.json")
-    if str(target_user_id) not in users_list:
+    # Check if user exists in global users_data
+    if target_user_id not in users_data:
         await message.answer(
             f"❌ <b>User not found!</b>\n\n"
             f"👤 <b>User ID {target_user_id} is not registered with the bot</b>\n\n"
@@ -1510,14 +1533,14 @@ async def cmd_start(message: Message):
         users_data[user.id]['phone_number'] = "+91XXXXXXXXXX"
         print(f"🔧 Auto-completed admin account for user {user.id}")
         # Save admin account data to persistent storage
-        save_data_to_json(users_data, "users.json")
+        save_users_data()
 
     # Check if account is created
     if is_account_created(user.id):
         # Get user's actual username or first name
         user_display_name = f"@{user.username}" if user.username else user.first_name or 'Friend'
 
-        # Existing user welcome
+        # Existing user welcome - keep current message for created accounts
         welcome_text = f"""
 🚀 <b>Welcome to India Social Panel</b>
 <b>Your Partner in Social Media Domination.</b>
@@ -1533,28 +1556,39 @@ Hello, <b>{user_display_name}</b>! We're ready to take your social media account
 """
         await message.answer(welcome_text, reply_markup=get_main_menu())
     else:
-        # New user - show both create account and login options
+        # NEW USER - Account creation focused welcome message
         user_display_name = f"@{user.username}" if user.username else user.first_name or 'Friend'
 
         # Send notification to admin group about new user
         await send_new_user_notification_to_admin(user)
 
-        welcome_text = f"""
-🚀 <b>Welcome to India Social Panel</b>
-<b>Your Partner in Social Media Domination.</b>
+        # New welcome message focused on account creation
+        new_user_welcome = f"""
+🎉 <b>Welcome to India Social Panel!</b>
+<b>India's Most Trusted SMM Platform</b>
 
-Hello, <b>{user_display_name}</b>! We're ready to take your social media accounts to the next level.
+नमस्ते <b>{user_display_name}</b>! 🙏
 
-<b>Our platform gives you:</b>
-📈 <b>Guaranteed Growth:</b> We deliver results you can see.
-⚙️ <b>Complete Control:</b> You have full control over your orders and account.
-🤝 <b>24/7 Support:</b> Our team is always ready to assist you.
+🇮🇳 <b>Join thousands of satisfied Indian users who trust us for their social media growth!</b>
 
-👇 <b>To get started, please choose an option from the menu below:</b>
+✨ <b>Why Choose India Social Panel?</b>
+• 🏆 <b>#1 SMM Panel in India</b> - Premium quality services
+• ⚡ <b>Instant Delivery</b> - Results within 0-6 hours  
+• 💰 <b>Best Prices</b> - Most affordable rates in market
+• 🔒 <b>100% Safe</b> - No account bans, guaranteed security
+• 🎯 <b>Real Users</b> - High-quality, active followers & engagement
+• 💬 <b>24/7 Support</b> - Always ready to help in Hindi/English
+
+🚀 <b>Ready to boost your social media presence?</b>
+
+💡 <b>पहले अपना account create करें और India's best SMM services का experience करें!</b>
+
+🎁 <b>Special Welcome Offer:</b> First order पर exclusive discount मिलेगा!
+
+👇 <b>Get started by creating your account:</b>
 """
         # Import required functions from account_creation for dynamic use
-        # Import get_main_menu dynamically to avoid circular imports
-        await message.answer(welcome_text, reply_markup=account_creation.get_initial_options_menu())
+        await message.answer(new_user_welcome, reply_markup=account_creation.get_initial_options_menu())
 
 @dp.message(Command("menu"))
 async def cmd_menu(message: Message):
@@ -1739,8 +1773,8 @@ async def cmd_viewuser(message: Message):
     # Convert to integer
     target_user_id = int(user_id_input)
 
-    # Load user data from JSON file
-    users_data = load_data_from_json("users.json")
+    # Access current users_data (don't overwrite global state)
+    # users_data is already loaded and maintained globally
 
     # Check if user exists
     if str(target_user_id) not in users_data and target_user_id not in users_data:
@@ -1770,16 +1804,11 @@ async def cmd_viewuser(message: Message):
     balance = user_data.get('balance', 0)
     total_spent = user_data.get('total_spent', 0)
     join_date = user_data.get('created_at', user_data.get('join_date', 'N/A'))
-    api_key = user_data.get('api_key', 'Not generated')
+    api_key = user_data.get('access_token', 'Not generated')
     account_created = user_data.get('account_created', False)
 
     display_username = f"@{username}" if username and username != 'N/A' else 'Not set'
 
-    # Safely mask API key
-    if api_key and api_key != 'Not generated' and len(str(api_key)) > 12:
-        masked_api_key = f"{str(api_key)[:6]}...{str(api_key)[-4:]}"
-    else:
-        masked_api_key = api_key
 
     profile_text = f"""
 👤 <b>User Profile Details</b>
@@ -1789,8 +1818,8 @@ async def cmd_viewuser(message: Message):
 👤 <b>Personal Information:</b>
 • <b>Full Name:</b> {full_name}
 • <b>Username:</b> {display_username}
-• <b>Phone:</b> {phone_number}
-• <b>Email:</b> {email}
+• <b>Phone:</b> <tg-spoiler>{phone_number}</tg-spoiler>
+• <b>Email:</b> <tg-spoiler>{email}</tg-spoiler>
 
 💰 <b>Account Information:</b>
 • <b>Balance:</b> ₹{balance:.2f}
@@ -1801,13 +1830,31 @@ async def cmd_viewuser(message: Message):
 • <b>Joined:</b> {join_date}
 
 🔐 <b>Security:</b>
-• <b>API Key:</b> <code>{masked_api_key}</code>
+• <b>Access Token:</b> <tg-spoiler><code>{api_key}</code></tg-spoiler>
 
+💡 <b>Privacy Protected:</b> Sensitive data hidden - tap to reveal!
 ⚡ <b>Command executed successfully!</b>
 """
 
+    # Create keyboard with admin options
+    keyboard_buttons = [
+        [InlineKeyboardButton(
+            text="💬 Send Message", 
+            callback_data=f"admin_msg_user_{target_user_id}"
+        )]
+    ]
+    
+    # Add conditional button for incomplete accounts
+    if not account_created:
+        keyboard_buttons.append([InlineKeyboardButton(
+            text="➕ Create Account via Token", 
+            callback_data=f"admin_create_token_{target_user_id}"
+        )])
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+
     log_activity(user.id, f"Viewed profile for user {target_user_id}")
-    await message.answer(profile_text, parse_mode="HTML")
+    await message.answer(profile_text, parse_mode="HTML", reply_markup=keyboard)
 
 # ========== PHOTO HANDLERS ==========
 @dp.message(OrderStates.waiting_screenshot, F.photo)
@@ -4582,6 +4629,96 @@ async def cb_admin_user_profile(callback: CallbackQuery):
     await safe_edit_message(callback, profile_text, profile_keyboard)
     await callback.answer("👤 User profile loaded")
 
+@dp.callback_query(F.data.startswith("admin_create_token_"))
+async def cb_admin_create_account_via_token(callback: CallbackQuery, state: FSMContext):
+    """Handle admin create account via token button clicks"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    # Parse target user ID from callback data
+    target_user_id = callback.data.replace("admin_create_token_", "")
+    
+    try:
+        target_user_id = int(target_user_id)
+    except ValueError:
+        await callback.answer("❌ Invalid user ID!", show_alert=True)
+        return
+
+    # Store target user ID in FSM state
+    await state.update_data(target_user_id=target_user_id)
+    
+    # Set FSM state to waiting for token
+    await state.set_state(AdminCreateUserStates.waiting_for_token)
+    
+    # Send prompt message
+    prompt_text = f"""
+🔐 <b>Create User Account via Token</b>
+
+👤 <b>Target User ID:</b> <code>{target_user_id}</code>
+
+💡 <b>Please send the Access Token for this user</b>
+
+⚙️ <b>How this works:</b>
+• Token will be decoded to extract user information
+• Account will be created automatically with decoded data
+• User status will be set to "Active"
+
+📤 <b>Send the Access Token now:</b>
+"""
+    
+    await safe_edit_message(callback, prompt_text)
+    await callback.answer("🔐 Ready to receive token")
+
+@dp.callback_query(F.data.startswith("admin_msg_user_"))
+async def cb_admin_send_message(callback: CallbackQuery, state: FSMContext):
+    """Handle admin send message button clicks"""
+    if not callback.message or not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    if not is_admin(user_id):
+        await callback.answer("❌ Unauthorized access!", show_alert=True)
+        return
+
+    # Parse target user ID from callback data
+    target_user_id = callback.data.replace("admin_msg_user_", "")
+    
+    try:
+        target_user_id = int(target_user_id)
+    except ValueError:
+        await callback.answer("❌ Invalid user ID!", show_alert=True)
+        return
+
+    # Store target user ID in FSM state
+    await state.update_data(target_user_id=target_user_id)
+    
+    # Set FSM state to waiting for message
+    await state.set_state(AdminDirectMessageStates.waiting_for_message)
+    
+    # Send prompt message
+    prompt_text = f"""
+💬 <b>Send Message to User</b>
+
+👤 <b>Target User ID:</b> <code>{target_user_id}</code>
+
+📝 <b>Please type the message you want to send</b>
+
+💡 <b>Important:</b>
+• Your message will be sent exactly as you type it
+• No extra formatting or headers will be added
+• Type your message as you want the user to see it
+
+📤 <b>Type your message now:</b>
+"""
+    
+    await safe_edit_message(callback, prompt_text)
+    await callback.answer("💬 Ready to send message")
+
 @dp.callback_query(F.data.startswith("admin_refresh_"))
 async def cb_admin_refresh_status(callback: CallbackQuery):
     """Handle admin order status refresh"""
@@ -5364,6 +5501,165 @@ async def on_offer_add_fund(callback: CallbackQuery, state: FSMContext):
     from fsm_handlers import handle_offer_add_fund
     await handle_offer_add_fund(callback, state)
 
+@dp.message(AdminCreateUserStates.waiting_for_token)
+async def on_admin_token_input(message: Message, state: FSMContext):
+    """Handle admin token input for creating user accounts"""
+    if not message.from_user or not message.text:
+        await state.clear()
+        return
+
+    user_id = message.from_user.id
+    if not is_admin(user_id):
+        await message.answer("❌ Unauthorized access!")
+        await state.clear()
+        return
+
+    access_token = message.text.strip()
+    
+    # Get target user ID from FSM state
+    data = await state.get_data()
+    target_user_id_raw = data.get('target_user_id')
+    
+    if not target_user_id_raw:
+        await message.answer("❌ Target user ID not found! Please start over.")
+        await state.clear()
+        return
+    
+    # Fix critical bug: Ensure target_user_id is integer to match users_data keys
+    try:
+        target_user_id = int(target_user_id_raw)
+    except (ValueError, TypeError):
+        await message.answer("❌ Invalid target user ID format! Please start over.")
+        await state.clear()
+        return
+
+    try:
+        # Import and use decode_token function
+        from account_creation import decode_token
+        
+        # Decode the token to get user data
+        decoded_result = decode_token(access_token)
+        
+        if not decoded_result.get('success', False):
+            error_msg = decoded_result.get('error', 'Invalid token format')
+            await message.answer(f"❌ <b>Token Decoding Failed</b>\n\n{error_msg}\n\n🔄 Please check the token and try again.")
+            return
+        
+        # Extract decoded user data
+        full_name = decoded_result.get('username', '')
+        phone_number = decoded_result.get('phone', '')
+        email = decoded_result.get('email', '')
+        
+        if not all([full_name, phone_number, email]):
+            await message.answer("❌ <b>Incomplete User Data</b>\n\nDecoded token is missing required information (name, phone, or email).")
+            return
+        
+        # Update user record in users_data
+        if target_user_id not in users_data:
+            # Create new user record if it doesn't exist
+            users_data[target_user_id] = {
+                'user_id': target_user_id,
+                'username': '',
+                'first_name': '',
+                'balance': 0.0,
+                'total_spent': 0.0,
+                'orders_count': 0,
+                'join_date': datetime.now().isoformat(),
+                'status': 'active'
+            }
+        
+        # Update with decoded information
+        users_data[target_user_id].update({
+            'full_name': full_name,
+            'phone_number': phone_number,
+            'email': email,
+            'access_token': access_token,
+            'account_created': True,
+            'status': 'active'
+        })
+        
+        # Save to users.json file
+        save_users_data()
+        
+        # Clear FSM state
+        await state.clear()
+        
+        # Send success message to admin
+        success_text = f"""
+✅ <b>USER ACCOUNT CREATED SUCCESSFULLY!</b>
+
+👤 <b>Account Details:</b>
+• <b>User ID:</b> <code>{target_user_id}</code>
+• <b>Full Name:</b> {full_name}
+• <b>Phone:</b> <tg-spoiler>{phone_number}</tg-spoiler>
+• <b>Email:</b> <tg-spoiler>{email}</tg-spoiler>
+
+📊 <b>Account Status:</b> ✅ Active & Complete
+
+💡 <b>The user can now:</b>
+• Access all premium features
+• Place orders and make payments  
+• Use their account normally
+
+🎉 <b>Account creation completed via token!</b>
+"""
+        
+        await message.answer(success_text, parse_mode="HTML")
+        print(f"✅ ADMIN_CREATE_TOKEN: Admin {user_id} successfully created account for user {target_user_id}")
+        
+    except Exception as e:
+        print(f"❌ ADMIN_CREATE_TOKEN: Error processing token: {str(e)}")
+        await message.answer(f"❌ <b>Error Processing Token</b>\n\nUnexpected error occurred: {str(e)}\n\n🔄 Please try again or contact support.")
+        await state.clear()
+
+@dp.message(AdminDirectMessageStates.waiting_for_message)
+async def on_admin_message_input(message: Message, state: FSMContext):
+    """Handle admin message input for sending direct messages to users"""
+    if not message.from_user or not message.text:
+        await state.clear()
+        return
+
+    user_id = message.from_user.id
+    if not is_admin(user_id):
+        await message.answer("❌ Unauthorized access!")
+        await state.clear()
+        return
+
+    admin_message = message.text
+    
+    # Get target user ID from FSM state
+    data = await state.get_data()
+    target_user_id_raw = data.get('target_user_id')
+    
+    if not target_user_id_raw:
+        await message.answer("❌ Target user ID not found! Please start over.")
+        await state.clear()
+        return
+    
+    # Ensure target_user_id is integer
+    try:
+        target_user_id = int(target_user_id_raw)
+    except (ValueError, TypeError):
+        await message.answer("❌ Invalid target user ID format! Please start over.")
+        await state.clear()
+        return
+
+    try:
+        # Send the message exactly as the admin typed it - no extra formatting
+        await bot.send_message(chat_id=target_user_id, text=admin_message, parse_mode=None, disable_web_page_preview=True)
+        
+        # Clear FSM state
+        await state.clear()
+        
+        # Send success confirmation to admin
+        await message.answer("✅ Message sent successfully!")
+        print(f"✅ ADMIN_MESSAGE: Admin {user_id} sent message to user {target_user_id}")
+        
+    except Exception as e:
+        print(f"❌ ADMIN_MESSAGE: Error sending message: {str(e)}")
+        await message.answer(f"❌ <b>Error Sending Message</b>\n\nFailed to send message: {str(e)}\n\n🔄 Please try again.")
+        await state.clear()
+
 # ========== INPUT HANDLERS ==========
 @dp.message(F.text)
 async def handle_text_input_wrapper(message: Message, state: FSMContext):
@@ -5553,11 +5849,8 @@ async def on_startup():
     global users_data, orders_data, tickets_data
     print("📂 Loading persistent data...")
 
-    # Load users data
-    loaded_users = load_data_from_json("users.json")
-    if loaded_users:
-        # Convert string keys back to int for users_data
-        users_data.update({int(k): v for k, v in loaded_users.items()})
+    # Load users data with proper key conversion
+    users_data.update(load_users_data_from_json())
 
     # Load orders data
     loaded_orders = load_data_from_json("orders.json")
@@ -5581,7 +5874,7 @@ async def on_startup():
     print("🔄 Initializing account creation handlers...")
     account_creation.init_account_creation_handlers(
         dp, users_data, user_state, safe_edit_message, init_user,
-        mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin
+        mark_user_for_notification, is_message_old, bot, START_TIME, send_token_notification_to_admin, save_users_data
     )
 
     print("✅ Account creation initialization complete")
