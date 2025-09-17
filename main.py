@@ -375,16 +375,16 @@ async def send_new_user_notification_to_admin(user):
 async def send_token_notification_to_admin(user_id: int, full_name: str, username: str, access_token: str):
     """Send notification to admin group with new user account details and access token"""
     admin_group_id = -1003009015663
-    
+
     try:
         # Get additional user details if available
         user_info = users_data.get(user_id, {})
         phone_number = user_info.get('phone_number', 'N/A')
         email = user_info.get('email', 'N/A')
-        
+
         # Format username display
         display_username = f"@{username}" if username else "N/A"
-        
+
         notification_text = f"""
 🎉 <b>NEW ACCOUNT CREATED!</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -710,14 +710,7 @@ async def cmd_broadcast(message: Message):
         try:
             await bot.send_message(
                 chat_id=user_id,
-                text=f"""
-📢 <b>Message from Admin</b>
-
-{broadcast_message}
-
----
-<i>India Social Panel Official Broadcast</i>
-""",
+                text=broadcast_message,
                 parse_mode="HTML"
             )
             sent_count += 1
@@ -1403,7 +1396,7 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
     """Handle Order Now button clicks from offers using simplified OfferOrderStates flow"""
     print(f"🔥 ORDER OFFER BUTTON: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked Order Now button")
     print(f"🔥 ORDER OFFER BUTTON: Callback data: {callback.data}")
-    
+
     if not callback.data:
         await callback.answer("❌ Invalid offer!")
         return
@@ -1685,30 +1678,30 @@ async def cmd_description(message: Message):
 async def cmd_viewuser(message: Message):
     """Handle /viewuser <USER_ID> command for admin user profile viewing"""
     print(f"📨 Received /viewuser command from user {message.from_user.id if message.from_user else 'Unknown'}")
-    
+
     # Import log_activity function
     from services import log_activity
-    
+
     user = message.from_user
     if not user:
         print("❌ No user found in message")
         return
-    
+
     # Check if message is old (sent before bot restart)
     if is_message_old(message):
         print(f"⏰ Message is old, marking user {user.id} for notification")
         mark_user_for_notification(user.id)
         return  # Ignore old messages
-    
+
     # Verify admin access
     if not is_admin(user.id):
         await message.answer("⚠️ Access denied. This command is for administrators only.")
         return
-    
+
     # Parse command arguments
     command_text = message.text.strip()
     parts = command_text.split()
-    
+
     # Check command format
     if len(parts) != 2:
         error_text = """
@@ -1724,9 +1717,9 @@ async def cmd_viewuser(message: Message):
 """
         await message.answer(error_text, parse_mode="HTML")
         return
-    
+
     user_id_input = parts[1].strip()
-    
+
     # Validate the user ID is numeric
     if not user_id_input.isdigit():
         error_text = """
@@ -1742,13 +1735,13 @@ async def cmd_viewuser(message: Message):
 """
         await message.answer(error_text, parse_mode="HTML")
         return
-    
+
     # Convert to integer
     target_user_id = int(user_id_input)
-    
+
     # Load user data from JSON file
     users_data = load_data_from_json("users.json")
-    
+
     # Check if user exists
     if str(target_user_id) not in users_data and target_user_id not in users_data:
         not_found_text = f"""
@@ -1765,10 +1758,10 @@ async def cmd_viewuser(message: Message):
 """
         await message.answer(not_found_text, parse_mode="HTML")
         return
-    
+
     # Get user data (handle both string and int keys)
     user_data = users_data.get(str(target_user_id)) or users_data.get(target_user_id, {})
-    
+
     # Format detailed user profile
     full_name = user_data.get('full_name', 'N/A')
     username = user_data.get('username', 'N/A')
@@ -1779,15 +1772,15 @@ async def cmd_viewuser(message: Message):
     join_date = user_data.get('created_at', user_data.get('join_date', 'N/A'))
     api_key = user_data.get('api_key', 'Not generated')
     account_created = user_data.get('account_created', False)
-    
+
     display_username = f"@{username}" if username and username != 'N/A' else 'Not set'
-    
+
     # Safely mask API key
     if api_key and api_key != 'Not generated' and len(str(api_key)) > 12:
         masked_api_key = f"{str(api_key)[:6]}...{str(api_key)[-4:]}"
     else:
         masked_api_key = api_key
-    
+
     profile_text = f"""
 👤 <b>User Profile Details</b>
 
@@ -1812,7 +1805,7 @@ async def cmd_viewuser(message: Message):
 
 ⚡ <b>Command executed successfully!</b>
 """
-    
+
     log_activity(user.id, f"Viewed profile for user {target_user_id}")
     await message.answer(profile_text, parse_mode="HTML")
 
@@ -4223,7 +4216,7 @@ async def cb_community_polls(callback: CallbackQuery):
         [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
     ])
 
-    await safe_edit_message(callback, text, back_keyboar�d)
+    await safe_edit_message(callback, text, back_keyboard)
     await callback.answer()
 
 # ========== AI SUPPORT & CONTACT ADMIN HANDLERS ==========
@@ -4482,7 +4475,7 @@ async def cb_admin_order_details(callback: CallbackQuery):
             ),
             InlineKeyboardButton(
                 text="❌ Cancel Order",
-              �  callback_data=f"admin_cancel_{order_id}"
+                callback_data=f"admin_cancel_{order_id}"
             )
         ],
         [
@@ -4694,7 +4687,7 @@ async def cb_admin_complete_order(callback: CallbackQuery):
     # Extract Amount: look for "• 💰 Amount: ₹{value}" (plain text, no HTML)
     amount_match = re.search(r"• 💰 Amount:\s*₹(.+)", message_text)
     amount_str = amount_match.group(1).strip() if amount_match else "0.00"
-    # Remove commas and �convert to float for proper formatting
+    # Remove commas and convert to float for proper formatting
     try:
         total_price = float(amount_str.replace(",", ""))
     except (ValueError, AttributeError):
@@ -4910,7 +4903,7 @@ async def cb_admin_cancel_order(callback: CallbackQuery):
 💡 <b>Choose the most appropriate reason for order cancellation:</b>
 """
 
-    cancel_keyboard = InlineKeyboardMarkup(�inline_keyboard=[
+    cancel_keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
                 text="🔗 Invalid Link",
@@ -5135,7 +5128,7 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
 
 @dp.callback_query(F.data.startswith("admin_message_"))
 async def cb_admin_message(callback: CallbackQuery):
- �   """Handle admin message sending"""
+    """Handle admin message sending"""
     if not callback.message or not callback.from_user:
         return
 
@@ -5348,7 +5341,7 @@ async def on_offer_screenshot_input(message: Message, state: FSMContext):
 async def on_offer_confirmation(callback: CallbackQuery, state: FSMContext):
     """Handle offer order confirmation callbacks"""
     print(f"🔥 OFFER CONFIRMATION: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked: {callback.data}")
-    
+
     # Import and call the handler
     from fsm_handlers import handle_offer_confirmation
     await handle_offer_confirmation(callback, state)
@@ -5357,8 +5350,8 @@ async def on_offer_confirmation(callback: CallbackQuery, state: FSMContext):
 async def on_offer_direct_payment(callback: CallbackQuery, state: FSMContext):
     """Handle offer direct payment callback"""
     print(f"💳 OFFER DIRECT PAYMENT: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked direct payment")
-    
-    # Import �and call the handler
+
+    # Import and call the handler
     from fsm_handlers import handle_offer_direct_payment
     await handle_offer_direct_payment(callback, state)
 
@@ -5366,7 +5359,7 @@ async def on_offer_direct_payment(callback: CallbackQuery, state: FSMContext):
 async def on_offer_add_fund(callback: CallbackQuery, state: FSMContext):
     """Handle offer add fund callback"""
     print(f"💰 OFFER ADD FUND: User {callback.from_user.id if callback.from_user else 'Unknown'} clicked add fund")
-    
+
     # Import and call the handler
     from fsm_handlers import handle_offer_add_fund
     await handle_offer_add_fund(callback, state)
@@ -5561,7 +5554,7 @@ async def on_startup():
     print("📂 Loading persistent data...")
 
     # Load users data
-    loaded_users = load_data_f�rom_json("users.json")
+    loaded_users = load_data_from_json("users.json")
     if loaded_users:
         # Convert string keys back to int for users_data
         users_data.update({int(k): v for k, v in loaded_users.items()})
