@@ -39,3 +39,5 @@ class OfferOrderStates(StatesGroup):
     getting_quantity = State()
     confirming_order = State()
     waiting_screenshot = State()
+
+
