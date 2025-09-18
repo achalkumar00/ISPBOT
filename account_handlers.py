@@ -310,19 +310,43 @@ async def cb_order_history(callback: CallbackQuery):
 
     if not user_orders:
         text = """
-📜 <b>Order History</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📜 <b>ORDER HISTORY CENTER</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📋 <b>अभी तक कोई orders नहीं हैं</b>
+🎯 <b>Welcome to Your Order Management Dashboard!</b>
 
-🚀 <b>आपने अभी तक कोई orders place नहीं किए हैं!</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 <b>CURRENT STATUS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 <b>First order करने के लिए:</b>
-• "New Order" पर click करें
-• अपना platform choose करें  
-• Package select करें
-• Order place करें
+📋 <b>No orders found in your history</b>
 
-✨ <b>India Social Panel में आपका स्वागत है!</b>
+🚀 <b>You haven't placed any orders yet - Let's get started!</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 <b>HOW TO PLACE YOUR FIRST ORDER</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+<b>Quick Start Guide:</b>
+1️⃣ Click "🚀 New Order" button below
+2️⃣ Choose your social media platform
+3️⃣ Select the perfect service package
+4️⃣ Complete payment and enjoy growth!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 <b>WHY CHOOSE US?</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ <b>100% Real & Active Users</b>
+⚡ <b>Instant Delivery (0-6 Hours)</b>
+🔒 <b>100% Safe & Secure</b>
+💰 <b>Best Prices Guaranteed</b>
+🎯 <b>24/7 Professional Support</b>
+
+💡 <b>Ready to boost your social media presence?</b>
+
+✨ <b>Your growth journey with India Social Panel starts here!</b>
 """
     else:
         text = f"""
