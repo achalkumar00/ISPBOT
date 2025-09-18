@@ -264,6 +264,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
     # Register QR payment completion handlers
     main_dp.callback_query.register(cb_payment_done_qr, F.data == "payment_done_qr")
     main_dp.callback_query.register(cb_payment_cancel, F.data == "payment_cancel")
+    main_dp.callback_query.register(cb_payment_qr, F.data == "payment_qr")
 
     @main_dp.callback_query(F.data.startswith("fund_"))
     async def cb_fund_amount_select(callback: CallbackQuery):
@@ -1216,39 +1217,36 @@ async def show_payment_methods(callback: CallbackQuery, amount: int):
 
     await safe_edit_message(callback, text, get_payment_main_menu())
 
-async def cb_payment_qr(callback: CallbackQuery):
-    """Handle QR code payment method - Using same logic as UPI QR generation"""
+async def cb_payment_qr(callback: CallbackQuery, state: FSMContext):
+    """Generate and send QR code using FSM state"""
     if not callback.message or not callback.from_user:
         return
 
-    user_id = callback.from_user.id
+    try:
+        user_id = callback.from_user.id
+        transaction_id = (callback.data or "").replace("qr_generate_", "")
 
-    # Check if user has order data
-    if user_id not in user_state or user_state[user_id].get("current_step") != "selecting_payment":
-        await callback.answer("⚠️ Order data not found!")
-        return
+        # Get the correct data from the FSM "Digital Notepad"
+        order_data = await state.get_data()
+        amount = order_data.get("total_price", 0.0)
 
-    # Get order details
-    order_data = user_state[user_id]["data"]
-    total_price = order_data.get("total_price", 0.0)
+        if amount == 0.0:
+            await callback.answer("⚠️ Order amount not found. Please start over.", show_alert=True)
+            await state.clear()
+            return
 
-    # Generate transaction ID
-    import time
-    import random
-    transaction_id = f"QR{int(time.time())}{random.randint(100, 999)}"
+        await callback.answer("🔄 Generating QR Code...")
 
-    await callback.answer("🔄 Generating QR Code...")
+        # Generate QR code
+        qr_data = generate_payment_qr(
+            amount,
+            PAYMENT_CONFIG['upi_id'],
+            PAYMENT_CONFIG['upi_name'],
+            transaction_id
+        )
 
-    # Generate QR code using same function as UPI payment
-    qr_data = generate_payment_qr(
-        total_price,
-        PAYMENT_CONFIG['upi_id'],
-        PAYMENT_CONFIG['upi_name'],
-        transaction_id
-    )
-
-    # Prepare QR code message text (same as UPI QR)
-    qr_text = f"""
+        # Prepare QR code message text
+        qr_text = f"""
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 📊 <b>QR CODE PAYMENT PORTAL</b>
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1258,7 +1256,7 @@ async def cb_payment_qr(callback: CallbackQuery):
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 💳 <b>PAYMENT DETAILS</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Amount:</b> {format_currency(total_price)}
+┃ • 💰 <b>Amount:</b> {format_currency(amount)}
 ┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
 ┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
 ┃ • 🔒 <b>Payment Method:</b> QR Code Scan
@@ -1269,7 +1267,7 @@ async def cb_payment_qr(callback: CallbackQuery):
 🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
 🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
 🔸 <b>Step 3:</b> Scan the QR code displayed above
-🔸 <b>Step 4:</b> Verify amount: {format_currency(total_price)}
+🔸 <b>Step 4:</b> Verify amount: {format_currency(amount)}
 🔸 <b>Step 5:</b> Complete payment with your UPI PIN
 🔸 <b>Step 6:</b> Click "Payment Completed" button below
 
@@ -1282,48 +1280,33 @@ async def cb_payment_qr(callback: CallbackQuery):
 💎 <b>Your order will be processed immediately after payment verification!</b>
 """
 
-    # Create payment completion keyboard (same as UPI QR)
-    qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Payment Completed", callback_data=f"payment_completed_{transaction_id}"),
-            InlineKeyboardButton(text="❌ Cancel Order", callback_data=f"cancel_qr_order_{transaction_id}")
-        ],
-        [
-            InlineKeyboardButton(text="🔄 Generate New QR", callback_data="payment_qr"),
-            InlineKeyboardButton(text="📱 Other Payment Methods", callback_data="final_confirm_order")
-        ]
-    ])
+        qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Payment Completed", callback_data=f"payment_completed_{transaction_id}"),
+                InlineKeyboardButton(text="❌ Cancel Order", callback_data="cancel_qr_order_{transaction_id}")
+            ],
+            [
+                InlineKeyboardButton(text="🔄 Generate New QR", callback_data="payment_qr"),
+                InlineKeyboardButton(text="📱 Other Payment Methods", callback_data="final_confirm_order")
+            ]
+        ])
 
-    # Store transaction details
-    user_state[user_id]["data"]["transaction_id"] = transaction_id
-    user_state[user_id]["data"]["payment_method"] = "qr_code"
-
-    # Try to send QR code as photo with caption (same logic as UPI QR)
-    if qr_data and len(qr_data) > 0:
-        try:
+        if qr_data:
             from aiogram.types import BufferedInputFile
-
-            # Create input file from bytes
             qr_file = BufferedInputFile(qr_data, filename="payment_qr.png")
-
-            # Send QR code as new message with buttons
             await callback.message.answer_photo(
                 photo=qr_file,
                 caption=qr_text,
                 reply_markup=qr_keyboard,
                 parse_mode="HTML"
             )
+        else:
+            # Fallback if QR generation fails
+            await send_manual_payment_fallback(callback.message, amount, transaction_id, qr_keyboard)
 
-            print(f"✅ QR Code sent successfully to user {user_id}")
-
-        except Exception as e:
-            print(f"❌ QR Photo send error: {e}")
-            # Fallback to text message with manual payment info
-            await send_manual_payment_fallback(callback.message, total_price, transaction_id, qr_keyboard)
-    else:
-        print(f"❌ QR Code generation failed for user {user_id}")
-        # QR generation failed, send manual payment
-        await send_manual_payment_fallback(callback.message, total_price, transaction_id, qr_keyboard)
+    except Exception as e:
+        print(f"CRITICAL ERROR in cb_payment_qr: {e}")
+        await callback.answer("An error occurred. Please try again.", show_alert=True)
 
 async def cb_payment_done_qr(callback: CallbackQuery):
     """Handle Payment Done button click - ask for screenshot"""
