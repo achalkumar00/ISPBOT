@@ -995,9 +995,9 @@ def get_package_description(platform: str, service_id: str) -> dict:
 • Safe and secure delivery methods only
 • 24/7 customer support available
 
-💡 <b>आपने सभी details पढ़ लीं हैं और terms & conditions से agree हैं?</b>
+💡 <b>Have you read all the details and agree to the terms & conditions?</b>
 
-यदि आप इस package को order करना चाहते हैं तो नीचे YES button पर click करें।
+If you want to order this package, click the YES button below.
 """
 
     # Create keyboard with YES and Back buttons
@@ -1465,7 +1465,7 @@ def register_service_handlers(dp, require_account):
 • Likes: ₹0.40 per like
 • Comments: ₹1.00 per comment
 
-🎯 <b>YouTube का package select करें:</b>
+🎯 <b>Select a YouTube package:</b>
 """
             await safe_edit_message(callback, text, get_service_packages("youtube"))
 
@@ -1482,7 +1482,7 @@ def register_service_handlers(dp, require_account):
 • Video Views
 • Live Stream Views
 
-💡 <b>Facebook services के लिए package choose करें:</b>
+💡 <b>Choose a package for Facebook services:</b>
 """
             await safe_edit_message(callback, text, get_service_packages("facebook"))
 
@@ -1499,7 +1499,7 @@ def register_service_handlers(dp, require_account):
 • Channel Boost
 • Poll Votes
 
-💡 <b>Telegram services के लिए package choose करें:</b>
+💡 <b>Choose a package for Telegram services:</b>
 """
             await safe_edit_message(callback, text, get_service_packages("telegram"))
 
@@ -1517,7 +1517,7 @@ def register_service_handlers(dp, require_account):
 • Instant delivery
 • 24/7 support
 
-💡 <b>अपना package select करें:</b>
+💡 <b>Select your package:</b>
 """
             await safe_edit_message(callback, text, get_service_packages(platform))
 
@@ -1660,7 +1660,7 @@ def register_service_handlers(dp, require_account):
 • 📞 Priority Support
 • 💎 VIP Account Features
 
-💡 <b>यह सभी services development में हैं और जल्द ही available होंगी!</b>
+💡 <b>All these services are in development and will be available soon!</b>
 
 📞 <b>Custom Requirements:</b> Contact @tech_support_admin
 """
@@ -1933,11 +1933,11 @@ def register_service_handlers(dp, require_account):
 
 ✅ <b>Notification Subscription Successful!</b>
 
-📢 <b>आपको notification मिलेंगी जब:</b>
-• New platforms add होंगे
-• Advanced features launch होंगे  
-• Special offers available होंगे
-• Premium tools release होंगे
+📢 <b>You will receive notifications when:</b>
+• New platforms are added
+• Advanced features are launched  
+• Special offers become available
+• Premium tools are released
 
 📱 <b>Notification Methods:</b>
 • Direct Telegram message
@@ -1946,7 +1946,7 @@ def register_service_handlers(dp, require_account):
 • Email alerts (future)
 
 🎉 <b>Thank you for your interest!</b>
-हम जल्द ही exciting new services launch करने वाले हैं।
+We will be launching exciting new services soon.
 
 🔔 <b>Stay tuned for updates!</b>
 """
