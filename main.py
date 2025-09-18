@@ -919,6 +919,89 @@ async def cmd_create_offer(message: Message, state: FSMContext):
     await message.answer(text)
     print(f"🎯 CREATE_OFFER: Admin {user.id} started offer creation process")
 
+@dp.message(Command("delete_offer"))
+async def cmd_delete_offer(message: Message):
+    """Admin command to permanently delete an offer from offers.json"""
+    user = message.from_user
+    if not user or not is_admin(user.id):
+        await message.answer("⚠️ This command is for admins only!")
+        return
+
+    # Parse the command to extract OFFER_ID
+    command_parts = message.text.split(' ', 1)
+    if len(command_parts) < 2:
+        await message.answer("""
+🗑️ <b>Delete Offer Command Usage:</b>
+
+💬 <b>Format:</b> /delete_offer <OFFER_ID>
+
+📝 <b>Example:</b> /delete_offer OFFER-1758164130-3130
+
+⚠️ <b>This will permanently delete the offer!</b>
+""")
+        return
+
+    offer_id = command_parts[1].strip()
+
+    # Load current offers from offers.json
+    offers = load_offers_from_json()
+    
+    if not offers:
+        await message.answer("❌ No offers found in the system!")
+        return
+
+    # Find and remove the offer with matching OFFER_ID
+    offer_found = False
+    updated_offers = []
+    removed_offer = None
+    
+    for offer in offers:
+        if offer.get("offer_id") == offer_id:
+            offer_found = True
+            removed_offer = offer
+            print(f"🗑️ DELETE_OFFER: Admin {user.id} deleting offer {offer_id}")
+        else:
+            updated_offers.append(offer)
+
+    # Error handling for cases where the Offer ID is not found
+    if not offer_found:
+        await message.answer(f"""
+❌ <b>Offer Not Found!</b>
+
+🔍 <b>Offer ID "{offer_id}" does not exist</b>
+
+💡 <b>Please check:</b>
+• Offer ID is correct (case-sensitive)
+• Offer hasn't been deleted already
+• Use the exact Offer ID format
+
+🔧 <b>Tip:</b> Check existing offers in the admin panel
+""")
+        return
+
+    # Save the updated offers list back to offers.json
+    save_offers_to_json(updated_offers)
+
+    # Send confirmation message to admin
+    confirmation_text = f"""
+✅ <b>Offer [{offer_id}] has been successfully deleted.</b>
+
+🗑️ <b>Deleted Offer Details:</b>
+
+🆔 <b>Offer ID:</b> <code>{removed_offer.get('offer_id', 'N/A')}</code>
+📝 <b>Message:</b> {removed_offer.get('offer_message', 'N/A')}
+📦 <b>Package:</b> {removed_offer.get('package_name', 'N/A')}
+💰 <b>Rate:</b> {removed_offer.get('rate', 'N/A')}
+📅 <b>Created:</b> {removed_offer.get('created_at', 'N/A')}
+
+🎯 <b>The offer has been permanently removed from offers.json</b>
+
+📊 <b>Remaining Offers:</b> {len(updated_offers)}
+"""
+
+    await message.answer(confirmation_text)
+    print(f"✅ DELETE_OFFER: Admin {user.id} successfully deleted offer {offer_id}")
+
 @dp.message(CreateOfferStates.getting_message)
 async def handle_offer_message(message: Message, state: FSMContext):
     """Handle offer message input in getting_message state"""
@@ -1540,19 +1623,21 @@ async def cmd_start(message: Message):
         # Get user's actual username or first name
         user_display_name = f"@{user.username}" if user.username else user.first_name or 'Friend'
 
-        # Existing user welcome - keep current message for created accounts
+        # Existing user welcome - professional English message
         welcome_text = f"""
-🚀 <b>Welcome to India Social Panel</b>
-<b>Your Partner in Social Media Domination.</b>
+🚀 <b>Welcome Back to India Social Panel</b>
+<b>Your Premium SMM Growth Partner</b>
 
-Hello, <b>{user_display_name}</b>! We're ready to take your social media accounts to the next level.
+Hello, <b>{user_display_name}</b>! Ready to accelerate your social media success?
 
-<b>Our platform gives you:</b>
-📈 <b>Guaranteed Growth:</b> We deliver results you can see.
-⚙️ <b>Complete Control:</b> You have full control over your orders and account.
-🤝 <b>24/7 Support:</b> Our team is always ready to assist you.
+✨ <b>What makes us special:</b>
+📈 <b>Guaranteed Results:</b> Real growth you can measure and trust
+⚡ <b>Lightning Speed:</b> Most services start within 0-6 hours  
+🛡️ <b>100% Safe:</b> No bans, only secure growth methods
+💎 <b>Premium Quality:</b> Real, active users - not bots
+🎯 <b>Best Prices:</b> Unbeatable rates in the Indian market
 
-👇 <b>To get started, please choose an option from the menu below:</b>
+🎪 <b>Choose your action below:</b>
 """
         await message.answer(welcome_text, reply_markup=get_main_menu())
     else:
@@ -1607,7 +1692,7 @@ async def cmd_menu(message: Message):
         return  # Ignore old messages
 
     print(f"✅ Sending menu to user {user.id}")
-    await message.answer("🏠 <b>Main Menu</b>\n अपनी जरूरत के अनुसार option चुनें:", reply_markup=get_main_menu())
+    await message.answer("🏠 <b>Main Menu</b>\nSelect your preferred option below:", reply_markup=get_main_menu())
 
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
@@ -1625,24 +1710,241 @@ async def cmd_help(message: Message):
         mark_user_for_notification(user.id)
         return  # Ignore old messages
 
-    help_text = """
-❓ <b>Help & Support</b>
+    help_text = f"""
+❓ <b>Help & Support - India Social Panel</b>
 
-🤖 <b>Bot Commands:</b>
-• /start - Main menu
-• /menu - Show menu
-• /help - Show this help
-• /description - Package details (during ordering)
+🚀 <b>Welcome to India's Most Trusted SMM Platform!</b>
 
-📞 <b>Support:</b>
-• Contact: @tech_support_admin
-• Response: 2-6 hours
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 <b>AVAILABLE BOT COMMANDS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 <b>Bot working perfectly!</b>
+• <b>/start</b> - मुख्य मेनू दिखाएं और bot शुरू करें
+• <b>/menu</b> - सभी services का मुख्य मेनू
+• <b>/help</b> - यह help message दिखाएं
+• <b>/about</b> - India Social Panel के बारे में पूरी जानकारी
+• <b>/description</b> - Order process के दौरान package की details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 <b>HOW TO USE THE BOT</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ <b>नया उपयोगकर्ता:</b> /start करके account create करें
+2️⃣ <b>Service Order:</b> Menu से platform चुनें → service select करें
+3️⃣ <b>Payment:</b> UPI, Bank Transfer, या Digital Wallet से payment करें
+4️⃣ <b>Tracking:</b> Order History से अपने orders track करें
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 <b>SUPPORTED PLATFORMS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• 📷 <b>Instagram:</b> Followers, Likes, Views, Comments, Reels
+• 🎥 <b>YouTube:</b> Subscribers, Views, Likes, Comments
+• 📘 <b>Facebook:</b> Page Likes, Post Likes, Views, Shares  
+• 🐦 <b>Twitter:</b> Followers, Likes, Retweets, Views
+• 💼 <b>LinkedIn:</b> Connections, Post Engagement
+• 🎵 <b>TikTok:</b> Followers, Likes, Views, Shares
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 <b>PAYMENT METHODS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ <b>UPI Payments:</b> Google Pay, PhonePe, Paytm
+✅ <b>Bank Transfer:</b> NEFT, RTGS, IMPS  
+✅ <b>Digital Wallets:</b> All major wallets
+✅ <b>QR Code:</b> Instant payment via QR scan
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 <b>CUSTOMER SUPPORT</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 <b>Owner Contact:</b> @{OWNER_USERNAME}
+⏰ <b>Response Time:</b> 2-6 hours
+🕐 <b>Available:</b> 9 AM - 11 PM IST
+📧 <b>Email:</b> support@indiasocialpanel.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ <b>IMPORTANT GUIDELINES</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• ✅ सभी services 100% safe और secure हैं
+• ✅ कोई account ban नहीं होगा  
+• ✅ Real और active users मिलते हैं
+• ✅ 24/7 customer support available है
+• ✅ Fast delivery guarantee (0-6 hours)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 <b>QUICK TIPS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 <b>First Time:</b> Account create करने के बाद ही orders place कर सकते हैं
+💡 <b>Links:</b> Correct और working links ही provide करें  
+💡 <b>Payment:</b> Screenshot जरूर share करें verification के लिए
+💡 <b>Support:</b> कोई भी problem हो तो contact करें
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌟 <b>धन्यवाद! India Social Panel choose करने के लिए</b>
+🚀 <b>आपका social media growth journey शुरू करने के लिए /start दबाएं!</b>
+
+💙 <b>Bot is working perfectly और आपकी service के लिए तैयार है!</b>
 """
 
     print(f"✅ Sending help to user {user.id}")
-    await message.answer(help_text, reply_markup=get_main_menu())
+    await message.answer(help_text)
+
+@dp.message(Command("about"))
+async def cmd_about(message: Message):
+    """Handle /about command - Complete India Social Panel information"""
+    print(f"📨 Received /about command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return  # Ignore old messages
+
+    about_text = f"""
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🇮🇳 <b>INDIA SOCIAL PANEL</b>
+┃ <i>India's Most Trusted SMM Platform</i>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>OUR MISSION</b>
+भारतीय businesses और individuals को affordable, high-quality social media marketing services प्रदान करना और उन्हें digital world में successful बनाना।
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 <b>WHY CHOOSE US?</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ <b>100% Real & Active Users</b>
+• No bots, no fake accounts
+• Genuine engagement guaranteed
+• Long-lasting results
+
+⚡ <b>Lightning Fast Delivery</b>
+• Services start within 0-6 hours
+• Real-time order tracking
+• Instant notifications
+
+🔒 <b>100% Safe & Secure</b>
+• No account bans guaranteed
+• SSL encrypted transactions
+• Privacy protection assured
+
+💰 <b>Best Prices in Market</b>
+• Wholesale rates available
+• Bulk order discounts
+• No hidden charges
+
+🎯 <b>Premium Quality Services</b>
+• High retention guarantee
+• Lifetime refill warranty
+• Professional support team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 <b>SUPPORTED PLATFORMS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📷 <b>Instagram:</b> Followers, Likes, Views, Comments, Reels
+🎥 <b>YouTube:</b> Subscribers, Views, Likes, Comments, Watch Time
+📘 <b>Facebook:</b> Page Likes, Post Likes, Views, Shares
+🐦 <b>Twitter:</b> Followers, Likes, Retweets, Views
+💼 <b>LinkedIn:</b> Connections, Post Likes, Company Followers
+🎵 <b>TikTok:</b> Followers, Likes, Views, Shares
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👑 <b>PREMIUM FEATURES</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎁 <b>For Our Valued Customers:</b>
+• 24/7 Customer Support
+• Real-time Order Tracking
+• Multiple Payment Methods
+• Instant Refund Policy
+• Loyalty Rewards Program
+• VIP Customer Benefits
+• API Access for Resellers
+• White-label Solutions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 <b>OUR ACHIEVEMENTS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏆 <b>Trusted by 10,000+ Happy Customers</b>
+📈 <b>5 Million+ Services Delivered</b>
+⭐ <b>4.9/5 Average Customer Rating</b>
+🚀 <b>99.9% Service Success Rate</b>
+🌍 <b>Serving 50+ Countries Worldwide</b>
+🇮🇳 <b>#1 SMM Panel in India</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 <b>PAYMENT METHODS</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 <b>UPI Payments:</b> Google Pay, PhonePe, Paytm
+🏦 <b>Bank Transfer:</b> NEFT, RTGS, IMPS
+💳 <b>Digital Wallets:</b> All major wallets supported
+💰 <b>Account Balance:</b> Instant order processing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍💻 <b>ABOUT THE FOUNDER</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🙏 <b>Name:</b> {OWNER_NAME}
+📱 <b>Contact:</b> @{OWNER_USERNAME}
+💼 <b>Experience:</b> 5+ Years in SMM Industry
+🎯 <b>Vision:</b> "हर Indian business को social media पर successful बनाना"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 <b>CUSTOMER SUPPORT</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 <b>Telegram:</b> @{OWNER_USERNAME}
+📧 <b>Email:</b> support@indiasocialpanel.com
+⏰ <b>Response Time:</b> 2-6 hours
+🕐 <b>Available:</b> 9 AM - 11 PM IST
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 <b>JOIN OUR COMMUNITY</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📢 <b>Official Channel:</b> @IndiaSocialPanelOfficial
+👥 <b>Support Group:</b> @IndiaSocialPanelSupport
+📱 <b>Updates & Offers:</b> Daily notifications
+🎁 <b>Exclusive Benefits:</b> Member-only discounts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💙 <b>धन्यवाद! Thank you for choosing India Social Panel</b>
+🚀 <b>Let's grow together on social media!</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 <b>Ready to get started? Use /start command!</b>
+"""
+
+    about_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🚀 Get Started", callback_data="back_main"),
+            InlineKeyboardButton(text="📞 Contact Owner", url=f"https://t.me/{OWNER_USERNAME}")
+        ],
+        [
+            InlineKeyboardButton(text="💬 Join Channel", url="https://t.me/IndiaSocialPanelOfficial"),
+            InlineKeyboardButton(text="👥 Support Group", url="https://t.me/IndiaSocialPanelSupport")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    print(f"✅ Sending about info to user {user.id}")
+    await message.answer(about_text, reply_markup=about_keyboard)
 
 @dp.message(Command("description"))
 async def cmd_description(message: Message):
@@ -2553,11 +2855,11 @@ async def cb_final_confirm_order(callback: CallbackQuery, state: FSMContext):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="💰 Pay from Balance", callback_data="pay_from_balance"),
-                InlineKeyboardButton(text="⚡️ Quick QR Payment", callback_data="payment_qr")
+                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
             ],
             [
-                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi"),
-                InlineKeyboardButton(text="📊 Generate QR Now", callback_data="instant_qr_generate")
+                InlineKeyboardButton(text="📊 Generate QR Now", callback_data="instant_qr_generate"),
+                InlineKeyboardButton(text="📲 Open UPI App", callback_data="payment_app")
             ],
             [
                 InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank"),
@@ -2565,7 +2867,7 @@ async def cb_final_confirm_order(callback: CallbackQuery, state: FSMContext):
             ],
             [
                 InlineKeyboardButton(text="💸 Digital Wallets", callback_data="payment_wallet"),
-                InlineKeyboardButton(text="📲 Open UPI App", callback_data="payment_app")
+                InlineKeyboardButton(text="📞 Contact Support", url="https://t.me/tech_support_admin")
             ],
             [
                 InlineKeyboardButton(text="⬅️ Back", callback_data="skip_coupon")
@@ -2649,88 +2951,7 @@ async def cb_final_confirm_order(callback: CallbackQuery, state: FSMContext):
 
     await callback.answer()
 
-@dp.callback_query(F.data == "payment_qr")
-async def cb_payment_qr(callback: CallbackQuery, state: FSMContext):
-    """Handle QR code payment method - Fixed to work properly"""
-    if not callback.message or not callback.from_user:
-        return
 
-    user_id = callback.from_user.id
-
-    # Check if user has order data in FSM
-    current_state = await state.get_state()
-    if current_state != OrderStates.selecting_payment.state:
-        await callback.answer("⚠️ Order session expired! Please start over.", show_alert=True)
-        await state.clear()
-        return
-
-    # Get order details from FSM
-    order_data = await state.get_data()
-    if not order_data.get("service_id"):
-        await callback.answer("⚠️ Order data not found! Please start over.", show_alert=True)
-        await state.clear()
-        return
-
-    total_price = order_data.get("total_price", 0.0)
-
-    # Generate transaction ID
-    import time
-    import random
-    transaction_id = f"QR{int(time.time())}{random.randint(100, 999)}"
-
-    # Store transaction in FSM and keep order data
-    await state.update_data(transaction_id=transaction_id, payment_method="qr")
-
-    # Show QR payment with proper buttons
-    qr_text = f"""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📱 <b>SMART QR PAYMENT GATEWAY</b>
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚡ <b>Express Payment Portal - Instant QR Code Ready!</b>
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 💰 <b>PAYMENT INFORMATION</b>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💸 <b>Amount:</b> ₹{total_price:,.2f}
-┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
-┃ • 📱 <b>UPI ID:</b> <code>business@paytm</code>
-┃ • 👤 <b>Merchant:</b> India Social Panel
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚀 <b>QUICK PAYMENT PROCESS:</b>
-
-📋 <b>Payment Instructions:</b>
-1️⃣ Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
-2️⃣ Select "Scan QR Code" or "Pay" feature
-3️⃣ Scan the QR code displayed above
-4️⃣ Verify payment amount: ₹{total_price:,.2f}
-5️⃣ Enter your UPI PIN to complete payment
-6️⃣ Click "Payment Completed" after successful transaction
-
-✨ <b>INSTANT BENEFITS:</b>
-• 🔒 Bank-grade security encryption
-• ⚡ Real-time payment processing
-• 💎 Automatic order activation
-• 📊 Instant delivery confirmation
-
-🎯 <b>Your QR code is ready for instant payment processing!</b>
-"""
-
-    # Create payment completion keyboard
-    qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Payment Completed", callback_data=f"payment_completed_{transaction_id}"),
-            InlineKeyboardButton(text="❌ Cancel Order", callback_data="payment_cancel")
-        ],
-        [
-            InlineKeyboardButton(text="🔄 Regenerate QR Code", callback_data="payment_qr"),
-            InlineKeyboardButton(text="💳 Other Payment Options", callback_data="final_confirm_order")
-        ]
-    ])
-
-    await safe_edit_message(callback, qr_text, qr_keyboard)
-    await callback.answer("✅ QR Payment ready! Complete payment and click 'Payment Done'")
 
 @dp.callback_query(F.data == "share_screenshot")
 async def cb_share_screenshot(callback: CallbackQuery):
@@ -2943,12 +3164,12 @@ async def cb_direct_payment_emergency(callback: CallbackQuery, state: FSMContext
 
         emergency_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="⚡️ Quick QR Payment", callback_data="payment_qr"),
-                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi")
+                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi"),
+                InlineKeyboardButton(text="📊 Generate QR Now", callback_data="instant_qr_generate")
             ],
             [
-                InlineKeyboardButton(text="📊 Generate QR Now", callback_data="instant_qr_generate"),
-                InlineKeyboardButton(text="💳 More Methods", callback_data="payment_bank")
+                InlineKeyboardButton(text="💳 More Methods", callback_data="payment_bank"),
+                InlineKeyboardButton(text="🏦 Bank Transfer", callback_data="payment_bank")
             ],
             [
                 InlineKeyboardButton(text="⬅️ Back to Options", callback_data="final_confirm_order")
