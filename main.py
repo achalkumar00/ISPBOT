@@ -1496,6 +1496,34 @@ async def handle_specific_user_id(message: Message, state: FSMContext):
             f"🔄 <b>Try again or choose a different user</b>"
         )
 
+# Handle offer QR generation callback
+@dp.callback_query(F.data == "offer_generate_qr_btn")
+async def cb_offer_generate_qr(callback: CallbackQuery, state: FSMContext):
+    """Handle offer QR code generation button"""
+    from fsm_handlers import handle_offer_generate_qr
+    await handle_offer_generate_qr(callback, state)
+
+# Handle offer payment completion callback  
+@dp.callback_query(F.data == "offer_payment_done")
+async def cb_offer_payment_done(callback: CallbackQuery, state: FSMContext):
+    """Handle offer payment done button"""
+    from fsm_handlers import handle_offer_payment_done
+    await handle_offer_payment_done(callback, state)
+
+# Handle offer add fund callback
+@dp.callback_query(F.data == "offer_add_fund_btn")
+async def cb_offer_add_fund(callback: CallbackQuery, state: FSMContext):
+    """Handle offer add fund button"""
+    from fsm_handlers import handle_offer_add_fund
+    await handle_offer_add_fund(callback, state)
+
+# Handle offer direct payment callback
+@dp.callback_query(F.data == "offer_direct_payment_btn")
+async def cb_offer_direct_payment(callback: CallbackQuery, state: FSMContext):
+    """Handle offer direct payment button"""
+    from fsm_handlers import handle_offer_direct_payment
+    await handle_offer_direct_payment(callback, state)
+
 # Handle "Order Now" button clicks from sent offers - New Simplified Flow
 @dp.callback_query(F.data.startswith("order_offer_"))
 async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
@@ -1522,7 +1550,12 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
 
     if not selected_offer:
         print(f"❌ ORDER OFFER BUTTON: Offer {offer_id} not found or inactive")
-        await callback.answer("❌ This offer is no longer available!")
+        await callback.answer(
+            "⚠️ Offer Expired!\n\n"
+            "This special offer has ended or is no longer available.\n\n"
+            "💡 Please check our latest offers or contact support for new deals.",
+            show_alert=True
+        )
         return
 
     user = callback.from_user
