@@ -228,16 +228,24 @@ async def send_admin_notification(order_record: Dict[str, Any], photo_file_id: O
         user_id = order_record.get('user_id')
         order_id = order_record.get('order_id')
         package_name = order_record.get('package_name', 'N/A')
-        platform = order_record.get('platform', 'N/A')
+        platform = order_record.get('platform') or 'N/A'
         quantity = order_record.get('quantity', 0)
         total_price = order_record.get('total_price', 0.0)
-        payment_method = order_record.get('payment_method', 'N/A')
-        link = order_record.get('link', 'N/A')
-        service_id = order_record.get('service_id', 'N/A')
+        payment_method = order_record.get('payment_method') or 'N/A'
+        link = order_record.get('link') or 'N/A'
+        service_id = order_record.get('service_id') or 'N/A'
         created_at = order_record.get('created_at', '')
 
         # Get complete user information from users_data
-        user_info = users_data.get(user_id, {})
+        # Ensure user_id is valid integer before using as key
+        if user_id and isinstance(user_id, (int, str)):
+            try:
+                user_id_int = int(user_id) if isinstance(user_id, str) else user_id
+                user_info = users_data.get(user_id_int, {})
+            except (ValueError, TypeError):
+                user_info = {}
+        else:
+            user_info = {}
         username = user_info.get('username', '')
         first_name = user_info.get('first_name', '')
         full_name = user_info.get('full_name', '')
@@ -529,10 +537,10 @@ def get_support_menu() -> InlineKeyboardMarkup:
     """Build support tickets menu"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="➕ Naya Ticket Banayein", callback_data="create_ticket"),
+            InlineKeyboardButton(text="➕ Create New Ticket", callback_data="create_ticket"),
         ],
         [
-            InlineKeyboardButton(text="📖 Mere Tickets Dekhein", callback_data="view_tickets")
+            InlineKeyboardButton(text="📖 View My Tickets", callback_data="view_tickets")
         ],
         [
             InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
@@ -628,8 +636,8 @@ def get_contact_menu() -> InlineKeyboardMarkup:
     """Build contact & about menu"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="👨‍💻 Owner Ke Baare Mein", callback_data="owner_info"),
-            InlineKeyboardButton(text="🌐 Hamari Website", callback_data="website_info")
+            InlineKeyboardButton(text="👨‍💻 About Owner", callback_data="owner_info"),
+            InlineKeyboardButton(text="🌐 Our Website", callback_data="website_info")
         ],
         [
             InlineKeyboardButton(text="💬 Support Channel", callback_data="support_channel"),
@@ -637,7 +645,7 @@ def get_contact_menu() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(text="👨‍💼 Contact Admin", callback_data="contact_admin"),
-            InlineKeyboardButton(text="📜 Seva Ki Shartein (TOS)", callback_data="terms_service")
+            InlineKeyboardButton(text="📜 Terms of Service", callback_data="terms_service")
         ],
         [
             InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
@@ -667,7 +675,7 @@ def get_offers_rewards_menu() -> InlineKeyboardMarkup:
     """Build offers & rewards menu"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="🎟️ Coupon Redeem Karein", callback_data="coupon_redeem"),
+            InlineKeyboardButton(text="🎟️ Redeem Coupon", callback_data="coupon_redeem"),
             InlineKeyboardButton(text="🤝 Partner Program", callback_data="partner_program")
         ],
         [
@@ -694,6 +702,9 @@ async def cmd_broadcast(message: Message):
         return
 
     # Get broadcast message from command
+    if not message.text:
+        await message.answer("❌ Please provide a message to broadcast!")
+        return
     command_parts = message.text.split(' ', 1)
     if len(command_parts) < 2:
         await message.answer("""
@@ -770,6 +781,9 @@ async def cmd_restoreuser(message: Message):
         return
 
     # Parse the command to extract USER_ID
+    if not message.text:
+        await message.answer("❌ Please provide a user ID to restore!")
+        return
     command_parts = message.text.split(' ', 1)
     if len(command_parts) < 2:
         await message.answer("""
@@ -811,6 +825,9 @@ async def cmd_sendtouser(message: Message):
         return
 
     # Parse the command to extract USER_ID and message
+    if not message.text:
+        await message.answer("❌ Please provide user ID and message!")
+        return
     command_parts = message.text.split(' ', 2)
     if len(command_parts) < 3:
         await message.answer("""
@@ -900,7 +917,7 @@ async def cmd_create_offer(message: Message, state: FSMContext):
 
 📝 <b>Offer Message Entry</b>
 
-💡 <b>कृपया offer का message भेजें जो users को दिखाया जाएगा:</b>
+💡 <b>Please send the offer message that will be shown to users:</b>
 
 📋 <b>Example Messages:</b>
 • "🎉 Special Discount! Get 50% OFF on all Instagram packages!"
@@ -908,12 +925,12 @@ async def cmd_create_offer(message: Message, state: FSMContext):
 • "🔥 Flash Sale: All YouTube services at half price!"
 
 ⚠️ <b>Guidelines:</b>
-• Clear और attractive message लिखें
-• Emojis का use करें
-• Benefits को highlight करें
-• Call-to-action include करें
+• Write a clear and attractive message
+• Use emojis
+• Highlight the benefits
+• Include call-to-action
 
-📤 <b>अपना offer message type करके भेज दें:</b>
+📤 <b>Type and send your offer message:</b>
 """
 
     await message.answer(text)
@@ -928,6 +945,9 @@ async def cmd_delete_offer(message: Message):
         return
 
     # Parse the command to extract OFFER_ID
+    if not message.text:
+        await message.answer("❌ Please provide an offer ID to delete!")
+        return
     command_parts = message.text.split(' ', 1)
     if len(command_parts) < 2:
         await message.answer("""
@@ -983,7 +1003,8 @@ async def cmd_delete_offer(message: Message):
     save_offers_to_json(updated_offers)
 
     # Send confirmation message to admin
-    confirmation_text = f"""
+    if removed_offer:
+        confirmation_text = f"""
 ✅ <b>Offer [{offer_id}] has been successfully deleted.</b>
 
 🗑️ <b>Deleted Offer Details:</b>
@@ -997,6 +1018,15 @@ async def cmd_delete_offer(message: Message):
 🎯 <b>The offer has been permanently removed from offers.json</b>
 
 📊 <b>Remaining Offers:</b> {len(updated_offers)}
+"""
+    else:
+        # This should not happen due to earlier validation, but add safety
+        confirmation_text = f"""
+❌ <b>Offer Not Found!</b>
+
+🔍 <b>Offer ID "{offer_id}" was not found in the system</b>
+
+📊 <b>Current Offers Count:</b> {len(updated_offers)}
 """
 
     await message.answer(confirmation_text)
@@ -1024,7 +1054,7 @@ async def handle_offer_message(message: Message, state: FSMContext):
 
 📦 <b>Package Name Entry</b>
 
-💡 <b>इस offer के लिए package का name भेजें:</b>
+💡 <b>Send the package name for this offer:</b>
 
 📋 <b>Example Package Names:</b>
 • "Special Instagram Followers"
@@ -1033,11 +1063,11 @@ async def handle_offer_message(message: Message, state: FSMContext):
 • "Ultimate TikTok Growth Pack"
 
 ⚠️ <b>Guidelines:</b>
-• Descriptive और attractive name दें
-• Platform का mention करें
-• Service type clearly बताएं
+• Give a descriptive and attractive name
+• Mention the platform
+• Clearly mention service type
 
-📤 <b>Package name type करके भेज दें:</b>
+📤 <b>Type and send the package name:</b>
 """
 
     await message.answer(text)
@@ -1064,7 +1094,7 @@ async def handle_package_name(message: Message, state: FSMContext):
 
 💰 <b>Rate Entry</b>
 
-💡 <b>इस package के लिए rate भेजें:</b>
+💡 <b>Send the rate for this package:</b>
 
 📋 <b>Example Rates:</b>
 • "₹100 per 1000"
@@ -1073,11 +1103,11 @@ async def handle_package_name(message: Message, state: FSMContext):
 • "₹25 per 100 likes"
 
 ⚠️ <b>Guidelines:</b>
-• Currency symbol (₹) include करें
-• Per unit rate clearly mention करें
-• Attractive pricing रखें
+• Include currency symbol (₹)
+• Clearly mention per unit rate
+• Keep attractive pricing
 
-📤 <b>Rate type करके भेज दें:</b>
+📤 <b>Type and send the rate:</b>
 """
 
     await message.answer(text)
@@ -1104,17 +1134,17 @@ async def handle_rate(message: Message, state: FSMContext):
 
 🔢 <b>Fixed Quantity Setting</b>
 
-💡 <b>क्या इस offer का quantity fixed होना चाहिए?</b>
+💡 <b>Should this offer have a fixed quantity?</b>
 
 📋 <b>Options:</b>
-• <b>Yes:</b> Users को fixed quantity ही मिलेगी (e.g., exactly 1000 followers)
-• <b>No:</b> Users अपनी पसंद की quantity choose कर सकेंगे
+• <b>Yes:</b> Users will get a fixed quantity (e.g., exactly 1000 followers)
+• <b>No:</b> Users can choose their preferred quantity
 
 ⚠️ <b>Choose wisely:</b>
-• Fixed quantity special offers के लिए better है
-• Variable quantity flexibility देती है
+• Fixed quantity is better for special offers
+• Variable quantity provides flexibility
 
-📤 <b>Reply with "Yes" या "No":</b>
+📤 <b>Reply with "Yes" or "No":</b>
 """
 
     await message.answer(text)
@@ -1136,7 +1166,7 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
         text = """
 🔢 <b>Fixed Quantity Amount</b>
 
-💡 <b>Fixed quantity amount भेजें:</b>
+💡 <b>Send the fixed quantity amount:</b>
 
 📋 <b>Examples:</b>
 • 1000 (for 1000 followers)
@@ -1144,11 +1174,11 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
 • 500 (for 500 likes)
 
 ⚠️ <b>Guidelines:</b>
-• केवल numbers भेजें
-• Realistic quantity रखें
-• Popular quantities choose करें
+• Send only numbers
+• Keep realistic quantity
+• Choose popular quantities
 
-📤 <b>Quantity number भेज दें:</b>
+📤 <b>Send the quantity number:</b>
 """
 
         await message.answer(text)
@@ -1301,12 +1331,12 @@ async def cmd_send_offer(message: Message, state: FSMContext):
 
 {offer_list}
 
-💡 <b>कृपया भेजने वाली offer का ID copy करके भेजें:</b>
+💡 <b>Please copy and send the offer ID you want to send:</b>
 
 📋 <b>Example:</b>
 <code>OFFER-1234567890-5678</code>
 
-📤 <b>Offer ID भेज दें:</b>
+📤 <b>Send the Offer ID:</b>
 """
 
     await message.answer(text)
@@ -1355,10 +1385,10 @@ async def handle_offer_id_input(message: Message, state: FSMContext):
 
 👥 <b>Target Selection</b>
 
-💡 <b>आप इस offer को किसे भेजना चाहते हैं?</b>
+💡 <b>Who do you want to send this offer to?</b>
 
-🌍 <b>All Users:</b> सभी registered users को भेजें
-👤 <b>Specific User:</b> किसी particular user को भेजें
+🌍 <b>All Users:</b> Send to all registered users
+👤 <b>Specific User:</b> Send to a particular user
 
 📤 <b>Choose your target audience:</b>
 """
@@ -1395,7 +1425,7 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
 
         # Use global users_data (already loaded with proper key conversion)
         if not users_data:
-            if callback.message:
+            if callback.message and hasattr(callback.message, 'edit_text'):
                 await callback.message.edit_text(
                     "❌ <b>No users found!</b>\n\n"
                     "🔍 <b>No registered users available to send offers</b>"
@@ -1412,7 +1442,7 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
                 success_count += 1
 
         # Report results and clear state
-        if callback.message:
+        if callback.message and hasattr(callback.message, 'edit_text'):
             await callback.message.edit_text(
                 f"✅ <b>Offer Sent Successfully!</b>\n\n"
                 f"📊 <b>Delivery Report:</b>\n"
@@ -1429,15 +1459,15 @@ async def handle_target_choice(callback: CallbackQuery, state: FSMContext):
         # Ask for specific user ID
         await state.set_state(AdminSendOfferStates.getting_specific_user_id)
 
-        if callback.message:
+        if callback.message and hasattr(callback.message, 'edit_text'):
             await callback.message.edit_text(
                 f"👤 <b>Send to Specific User - Step 3/3</b>\n\n"
                 f"🎯 <b>Selected Offer:</b> {selected_offer['package_name']}\n\n"
-                f"💡 <b>कृपया target user का ID भेजें:</b>\n\n"
-                f"📋 <b>User ID कैसे find करें:</b>\n"
-                f"• User जब bot को message करता है तो console में ID दिखती है\n"
-                f"• Admin commands में user IDs दिखती हैं\n\n"
-                f"📤 <b>User ID number भेज दें:</b>"
+                f"💡 <b>Please send the target user's ID:</b>\n\n"
+                f"📋 <b>How to find User ID:</b>\n"
+                f"• When user messages the bot, ID shows in console\n"
+                f"• User IDs are shown in admin commands\n\n"
+                f"📤 <b>Send the User ID number:</b>"
             )
         await callback.answer()
 
@@ -1570,7 +1600,7 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
     if not is_account_created(user.id):
         print(f"⚠️ ORDER OFFER BUTTON: User {user.id} account not created")
         await callback.answer("⚠️ Please complete your account setup first!")
-        if callback.message:
+        if callback.message and hasattr(callback.message, 'edit_text'):
             await callback.message.edit_text(
                 "⚠️ <b>Account Setup Required</b>\n\n"
                 "🔐 <b>To place orders, you need to complete account creation first</b>\n\n"
@@ -1613,7 +1643,7 @@ async def handle_order_offer(callback: CallbackQuery, state: FSMContext):
 
     await callback.answer("🛒 Starting your order...")
 
-    if callback.message:
+    if callback.message and hasattr(callback.message, 'edit_text'):
         await callback.message.edit_text(link_request_text)
         print(f"✅ ORDER OFFER BUTTON: Link request message sent to user {user.id}")
     else:
@@ -1685,7 +1715,7 @@ Hello, <b>{user_display_name}</b>! Ready to accelerate your social media success
 🎉 <b>Welcome to India Social Panel!</b>
 <b>India's Most Trusted SMM Platform</b>
 
-नमस्ते <b>{user_display_name}</b>! 🙏
+Hello <b>{user_display_name}</b>! 🙏
 
 🇮🇳 <b>Join thousands of satisfied Indian users who trust us for their social media growth!</b>
 
@@ -1699,9 +1729,9 @@ Hello, <b>{user_display_name}</b>! Ready to accelerate your social media success
 
 🚀 <b>Ready to boost your social media presence?</b>
 
-💡 <b>पहले अपना account create करें और India's best SMM services का experience करें!</b>
+💡 <b>First create your account and experience India's best SMM services!</b>
 
-🎁 <b>Special Welcome Offer:</b> First order पर exclusive discount मिलेगा!
+🎁 <b>Special Welcome Offer:</b> You'll get exclusive discount on your first order!
 
 👇 <b>Get started by creating your account:</b>
 """
@@ -1752,20 +1782,20 @@ async def cmd_help(message: Message):
 🤖 <b>AVAILABLE BOT COMMANDS</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• <b>/start</b> - मुख्य मेनू दिखाएं और bot शुरू करें
-• <b>/menu</b> - सभी services का मुख्य मेनू
-• <b>/help</b> - यह help message दिखाएं
-• <b>/about</b> - India Social Panel के बारे में पूरी जानकारी
-• <b>/description</b> - Order process के दौरान package की details
+• <b>/start</b> - Show main menu and start the bot
+• <b>/menu</b> - Main menu for all services
+• <b>/help</b> - Show this help message
+• <b>/about</b> - Complete information about India Social Panel
+• <b>/description</b> - Package details during order process
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💡 <b>HOW TO USE THE BOT</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1️⃣ <b>नया उपयोगकर्ता:</b> /start करके account create करें
-2️⃣ <b>Service Order:</b> Menu से platform चुनें → service select करें
-3️⃣ <b>Payment:</b> UPI, Bank Transfer, या Digital Wallet से payment करें
-4️⃣ <b>Tracking:</b> Order History से अपने orders track करें
+1️⃣ <b>New User:</b> Use /start to create account
+2️⃣ <b>Service Order:</b> Choose platform from menu → select service
+3️⃣ <b>Payment:</b> Make payment via UPI, Bank Transfer, or Digital Wallet
+4️⃣ <b>Tracking:</b> Track your orders from Order History
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📱 <b>SUPPORTED PLATFORMS</b>
@@ -1800,27 +1830,27 @@ async def cmd_help(message: Message):
 ⚠️ <b>IMPORTANT GUIDELINES</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• ✅ सभी services 100% safe और secure हैं
-• ✅ कोई account ban नहीं होगा  
-• ✅ Real और active users मिलते हैं
-• ✅ 24/7 customer support available है
+• ✅ All services are 100% safe and secure
+• ✅ No account bans will occur  
+• ✅ You get real and active users
+• ✅ 24/7 customer support is available
 • ✅ Fast delivery guarantee (0-6 hours)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯 <b>QUICK TIPS</b>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 <b>First Time:</b> Account create करने के बाद ही orders place कर सकते हैं
-💡 <b>Links:</b> Correct और working links ही provide करें  
-💡 <b>Payment:</b> Screenshot जरूर share करें verification के लिए
-💡 <b>Support:</b> कोई भी problem हो तो contact करें
+💡 <b>First Time:</b> You can place orders only after creating an account
+💡 <b>Links:</b> Provide only correct and working links  
+💡 <b>Payment:</b> Must share screenshot for verification
+💡 <b>Support:</b> Contact us if you have any problems
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🌟 <b>धन्यवाद! India Social Panel choose करने के लिए</b>
-🚀 <b>आपका social media growth journey शुरू करने के लिए /start दबाएं!</b>
+🌟 <b>Thank you for choosing India Social Panel!</b>
+🚀 <b>Press /start to begin your social media growth journey!</b>
 
-💙 <b>Bot is working perfectly और आपकी service के लिए तैयार है!</b>
+💙 <b>Bot is working perfectly and ready for your service!</b>
 """
 
     print(f"✅ Sending help to user {user.id}")
@@ -1849,7 +1879,7 @@ async def cmd_about(message: Message):
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🎯 <b>OUR MISSION</b>
-भारतीय businesses और individuals को affordable, high-quality social media marketing services प्रदान करना और उन्हें digital world में successful बनाना।
+To provide affordable, high-quality social media marketing services to Indian businesses and individuals and help them succeed in the digital world.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌟 <b>WHY CHOOSE US?</b>
@@ -1932,7 +1962,7 @@ async def cmd_about(message: Message):
 🙏 <b>Name:</b> {OWNER_NAME}
 📱 <b>Contact:</b> @{OWNER_USERNAME}
 💼 <b>Experience:</b> 5+ Years in SMM Industry
-🎯 <b>Vision:</b> "हर Indian business को social media पर successful बनाना"
+🎯 <b>Vision:</b> "Making every Indian business successful on social media"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📞 <b>CUSTOMER SUPPORT</b>
@@ -1954,7 +1984,7 @@ async def cmd_about(message: Message):
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💙 <b>धन्यवाद! Thank you for choosing India Social Panel</b>
+💙 <b>Thank you for choosing India Social Panel!</b>
 🚀 <b>Let's grow together on social media!</b>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2021,7 +2051,7 @@ async def cmd_description(message: Message):
 
 {description['text']}
 
-💡 <b>Order process में वापस जाने के लिए link/quantity/coupon भेजते रहें</b>
+💡 <b>Continue sending link/quantity/coupon to return to the order process</b>
 """
 
         await message.answer(description_text)
@@ -2030,16 +2060,16 @@ async def cmd_description(message: Message):
         text = """
 ⚠️ <b>Description Command</b>
 
-📋 <b>/description command केवल order process के दौरान available है</b>
+📋 <b>/description command is only available during the order process</b>
 
-💡 <b>Package description देखने के लिए:</b>
-1. पहले /start करें
-2. New Order पर click करें
-3. कोई service select करें
-4. Package choose करें
-5. फिर /description use करें
+💡 <b>To view package description:</b>
+1. First use /start
+2. Click on New Order
+3. Select any service
+4. Choose a package
+5. Then use /description
 
-🚀 <b>अभी order शुरू करने के लिए /start करें</b>
+🚀 <b>Use /start to begin placing an order now</b>
 """
         await message.answer(text, reply_markup=get_main_menu())
 
@@ -2068,6 +2098,9 @@ async def cmd_viewuser(message: Message):
         return
 
     # Parse command arguments
+    if not message.text:
+        await message.answer("❌ Please provide a command with text!")
+        return
     command_text = message.text.strip()
     parts = command_text.split()
 
@@ -2129,7 +2162,10 @@ async def cmd_viewuser(message: Message):
         return
 
     # Get user data (handle both string and int keys)
-    user_data = users_data.get(str(target_user_id)) or users_data.get(target_user_id, {})
+    try:
+        user_data = users_data.get(str(target_user_id)) or users_data.get(target_user_id, {})
+    except (KeyError, TypeError):
+        user_data = {}
 
     # Format detailed user profile
     full_name = user_data.get('full_name', 'N/A')
@@ -2228,11 +2264,14 @@ async def handle_screenshot_fsm(message: Message, state: FSMContext):
         }
 
         # Store the final order
-        from main import orders_data, send_admin_notification
+        # orders_data and send_admin_notification are already available in this module
         orders_data[order_id] = order_record
 
         # Send notification to admin group
-        await send_admin_notification(order_record, message.photo[-1].file_id)
+        photo_file_id = None
+        if message.photo and len(message.photo) > 0:
+            photo_file_id = message.photo[-1].file_id
+        await send_admin_notification(order_record, photo_file_id)
 
         # Send confirmation to user
         success_text = f"""
@@ -2292,15 +2331,15 @@ async def handle_photo_message(message: Message):
         text = """
 📸 <b>Photo Received</b>
 
-💡 <b>यह photo किसी order process के लिए नहीं है</b>
+💡 <b>This photo is not for any order process</b>
 
-📋 <b>Photo का use करने के लिए:</b>
-• पहले order process शुरू करें
-• Payment method choose करें
-• QR code generate करें
-• फिर screenshot भेजें
+📋 <b>To use photos:</b>
+• First start the order process
+• Choose payment method
+• Generate QR code
+• Then send the screenshot
 
-🏠 <b>Main menu के लिए /start दबाएं</b>
+🏠 <b>Press /start for main menu</b>
 """
         await message.answer(text, reply_markup=get_main_menu())
 
@@ -2316,7 +2355,7 @@ async def cb_help_support(callback: CallbackQuery):
     text = f"""
 ❓ <b>Help & Support</b>
 
-🤝 <b>हमारी Support Team आपकी मदद के लिए तैयार है!</b>
+🤝 <b>Our Support Team is ready to help you!</b>
 
 📞 <b>Contact Options:</b>
 • Telegram: @{OWNER_USERNAME}
@@ -2369,11 +2408,11 @@ def require_account(handler):
             text = """
 ⚠️ <b>Account Required</b>
 
-आपका account अभी तक create नहीं हुआ है!
+Your account has not been created yet!
 
-📝 <b>सभी features का access पाने के लिए पहले account create करें</b>
+📝 <b>Create an account first to access all features</b>
 
-✅ <b>Account creation में सिर्फ 2 मिनट लगते हैं</b>
+✅ <b>Account creation takes only 2 minutes</b>
 """
 
             if callback.message and hasattr(callback.message, 'edit_text'):
@@ -2530,7 +2569,7 @@ async def cb_services_tools(callback: CallbackQuery):
 • Growth strategies
 • Market analysis
 
-💡 <b> अपनी जरूरत के अनुसार tool चुनें:</b>
+💡 <b> Choose tools according to your needs:</b>
 """
 
     await safe_edit_message(callback, text, get_services_tools_menu())
@@ -2566,7 +2605,7 @@ async def cb_offers_rewards(callback: CallbackQuery):
 • Bulk order discounts
 • Premium memberships
 
-✨ <b> अपना reward claim करें:</b>
+✨ <b> Claim your reward:</b>
 """
 
     await safe_edit_message(callback, text, get_offers_rewards_menu())
@@ -2584,12 +2623,12 @@ async def cb_admin_panel(callback: CallbackQuery):
         text = """
 ⚠️ <b>Access Denied</b>
 
-यह section केवल authorized administrators के लिए है।
+This section is only for authorized administrators.
 
 🔒 <b>Security Notice:</b>
 Unauthorized access attempts are logged and monitored.
 
-📞 यदि आप administrator हैं, तो owner से contact करें।
+📞 If you are an administrator, please contact the owner.
 """
         back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")]
@@ -2625,10 +2664,10 @@ async def cb_contact_about(callback: CallbackQuery):
 📞 <b>Contact & About</b>
 
 🇮🇳 <b>India Social Panel</b>
-भारत का सबसे भरोसेमंद SMM Platform
+India's Most Trusted SMM Platform
 
 🎯 <b>Our Mission:</b>
-High-quality, affordable social media marketing services प्रदान करना
+Providing high-quality, affordable social media marketing services
 
 ✨ <b>Why Choose Us:</b>
 • ✅ 100% Real & Active Users
@@ -2653,18 +2692,18 @@ async def cb_owner_info(callback: CallbackQuery):
     text = f"""
 👨‍💻 <b>Owner Information</b>
 
-🙏 <b>Namaste! मैं {OWNER_NAME}</b>
+🙏 <b>Hello! I am {OWNER_NAME}</b>
 Founder & CEO, India Social Panel
 
 📍 <b>Location:</b> India 🇮🇳
 💼 <b>Experience:</b> 5+ Years in SMM Industry
-🎯 <b>Mission:</b> भारतीय businesses को affordable digital marketing solutions देना
+🎯 <b>Mission:</b> Providing affordable digital marketing solutions to Indian businesses
 
 ✨ <b>My Vision:</b>
-"हर Indian business को social media पर successful बनाना"
+"Making every Indian business successful on social media"
 
 💬 <b>Personal Message:</b>
-"मेरा मकसद आप सभी को high-quality और affordable SMM services प्रदान करना है। आपका support और trust ही मेरी सबसे बड़ी achievement है।"
+"My goal is to provide high-quality and affordable SMM services to all of you. Your support and trust are my greatest achievements."
 
 📞 <b>Contact:</b> @{OWNER_USERNAME}
 🌟 <b>Thank you for choosing us!</b>
@@ -2693,7 +2732,7 @@ async def cb_service_list(callback: CallbackQuery):
     text = """
 📈 <b>Service List</b>
 
-<b>Platform चुनें pricing देखने के लिए:</b>
+<b>Choose platform to view pricing:</b>
 
 💎 <b>High Quality Services</b>
 ⚡️ <b>Instant Start</b>
@@ -2719,7 +2758,7 @@ async def cb_support_tickets(callback: CallbackQuery):
 🔸 <b>Quick Response</b>
 🔸 <b>Professional Help</b>
 
-💡 <b>आप क्या करना चाहते हैं?</b>
+💡 <b>What would you like to do?</b>
 """
 
     await safe_edit_message(callback, text, get_support_menu())
@@ -2882,7 +2921,7 @@ async def cb_final_confirm_order(callback: CallbackQuery, state: FSMContext):
 
 💳 <b>Available Payment Methods:</b>
 
-💡 <b>अपना payment method चुनें:</b>
+💡 <b>Choose your payment method:</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -2997,15 +3036,15 @@ async def cb_share_screenshot(callback: CallbackQuery):
     screenshot_text = """
 📸 <b>Screenshot Upload</b>
 
-💡 <b>कृपया payment का screenshot भेजें</b>
+💡 <b>Please send the payment screenshot</b>
 
 📋 <b>Screenshot Requirements:</b>
-• Clear और readable हो
-• Payment amount दिखना चाहिए
-• Transaction status "Success" हो
-• Date और time visible हो
+• Should be clear and readable
+• Payment amount should be visible
+• Transaction status should be "Success"
+• Date and time should be visible
 
-💬 <b>Screenshot को image के रूप में send करें...</b>
+💬 <b>Send the screenshot as an image...</b>
 """
 
     user_state[user_id]["current_step"] = "waiting_screenshot_upload"
@@ -3059,18 +3098,18 @@ async def cb_copy_order_id(callback: CallbackQuery):
 • <b>Desktop:</b> Triple click to select → Ctrl+C
 
 📝 <b>Save this Order ID for:</b>
-• Order tracking और status check
-• Customer support के लिए reference
-• Future inquiries और complaints
+• Order tracking and status check
+• Reference for customer support
+• Future inquiries and complaints
 • Order delivery confirmation
 
 🎯 <b>Order Tracking:</b>
-Order History में जाकर इस ID से अपना order track कर सकते हैं।
+You can track your order with this ID by going to Order History.
 
 📞 <b>Support:</b>
-अगर कोई problem हो तो इस Order ID के साथ support contact करें।
+If you have any problems, contact support with this Order ID.
 
-💡 <b>Important:</b> यह Order ID unique है और केवल आपके order के लिए है।
+💡 <b>Important:</b> This Order ID is unique and only for your order.
 """
 
     copy_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -3113,7 +3152,7 @@ async def cb_add_balance_first(callback: CallbackQuery):
 • ₹{max(1000, shortfall + 500):,.0f} (Order + Extra balance)
 • ₹{max(2000, shortfall + 1500):,.0f} (For future orders)
 
-💡 <b>Amount चुनें या custom amount type करें:</b>
+💡 <b>Choose amount or type custom amount:</b>
 
 🔥 <b>Benefits of Adding Balance:</b>
 • ⚡️ Instant order processing
@@ -3316,9 +3355,9 @@ async def cb_pay_from_balance(callback: CallbackQuery, state: FSMContext):
 🔄 <b>Payment Status:</b> ✅ Completed
 
 ⏰ <b>Delivery Timeline:</b>
-आपका order अब process हो रहा है। Package description के अनुसार delivery complete होगी।
+Your order is now being processed. Delivery will be completed according to the package description.
 
-💡 <b>Order ID को save करके रखें - यह tracking के लिए जरूरी है!</b>
+💡 <b>Save and keep the Order ID - it's essential for tracking!</b>
 
 ✨ <b>Thank you for choosing India Social Panel!</b>
 """
@@ -3345,6 +3384,9 @@ async def cb_wallet_specific_order(callback: CallbackQuery):
         return
 
     user_id = callback.from_user.id
+    if not callback.data:
+        await callback.answer("❌ Invalid wallet selection!", show_alert=True)
+        return
     wallet_name = callback.data.replace("wallet_", "").replace("_order", "")
 
     # Get order details
@@ -3546,7 +3588,7 @@ async def cb_bank_transfer_screenshot(callback: CallbackQuery):
 • 📅 Date और time
 • 🏦 Beneficiary name (India Social Panel)
 
-💬 <b>Screenshot को image के रूप में send करें...</b>
+💬 <b>Send the screenshot as an image...</b>
 
 ⏰ <b>Screenshot verify होने के बाद order process हो जाएगा</b>
 """
@@ -4173,7 +4215,7 @@ async def cb_website_info(callback: CallbackQuery):
         return
 
     text = f"""
-🌐 <b>Hamari Website</b>
+🌐 <b>Our Website</b>
 
 🔗 <b>Website:</b>
 Coming Soon...
@@ -4184,7 +4226,7 @@ Coming Soon...
 ✅ Secure Payment Gateway
 ✅ Real-time Order Tracking
 
-💡 <b>Website launch ke liye wait kariye!</b>
+💡 <b>Please wait for the website launch!</b>
 
 📞 <b>Contact:</b> @{OWNER_USERNAME}
 """
@@ -4220,7 +4262,7 @@ async def cb_support_channel(callback: CallbackQuery):
 • Tips & Tricks
 • Exclusive Discounts
 
-🔔 <b>Notifications ON kar dena!</b>
+🔔 <b>Please turn ON notifications!</b>
 """
 
     join_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -4239,7 +4281,7 @@ async def cb_terms_service(callback: CallbackQuery):
         return
 
     text = """
-📜 <b>Seva Ki Shartein (Terms of Service)</b>
+📜 <b>Terms of Service</b>
 
 📝 <b>Important Terms:</b>
 
@@ -4249,13 +4291,13 @@ async def cb_terms_service(callback: CallbackQuery):
 • Real & active users only
 
 2️⃣ <b>Refund Policy:</b>
-• Service start ke baad no refund
-• Wrong link ke liye customer responsible
-• Technical issues mein full refund
+• No refund after service starts
+• Customer responsible for wrong links
+• Full refund for technical issues
 
 3️⃣ <b>Account Safety:</b>
-• 100% safe methods use karte hain
-• Account ban nahi hoga
+• We use 100% safe methods
+• Your account will not be banned
 • Privacy fully protected
 
 4️⃣ <b>Delivery Time:</b>
@@ -4282,7 +4324,7 @@ async def cb_coupon_redeem(callback: CallbackQuery):
         return
 
     text = """
-🎟️ <b>Coupon Redeem Karein</b>
+🎟️ <b>Redeem Coupon</b>
 
 💝 <b>Discount Coupons & Promo Codes</b>
 
@@ -5349,6 +5391,9 @@ async def cb_admin_cancel_reason(callback: CallbackQuery):
 
     # Parse callback data - support both legacy and smart formats
     # Format: cancel_reason_ORDER_ID_[CUSTOMER_ID_]REASON
+    if not callback.data:
+        await callback.answer("❌ Invalid callback data!", show_alert=True)
+        return
     callback_parts = callback.data.split("_")
     order_id = callback_parts[2] if len(callback_parts) > 2 else None
     customer_id = None
@@ -5991,8 +6036,12 @@ async def handle_photo_input(message: Message):
             return
 
         # Get the largest photo size
-        photo = message.photo[-1]
-        file_id = photo.file_id
+        if len(message.photo) > 0:
+            photo = message.photo[-1]
+            file_id = photo.file_id
+        else:
+            await message.answer("⚠️ No valid photo sizes found!")
+            return
 
         # Store photo file_id in user data
         users_data[user_id]['profile_photo'] = file_id
@@ -6031,7 +6080,11 @@ async def handle_photo_input(message: Message):
             return
 
         # Store the screenshot file_id
-        user_state[user_id]["data"]["screenshot_file_id"] = message.photo[-1].file_id
+        if message.photo and len(message.photo) > 0:
+            user_state[user_id]["data"]["screenshot_file_id"] = message.photo[-1].file_id
+        else:
+            await message.answer("⚠️ Could not process screenshot. Please upload a valid image.")
+            return
 
         # Send admin notification
         await send_admin_notification(order_data)
