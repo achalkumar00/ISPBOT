@@ -5,6 +5,9 @@ Dedicated handlers for FSM states in the order flow
 """
 
 import re
+import time
+import random
+from datetime import datetime
 from aiogram import F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -477,6 +480,18 @@ Your order has been cancelled successfully.
 
         print(f"❌ OFFER FSM: Order cancelled by user {user.id}")
         
+    elif callback_query.data == "offer_add_fund_btn":
+        await handle_offer_add_fund(callback_query, state)
+        
+    elif callback_query.data == "offer_direct_payment_btn":
+        await handle_offer_direct_payment(callback_query, state)
+        
+    elif callback_query.data == "offer_generate_qr_btn":
+        await handle_offer_generate_qr(callback_query, state)
+        
+    elif callback_query.data == "offer_payment_done":
+        await handle_offer_payment_done(callback_query, state)
+        
     else:
         await callback_query.answer("❌ Unknown action!")
         print(f"⚠️ OFFER FSM: Unknown callback data: {callback_query.data}")
@@ -643,3 +658,249 @@ async def handle_offer_add_fund(callback_query, state: FSMContext):
         await callback_query.message.edit_text(add_fund_text, reply_markup=add_fund_buttons)
     
     print(f"💰 OFFER FSM: Add fund info shown to user {user.id}")
+
+
+async def handle_offer_generate_qr(callback_query, state: FSMContext):
+    """Handle offer QR code generation - copy from existing QR functionality"""
+    if not callback_query.data:
+        await callback_query.answer("❌ Invalid action!")
+        return
+    
+    user = callback_query.from_user
+    if not user:
+        await callback_query.answer("❌ User not found!")
+        return
+    
+    print(f"📱 OFFER FSM: Generate QR Code selected by user {user.id}")
+    
+    try:
+        # Get all offer data from FSM state
+        data = await state.get_data()
+        offer_id = data.get("offer_id", "")
+        package_name = data.get("package_name", "")
+        rate = data.get("rate", "")
+        link = data.get("link", "")
+        quantity = data.get("quantity", 0)
+        has_fixed_quantity = data.get("has_fixed_quantity", False)
+        fixed_quantity = data.get("fixed_quantity")
+        
+        # Use fixed quantity if enabled, otherwise use user input
+        final_quantity = fixed_quantity if has_fixed_quantity and fixed_quantity else quantity
+        
+        if not final_quantity:
+            await callback_query.answer("⚠️ Order data incomplete!", show_alert=True)
+            return
+        
+        # Calculate total amount
+        total_amount = calculate_offer_amount(rate, final_quantity)
+        transaction_id = f"OFFER{int(time.time())}{random.randint(100, 999)}"
+        
+        await callback_query.answer("🔄 Generating QR Code...")
+        
+        # Import QR generation function from payment_system
+        from payment_system import generate_payment_qr, PAYMENT_CONFIG
+        
+        # Generate QR code using existing function
+        qr_data = generate_payment_qr(
+            total_amount,
+            PAYMENT_CONFIG['upi_id'],
+            PAYMENT_CONFIG['upi_name'],
+            transaction_id
+        )
+        
+        # Prepare QR code message text
+        qr_text = f"""
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📊 <b>OFFER QR CODE PAYMENT</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 <b>Special Offer Payment - QR Code Generated!</b>
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💳 <b>OFFER PAYMENT DETAILS</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 🎁 <b>Offer Package:</b> {package_name}
+┃ • 💰 <b>Special Rate:</b> {rate}
+┃ • 🔗 <b>Target Link:</b> {link}
+┃ • 📈 <b>Quantity:</b> {final_quantity:,} units
+┃ • 💳 <b>Total Amount:</b> ₹{total_amount:,.2f}
+┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
+┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 <b>PAYMENT INSTRUCTIONS:</b>
+
+🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
+🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
+🔸 <b>Step 3:</b> Scan the QR code above
+🔸 <b>Step 4:</b> Verify amount: ₹{total_amount:,.2f}
+🔸 <b>Step 5:</b> Complete payment with your UPI PIN
+🔸 <b>Step 6:</b> Click "Payment Completed" button below
+
+✨ <b>SPECIAL OFFER BENEFITS:</b>
+• 🎁 Exclusive offer pricing
+• ⚡ Priority processing
+• 🔒 100% secure payment
+• 💎 Premium service quality
+
+🎉 <b>Your special offer order will be processed immediately!</b>
+"""
+        
+        qr_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Payment Completed", callback_data="offer_payment_done"),
+                InlineKeyboardButton(text="❌ Cancel Order", callback_data="offer_cancel_order_final_btn")
+            ],
+            [
+                InlineKeyboardButton(text="📱 Other Payment Methods", callback_data="offer_direct_payment_btn")
+            ]
+        ])
+        
+        if qr_data:
+            from aiogram.types import BufferedInputFile
+            qr_file = BufferedInputFile(qr_data, filename="offer_payment_qr.png")
+            await callback_query.message.answer_photo(
+                photo=qr_file,
+                caption=qr_text,
+                reply_markup=qr_keyboard,
+                parse_mode="HTML"
+            )
+        else:
+            # Fallback if QR generation fails - show manual payment
+            fallback_text = f"""
+💳 <b>Manual UPI Payment for Offer</b>
+
+📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
+💰 <b>Amount:</b> ₹{total_amount:,.2f}
+🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
+
+📝 <b>Manual Payment Steps:</b>
+1. Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
+2. Select "Send Money" or "Pay to Contact"
+3. Enter UPI ID: <code>{PAYMENT_CONFIG['upi_id']}</code>
+4. Enter amount: ₹{total_amount:,.2f}
+5. Add remark: {transaction_id}
+6. Complete payment with UPI PIN
+
+⚠️ <b>QR code generation issue - Please use manual payment</b>
+💡 <b>After payment, click "Payment Completed" button below</b>
+
+✅ <b>Your offer order will be processed after payment verification</b>
+"""
+            
+            await callback_query.message.answer(fallback_text, reply_markup=qr_keyboard, parse_mode="HTML")
+        
+        print(f"📱 OFFER FSM: QR Code generated for user {user.id}, amount: ₹{total_amount}")
+        
+    except Exception as e:
+        print(f"❌ OFFER QR GENERATION ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        await callback_query.answer("❌ QR generation failed. Please try again.", show_alert=True)
+
+
+async def handle_offer_payment_done(callback_query, state: FSMContext):
+    """Handle offer payment completion - skip screenshot and send group notification directly"""
+    if not callback_query.data:
+        await callback_query.answer("❌ Invalid action!")
+        return
+    
+    user = callback_query.from_user
+    if not user:
+        await callback_query.answer("❌ User not found!")
+        return
+    
+    print(f"✅ OFFER FSM: Payment completed by user {user.id}")
+    
+    try:
+        # Get all offer data from FSM state
+        data = await state.get_data()
+        offer_id = data.get("offer_id", "")
+        package_name = data.get("package_name", "")
+        rate = data.get("rate", "")
+        link = data.get("link", "")
+        quantity = data.get("quantity", 0)
+        has_fixed_quantity = data.get("has_fixed_quantity", False)
+        fixed_quantity = data.get("fixed_quantity")
+        
+        # Use fixed quantity if enabled, otherwise use user input
+        final_quantity = fixed_quantity if has_fixed_quantity and fixed_quantity else quantity
+        total_amount = calculate_offer_amount(rate, final_quantity)
+        
+        # Generate unique order ID
+        import time
+        import random
+        order_id = f"OFFER-{int(time.time())}-{random.randint(1000, 9999)}"
+        
+        # Clear FSM state as order process is complete
+        await state.clear()
+        
+        # Create order record for group notification
+        order_record = {
+            'order_id': order_id,
+            'user_id': user.id,
+            'package_name': package_name,
+            'service_id': offer_id,
+            'platform': 'special_offer',
+            'link': link,
+            'quantity': final_quantity,
+            'total_price': total_amount,
+            'status': 'processing',
+            'created_at': datetime.now().isoformat(),
+            'payment_method': 'Offer QR Payment',
+            'payment_status': 'completed',
+            'offer_id': offer_id,
+            'original_rate': rate
+        }
+        
+        # Send group notification using existing function
+        from main import send_admin_notification
+        await send_admin_notification(order_record)
+        
+        # Send success message to user
+        success_text = f"""
+🎉 <b>Special Offer Order Placed Successfully!</b>
+
+✅ <b>Payment confirmed and order processing started!</b>
+
+📦 <b>Order Confirmation:</b>
+• 🆔 <b>Order ID:</b> <code>{order_id}</code>
+• 🎁 <b>Offer Package:</b> {package_name}
+• 💰 <b>Special Rate:</b> {rate}
+• 🔗 <b>Target Link:</b> {link}
+• 📊 <b>Quantity:</b> {final_quantity:,} units
+• 💳 <b>Amount Paid:</b> ₹{total_amount:,.2f}
+
+📋 <b>Order Status:</b> ⏳ Processing Started
+🔄 <b>Payment Status:</b> ✅ Confirmed
+⏰ <b>Processing Time:</b> 0-6 hours
+
+🎁 <b>Special Offer Benefits:</b>
+• ⚡ Priority processing
+• 💎 Premium quality guaranteed
+• 🚀 Faster delivery
+• 💬 VIP support access
+
+💡 <b>Order ID को save करके रखें - tracking के लिए जरूरी है!</b>
+
+🙏 <b>Thank you for choosing our special offer!</b>
+"""
+        
+        success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📋 Copy Order ID", callback_data=f"copy_order_id_{order_id}"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+            ]
+        ])
+        
+        await callback_query.answer("🎉 Order placed successfully!")
+        await callback_query.message.answer(success_text, reply_markup=success_keyboard, parse_mode="HTML")
+        
+        print(f"✅ OFFER FSM: Order {order_id} completed for user {user.id}")
+        print(f"📤 OFFER FSM: Group notification sent for order {order_id}")
+        
+    except Exception as e:
+        print(f"❌ OFFER PAYMENT COMPLETION ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        await callback_query.answer("❌ Order processing failed. Please contact support.", show_alert=True)
