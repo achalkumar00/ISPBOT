@@ -1267,7 +1267,7 @@ async def handle_email_input(message, user_id):
 │ <tg-spoiler><code>{access_token}</code></tg-spoiler> │
 └─────────────────────────────────────┘
 
-💡 <b>Security Feature:</b> ऊपर के hidden content को देखने के लिए tap करें!
+💡 <b>Security Feature:</b> Tap to view the hidden content above!
 
 ⚠️ <b>SECURITY NOTICE:</b>
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
