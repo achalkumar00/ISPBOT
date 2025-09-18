@@ -881,7 +881,7 @@ async def handle_offer_payment_done(callback_query, state: FSMContext):
 • 🚀 Faster delivery
 • 💬 VIP support access
 
-💡 <b>Order ID को save करके रखें - tracking के लिए जरूरी है!</b>
+💡 <b>Save and keep the Order ID - it's essential for tracking!</b>
 
 🙏 <b>Thank you for choosing our special offer!</b>
 """
