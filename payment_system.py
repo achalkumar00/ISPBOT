@@ -360,8 +360,13 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📋 Copy Bank Details", callback_data="copy_bank_details")],
-            [InlineKeyboardButton(text="⬅️ Back to Bank Transfer", callback_data="payment_bank")]
+            [
+                InlineKeyboardButton(text="📱 UPI Payment", callback_data="payment_upi"),
+                InlineKeyboardButton(text="📊 Generate QR Now", callback_data="instant_qr_generate")
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Back to Net Banking", callback_data="payment_netbanking")
+            ]
         ])
 
         await safe_edit_message(callback, text, keyboard)
