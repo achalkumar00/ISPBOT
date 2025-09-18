@@ -544,7 +544,7 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 💳 <b>PAYMENT SUMMARY</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Payment Amount:</b> {format_currency(amount)}
+┃ • 💰 <b>Payment Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 ┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
 ┃ • 📱 <b>Payment Method:</b> UPI Gateway
 ┃ • ⏰ <b>Status:</b> Awaiting Verification
@@ -640,7 +640,7 @@ Click "New Order" to start fresh!
 2. Open UPI app
 3. Select "Scan QR Code"
 4. Scan generated code
-5. Verify amount और complete payment
+5. Verify amount and complete payment
 
 🔸 <b>Method 3: UPI App Link</b>
 1. Click "Open UPI App" button
@@ -981,9 +981,9 @@ No payment history found
             print(f"CRITICAL ERROR in cb_qr_generate: {e}")
             await callback.answer("An error occurred. Please try again.", show_alert=True)
 
-    async def send_manual_payment_fallback(message, amount: float, transaction_id: str, keyboard):
-        """Send manual payment fallback when QR fails"""
-        fallback_text = f"""
+async def send_manual_payment_fallback(message, amount: float, transaction_id: str, keyboard):
+    """Send manual payment fallback when QR fails"""
+    fallback_text = f"""
 💳 <b>Manual UPI Payment</b>
 
 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
@@ -1004,7 +1004,7 @@ No payment history found
 ✅ <b>You can also send a screenshot after successful payment</b>
 """
 
-        await message.answer(fallback_text, reply_markup=keyboard, parse_mode="HTML")
+    await message.answer(fallback_text, reply_markup=keyboard, parse_mode="HTML")
 
     @main_dp.callback_query(F.data.startswith("open_upi_"))
     async def cb_open_upi(callback: CallbackQuery):
@@ -1316,7 +1316,7 @@ async def cb_payment_done_qr(callback: CallbackQuery):
     user_id = callback.from_user.id
 
     # Check if user is in correct state
-    if user_id not in user_state or user_state[user_id].get("current_step") != "waiting_screenshot_upload":
+    if not user_state or user_id not in user_state or (user_state[user_id] and user_state[user_id].get("current_step") != "waiting_screenshot_upload"):
         await callback.answer("⚠️ Invalid order state!")
         return
 
