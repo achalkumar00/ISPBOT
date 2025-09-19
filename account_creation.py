@@ -267,14 +267,14 @@ def get_initial_options_menu() -> InlineKeyboardMarkup:
     """Build initial options menu with create account and login"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📝 Create New Account", callback_data="create_account")
+            InlineKeyboardButton(text="🚀 Create Free Account", callback_data="create_account")
         ],
         [
             InlineKeyboardButton(text="📱 Login with Phone", callback_data="login_account"),
-            InlineKeyboardButton(text="🔐 Login with Token", callback_data="login_with_token")
+            InlineKeyboardButton(text="🔐 Access Token Login", callback_data="login_with_token")
         ],
         [
-            InlineKeyboardButton(text="❓ Help & Support", callback_data="help_support")
+            InlineKeyboardButton(text="💬 Help & Support", callback_data="help_support")
         ]
     ])
 
