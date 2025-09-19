@@ -181,7 +181,7 @@ def get_services_main_menu() -> InlineKeyboardMarkup:
     """Build main services selection menu"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="📷 Instagram", callback_data="service_instagram"),
+            InlineKeyboardButton(text="📸 INSTAGRAM", callback_data="service_instagram"),
             InlineKeyboardButton(text="📘 Facebook", callback_data="service_facebook")
         ],
         [
@@ -213,44 +213,114 @@ def get_package_description(platform: str, service_id: str) -> dict:
     package_details = {
         # Instagram Followers - 5 Different Quality Packages
         "2001": {
-            "name": "👥 Instagram Followers - 💰 Economy",
+            "name": "👥 Instagram Followers - ",
             "price": "₹150 per 1000 followers",
             "delivery_time": "12-24 hours start, 5-7 days completion",
             "quality": "Basic Quality Users",
-            "description": "Budget-friendly Instagram followers for beginners. Perfect for those who want to increase their follower count without spending much. Basic quality accounts with minimal profile pictures.",
-            "features": ["✅ Real Accounts", "✅ Saf Methods", "✅ Slow & Steady Growth", "✅ Email Support Only", "✅ 60% Retention Rate", "⚠️ No Refill Guarantee"]
+            "description": """You must turn off the "Flag for review" option before ordering Instagram followers and for refill support.
+
+हिन्दी:
+Instagram Followers Order karne Se Pehle Ya Refill Support K liye Aapko Pehle Jarur Us I'd ka "Flag for review" Option Ko Off Karna hoga.
+
+⏳ Start Time: 0 – 30 Minutes
+⚡ Delivery Speed: Up to 20K Followers / Day
+💎 Quality: Real + Active Mix (High Engagement)
+💧 Drop Rate: 2% – 5% (Mostly Stable)
+♻️ Refill: 30 Days Auto Refill (Instant Processing)
+🔗 Works On: Profile Link Only
+
+⚠️ If the Flag for Review option is ON → 🚫 No refill / refund will be provided.
+⚠️ If the Flag for Review option is turned OFF after the order is completed → ❌ No refill / refund will be possible.
+💡 To learn how to turn OFF "Flag for Review", use the command below:
+➡️ /flag_help""",
         },
         "2002": {
             "name": "👥 Instagram Followers - 📈 Standard",
             "price": "₹250 per 1000 followers",
             "delivery_time": "6-12 hours start, 3-5 days completion",
             "quality": "Standard Quality Real Users",
-            "description": "Our most popular followers package with balanced quality and pricing. Standard accounts with moderate activity and profile completeness. Great for regular content creators.",
-            "features": ["✅ Real Active Users", "✅ Moderate Engagement", "✅ Normal Delivery Speed", "✅ Chat Support", "✅ 75% Retention Rate", "✅ 15-day Refill"]
+            "description": """You must turn off the "Flag for review" option before ordering Instagram followers and for refill support.
+
+हिन्दी:
+Instagram Followers Order karne Se Pehle Ya Refill Support K liye Aapko Pehle Jarur Us I'd ka "Flag for review" Option Ko Off Karna hoga.
+
+⏳ Start Time: 60 – 180 Minutes
+⚡ Delivery Speed: Up to 5K Followers / Day
+💎 Quality: Real + Mix (High Engagement)
+💧 Drop Rate: Low 
+♻️ Refill: Now
+🔗 Works On: Profile Link Only
+
+⚠️ If the Flag for Review option is ON → 🚫 No refill / refund will be provided.
+⚠️ If the Flag for Review option is turned OFF after the order is completed → ❌ No refill / refund will be possible.
+💡 To learn how to turn OFF "Flag for Review", use the command below:
+➡️ /flag_help""",
         },
         "2003": {
             "name": "👥 Instagram Followers - ⭐ Premium",
-            "price": "₹375 per 1000 followers",
+            "price": "₹300 per 1000 followers",
             "delivery_time": "2-6 hours start, 1-3 days completion",
             "quality": "High Quality Premium Users",
-            "description": "Premium quality Instagram followers with complete profiles and regular activity. These followers engage with content and have profile pictures, posts, and stories.",
-            "features": ["✅ Premium Accounts", "✅ High Engagement Potential", "✅ Fast Start", "✅ Priority Chat Support", "✅ 85% Retention Rate", "✅ 30-day Refill Guarantee"]
+            "description": """You must turn off the "Flag for review" option before ordering Instagram followers and for refill support.
+
+हिन्दी:
+Instagram Followers Order karne Se Pehle Ya Refill Support Ke liye Aapko Pehle Jarur Us I'd ka "Flag for review" Option Ko Off Karna hoga.
+
+⏳ Start Time: 30 – 120 Minutes
+⚡ Delivery Speed: Up to 10K Followers / Day
+💎 Quality: Real +  Mix (High Engagement)
+💧 Drop Rate: 5% – 10% (Mostly Stable)
+♻️ Refill: 60 Days Auto Refill (Instant Processing)
+🔗 Works On: Profile Link Only
+
+⚠️ If the Flag for Review option is ON → 🚫 No refill / refund will be provided.
+⚠️ If the Flag for Review option is turned OFF after the order is completed → ❌ No refill / refund will be possible.
+💡 To learn how to turn OFF "Flag for Review", use the command below:
+➡️ /flag_help""",
         },
         "2004": {
             "name": "👥 Instagram Followers - 🇮🇳 Indian Premium",
-            "price": "₹450 per 1000 followers",
+            "price": "₹359 per 1000 followers",
             "delivery_time": "1-3 hours start, 12-24 hours completion",
             "quality": "Premium Indian Users Only",
-            "description": "Exclusively Indian Instagram followers for local business growth. Perfect for targeting Indian audience with Hindi/English usernames and regional preferences.",
-            "features": ["✅ 100% Indian Geography", "✅ Local Market Targeting", "✅ Quick Start", "✅ Hindi/English Names", "✅ 90% Retention Rate", "✅ Lifetime Refill Support"]
+            "description": """You must turn off the "Flag for review" option before ordering Instagram followers and for refill support.
+
+हिन्दी:
+Instagram Followers Order karne Se Pehle Ya Refill Support K liye Aapko Pehle Jarur Us I'd ka "Flag for review" Option Ko Off Karna hoga.
+
+⏳ Start Time: 0 – 60 Minutes
+⚡ Delivery Speed: Up to 20K Followers / Day
+💎 Quality:  Mix (High Engagement)
+💧 Drop Rate: 2% – 5% (Mostly Stable)
+♻️ Refill: 180 Days Auto Refill (Instant Processing)
+🔗 Works On: Profile Link Only
+
+⚠️ If the Flag for Review option is ON → 🚫 No refill / refund will be provided.
+⚠️ If the Flag for Review option is turned OFF after the order is completed → ❌ No refill / refund will be possible.
+💡 To learn how to turn OFF "Flag for Review", use the command below:
+➡️ /flag_help""",
         },
         "2005": {
             "name": "👥 Instagram Followers - 👑 VIP Elite",
-            "price": "₹550 per 1000 followers",
+            "price": "₹480 per 1000 followers",
             "delivery_time": "Instant start, 6-12 hours completion",
             "quality": "VIP Elite Maximum Quality",
-            "description": "Our highest quality Instagram followers with maximum engagement and activity. These are carefully selected premium accounts that actively like, comment and share content.",
-            "features": ["✅ Elite Quality Users", "✅ Maximum Engagement", "✅ Instant Start", "✅ 24/7 VIP Support", "✅ 95% Retention Rate", "✅ Unlimited Refill Warranty"]
+            "description": """You must turn off the "Flag for review" option before ordering Instagram followers and for refill support.
+
+हिन्दी:
+Instagram Followers Order karne Se Pehle Ya Refill Support K liye Aapko Pehle Jarur Us I'd ka "Flag for review" Option Ko Off Karna hoga.
+
+⏳ Start Time: 0 – 30 Minutes
+⚡ Delivery Speed: Up to 200K Followers / Day
+💎 Quality: Real + Active Mix (High Engagement)
+💧 Drop Rate: Non Drop (Mostly Stable)
+♻️ Refill: Lifetime Auto Refill (Instant Processing)
+🔗 Works On: Profile Link Only
+
+⚠️ If the Flag for Review option is ON → 🚫 No refill / refund will be provided.
+⚠️ If the Flag for Review option is turned OFF after the order is completed → ❌ No refill / refund will be possible.
+💡 To learn how to turn OFF "Flag for Review", use the command below:
+➡️ /flag_help""",
         },
 
         # Instagram Post Likes - 5 Different Quality Packages
@@ -259,124 +329,55 @@ def get_package_description(platform: str, service_id: str) -> dict:
             "price": "₹18 per 1000 likes",
             "delivery_time": "4-8 hours start, 24-48 hours completion",
             "quality": "Basic Quality Likes",
-            "description": "Affordable Instagram post likes for budget-conscious users. Basic engagement boost from real accounts with slower delivery speed.",
-            "features": ["✅ Real Account Likes", "✅ Safe Delivery Process", "✅ Gradual Growth Pattern", "✅ Basic Email Support", "⚠️ No Drop Protection"]
+            "description": """⏳ Start Time: 0–60 Minutes
+⚡ Speed: 20K Likes / Day 🚀
+💧 Drop Rate: 0–10% (Almost Stable)
+♻️ Refill / Refund: ❌ Not Available
+💎 Quality: Low-Quality Realistic Engagement
+🔗 Link Required: Post / Reel / Video Link""",
         },
         "2012": {
             "name": "❤️ Instagram Post Likes - 📈 Standard",
             "price": "₹30 per 1000 likes",
             "delivery_time": "2-4 hours start, 12-24 hours completion",
             "quality": "Standard Quality Real Likes",
-            "description": "Standard Instagram post likes with good balance of quality and speed. Perfect for regular posts and consistent engagement growth.",
-            "features": ["✅ Active User Likes", "✅ Moderate Speed Delivery", "✅ Organic Growth Look", "✅ Chat Support Available", "✅ Minor Drop Protection"]
+            "description": 
         },
         "2013": {
             "name": "❤️ Instagram Post Likes - ⭐ Premium",
             "price": "₹45 per 1000 likes",
             "delivery_time": "1-2 hours start, 6-12 hours completion",
-            "quality": "Premium High-Quality Likes",
-            "description": "Premium Instagram post likes from high-quality accounts with profile pictures and activity. Enhanced engagement for better visibility.",
-            "features": ["✅ Premium Account Likes", "✅ Fast Delivery Speed", "✅ High Quality Profiles", "✅ Priority Support", "✅ Drop Protection Included"]
+            "quality": "Premium Quality Real Likes",
+            "description": """⏳ Start Time: 0–60 Minutes
+⚡ Speed: 50K Likes / Day 🚀
+💧 Drop Rate: 0–7% (Almost Stable)
+♻️ Refill / Refund: ❌ Not Available
+💎 Quality: High-Quality Realistic Engagement
+🔗 Link Required: Post / Reel / Video Link""",
         },
         "2014": {
             "name": "❤️ Instagram Post Likes - 🇮🇳 Indian Premium",
             "price": "₹54 per 1000 likes",
             "delivery_time": "30 minutes - 2 hours start, 3-6 hours completion",
             "quality": "Premium Indian User Likes",
-            "description": "Exclusive Indian Instagram post likes for local engagement targeting. Perfect for businesses wanting Indian audience interaction.",
-            "features": ["✅ 100% Indian Users", "✅ Local Engagement Focus", "✅ Super Fast Start", "✅ Regional Targeting", "✅ Advanced Drop Protection"]
+            "description": """⏳ Start Time: 0–60 Minutes
+⚡ Speed: 50K Likes / Day 🚀
+💧 Drop Rate: 0–7% (Almost Stable)
+♻️ Refill / Refund: ❌ Not Available
+💎 Quality: High-Quality Realistic Engagement
+🔗 Link Required: Post / Reel / Video Link""",
         },
         "2015": {
             "name": "❤️ Instagram Post Likes - 👑 VIP Elite",
             "price": "₹66 per 1000 likes",
             "delivery_time": "Instant start, 1-3 hours completion",
             "quality": "VIP Elite Maximum Quality",
-            "description": "The fastest and highest quality Instagram post likes available. Instant engagement boost from premium active accounts for viral growth.",
-            "features": ["✅ Elite Premium Likes", "✅ Lightning Fast Delivery", "✅ Maximum Impact", "✅ VIP Priority Support", "✅ 100% Drop Protection Guarantee"]
-        },
-
-        # Instagram Reel Likes - 5 Different Quality Packages
-        "2021": {
-            "name": "❤️ Instagram Reel Likes - 💰 Economy",
-            "price": "₹18 per 1000 likes",
-            "delivery_time": "6-10 hours start, 2-3 days completion",
-            "quality": "Basic Reel Likes",
-            "description": "Cost-effective Instagram reel likes for basic engagement. Slow but steady growth for reels with minimal investment.",
-            "features": ["✅ Real Reel Likes", "✅ Budget-Friendly Option", "✅ Slow Growth Pattern", "✅ Basic Support", "⚠️ Limited Quality Assurance"]
-        },
-        "2022": {
-            "name": "❤️ Instagram Reel Likes - 📈 Standard",
-            "price": "₹30 per 1000 likes",
-            "delivery_time": "3-6 hours start, 18-36 hours completion",
-            "quality": "Standard Reel Engagement",
-            "description": "Standard quality Instagram reel likes with balanced delivery speed. Good for regular reel creators who want consistent engagement.",
-            "features": ["✅ Standard Quality Likes", "✅ Balanced Speed", "✅ Regular User Accounts", "✅ Standard Support", "✅ Basic Retention Guarantee"]
-        },
-        "2023": {
-            "name": "❤️ Instagram Reel Likes - ⭐ Premium",
-            "price": "₹45 per 1000 likes",
-            "delivery_time": "1-3 hours start, 8-15 hours completion",
-            "quality": "Premium Reel Engagement",
-            "description": "Premium Instagram reel likes from active accounts that regularly engage with video content. Better visibility and reach for your reels.",
-            "features": ["✅ Premium Reel Likes", "✅ Video Content Specialists", "✅ Enhanced Visibility", "✅ Priority Support", "✅ Quality Retention Assurance"]
-        },
-        "2024": {
-            "name": "❤️ Instagram Reel Likes - 🇮🇳 Indian Premium",
-            "price": "₹54 per 1000 likes",
-            "delivery_time": "30 minutes - 1 hour start, 4-8 hours completion",
-            "quality": "Indian Premium Reel Likes",
-            "description": "High-quality Indian Instagram reel likes for local content targeting. Perfect for Hindi/regional content creators and local businesses.",
-            "features": ["✅ 100% Indian Reel Likes", "✅ Local Content Focus", "✅ Ultra Fast Delivery", "✅ Cultural Targeting", "✅ Premium Retention"]
-        },
-        "2025": {
-            "name": "❤️ Instagram Reel Likes - 👑 VIP Elite",
-            "price": "₹66 per 1000 likes",
-            "delivery_time": "Instant start, 2-4 hours completion",
-            "quality": "VIP Elite Reel Engagement",
-            "description": "Ultimate Instagram reel likes for viral growth. Instant engagement from highly active accounts that love video content.",
-            "features": ["✅ Elite Reel Specialists", "✅ Viral Growth Potential", "✅ Instant Engagement", "✅ VIP Support", "✅ Maximum Retention Guarantee"]
-        },
-
-        # Instagram Post Views - 5 Different Quality Packages
-        "2031": {
-            "name": "👁️ Instagram Post Views - 💰 Economy",
-            "price": "₹12 per 1000 views",
-            "delivery_time": "8-12 hours start, 2-4 days completion",
-            "quality": "Basic Post Views",
-            "description": "Economical Instagram post views for basic reach increase. Simple view boost without advanced targeting or rapid delivery.",
-            "features": ["✅ Real Post Views", "✅ Cost-Effective", "✅ Gradual Delivery", "✅ Email Support", "⚠️ No View Duration Guarantee"]
-        },
-        "2032": {
-            "name": "👁️ Instagram Post Views - 📈 Standard",
-            "price": "₹20 per 1000 views",
-            "delivery_time": "4-8 hours start, 1-2 days completion",
-            "quality": "Standard Post Views",
-            "description": "Standard Instagram post views with moderate delivery speed and good quality. Ideal for regular content creators seeking steady growth.",
-            "features": ["✅ Quality Post Views", "✅ Steady Growth Rate", "✅ Moderate Speed", "✅ Chat Support", "✅ Basic Analytics Boost"]
-        },
-        "2033": {
-            "name": "👁️ Instagram Post Views - ⭐ Premium",
-            "price": "₹30 per 1000 views",
-            "delivery_time": "2-4 hours start, 8-16 hours completion",
-            "quality": "Premium Post Views",
-            "description": "Premium Instagram post views with enhanced engagement quality. Better reach and visibility with faster delivery from active users.",
-            "features": ["✅ Premium Quality Views", "✅ Enhanced Reach", "✅ Fast Delivery", "✅ Priority Support", "✅ Engagement Boost"]
-        },
-        "2034": {
-            "name": "👁️ Instagram Post Views - 🇮🇳 Indian Premium",
-            "price": "₹36 per 1000 views",
-            "delivery_time": "1-2 hours start, 4-8 hours completion",
-            "quality": "Indian Premium Views",
-            "description": "Targeted Indian Instagram post views for local market reach. Perfect for businesses and creators targeting Indian audience specifically.",
-            "features": ["✅ 100% Indian Views", "✅ Local Market Reach", "✅ Quick Delivery", "✅ Geographic Targeting", "✅ Regional Analytics"]
-        },
-        "2035": {
-            "name": "👁️ Instagram Post Views - 👑 VIP Elite",
-            "price": "₹44 per 1000 views",
-            "delivery_time": "Instant start, 2-6 hours completion",
-            "quality": "VIP Elite Views",
-            "description": "Highest quality Instagram post views with maximum engagement potential. Instant boost for viral content and maximum reach.",
-            "features": ["✅ Elite Quality Views", "✅ Maximum Reach Potential", "✅ Instant Delivery", "✅ VIP Support", "✅ Viral Growth Optimization"]
+            "description": """⏳ Start Time: 0–60 Minutes
+⚡ Speed: 50K Likes / Day 🚀
+💧 Drop Rate: 0–7% (Almost Stable)
+♻️ Refill / Refund: ❌ Not Available
+💎 Quality: High-Quality Realistic Engagement
+🔗 Link Required: Post / Reel / Video Link""",
         },
 
         # Instagram Reel Views - 5 Different Quality Packages
@@ -385,40 +386,60 @@ def get_package_description(platform: str, service_id: str) -> dict:
             "price": "₹12 per 1000 views",
             "delivery_time": "10-16 hours start, 3-5 days completion",
             "quality": "Basic Reel Views",
-            "description": "Budget-friendly Instagram reel views for basic reach boost. Suitable for new creators who want to increase their reel visibility gradually.",
-            "features": ["✅ Real Reel Views", "✅ Cost-Effective Solution", "✅ Slow & Steady Growth", "✅ Email Support", "⚠️ No Retention Warranty"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2042": {
             "name": "👁️ Instagram Reel Views - 📈 Standard",
             "price": "₹20 per 1000 views",
             "delivery_time": "5-10 hours start, 1-3 days completion",
             "quality": "Standard Reel Views",
-            "description": "Balanced Instagram reel views with good quality and reasonable pricing. Perfect for content creators seeking consistent reel performance.",
-            "features": ["✅ Quality Reel Views", "✅ Consistent Growth", "✅ Average Speed", "✅ Chat Support", "✅ View Retention Tracking"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2043": {
             "name": "👁️ Instagram Reel Views - ⭐ Premium",
             "price": "₹30 per 1000 views",
             "delivery_time": "2-5 hours start, 6-12 hours completion",
             "quality": "Premium Reel Views",
-            "description": "Premium Instagram reel views from engaged users who actually watch video content. Enhanced algorithmic boost for better reach.",
-            "features": ["✅ Premium Reel Viewers", "✅ Algorithm Friendly", "✅ Faster Delivery", "✅ Priority Support", "✅ Watch Time Optimization"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2044": {
             "name": "👁️ Instagram Reel Views - 🇮🇳 Indian Premium",
             "price": "₹36 per 1000 views",
             "delivery_time": "1-2 hours start, 3-6 hours completion",
             "quality": "Indian Premium Reel Views",
-            "description": "Exclusively Indian Instagram reel views for local content and regional targeting. Best for Hindi and regional language content creators.",
-            "features": ["✅ 100% Indian Reel Views", "✅ Regional Content Focus", "✅ Fast Local Delivery", "✅ Cultural Understanding", "✅ Local Trending Boost"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2045": {
             "name": "👁️ Instagram Reel Views - 👑 VIP Elite",
             "price": "₹44 per 1000 views",
             "delivery_time": "Instant start, 1-4 hours completion",
             "quality": "VIP Elite Reel Views",
-            "description": "Ultimate Instagram reel views package for viral growth. Instant high-quality views from premium accounts with maximum watch time.",
-            "features": ["✅ Elite Reel Viewers", "✅ Viral Growth Potential", "✅ Instant Delivery", "✅ VIP Support", "✅ Maximum Watch Time"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
 
         # Instagram Story Views - 5 Different Quality Packages
@@ -427,39 +448,60 @@ def get_package_description(platform: str, service_id: str) -> dict:
             "price": "₹12 per 1000 views",
             "delivery_time": "6-12 hours start, 24-48 hours completion",
             "quality": "Basic Story Views",
-            "description": "Affordable Instagram story views for basic reach increase. Simple view boost for stories with budget-friendly pricing.",
-            "features": ["✅ Real Story Views", "✅ Budget Option", "✅ Safe Growth", "✅ Email Support", "⚠️ Basic Quality Only"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2052": {
             "name": "📖 Instagram Story Views - 📈 Standard",
             "price": "₹20 per 1000 views",
             "delivery_time": "3-6 hours start, 12-24 hours completion",
             "quality": "Standard Story Views",
-            "description": "Standard Instagram story views with reliable delivery. Good for regular story posters who want consistent audience engagement.",
-            "features": ["✅ Standard Story Views", "✅ Regular Growth", "✅ Reliable Delivery", "✅ Chat Support", "✅ Story Analytics Boost"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2053": {
             "name": "📖 Instagram Story Views - ⭐ Premium",
             "price": "₹30 per 1000 views",
             "delivery_time": "1-3 hours start, 6-12 hours completion",
             "quality": "Premium Story Views",
-            "description": "Premium Instagram story views from active users who regularly check stories. Better engagement and story completion rates.",
-            "features": ["✅ Premium Story Viewers", "✅ High Completion Rate", "✅ Fast Delivery", "✅ Priority Support", "✅ Story Engagement Boost"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2054": {
             "name": "📖 Instagram Story Views - 🇮🇳 Indian Premium",
             "price": "₹36 per 1000 views",
             "delivery_time": "30 minutes - 1 hour start, 2-4 hours completion",
             "quality": "Indian Premium Story Views",
-            "description": "High-quality Indian Instagram story views for local audience targeting. Perfect for location-based businesses and Indian content.",
-            "features": ["✅ 100% Indian Story Views", "✅ Local Audience Focus", "✅ Super Fast Start", "✅ Regional Targeting", "✅ Local Business Boost"]
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
         },
         "2055": {
             "name": "📖 Instagram Story Views - 👑 VIP Elite",
             "price": "₹44 per 1000 views",
             "delivery_time": "Instant start, 1-2 hours completion",
             "quality": "VIP Elite Story Views",
-            "description": "Maximum quality Instagram story views with instant delivery. Premium accounts that actively engage with story content.",
+            "description": """⏳ Start: 0–30 Minutes  
+⚡ Speed: Up to 150K Views / Day 🚀  
+💧 Drop: 0–5% (Pretty Stable)  
+♻️ Refill / Refund: ❌ Not Applicable  
+💎 Quality: Authentic & Natural View Count  
+🔗 Link: Reel / Video / Post Link Required""",
             "features": ["✅ Elite Story Viewers", "✅ Maximum Engagement", "✅ Instant Delivery", "✅ VIP Support", "✅ Story Highlights Boost"]
         },
 
@@ -971,29 +1013,25 @@ def get_package_description(platform: str, service_id: str) -> dict:
     })
 
     # Create detailed description text
-    features_text = "\\n".join(package_info["features"])
+    features_text = "\\n".join(package_info.get("features", []))
 
     text = f"""
 🎯 <b>{package_info["name"]}</b>
 
 🆔 <b>Service ID:</b> {service_id}
 💰 <b>Price:</b> {package_info["price"]}
-⏰ <b>Delivery:</b> {package_info["delivery_time"]}
-🏆 <b>Quality:</b> {package_info["quality"]}
 
 📋 <b>Service Description:</b>
 {package_info["description"]}
 
-✨ <b>Key Features:</b>
-{features_text}
 
-⚠️ <b>Important Terms & Conditions:</b>
-• Your profile/link must be public and accessible
-• We guarantee the promised delivery time and quality
-• Refill provided within 30 days if any drops occur
-• No password or sensitive information required
-• Safe and secure delivery methods only
-• 24/7 customer support available
+⚠️ <b>••••••••••⫷𝗡𝗢𝗧𝗘⫸••••••••••</b>
+• ✅ Account Must Be Public.
+• ❌ Private Id Not Working.
+• ✅ Always double-check the link before ordering to avoid issues.
+• ⚠️ Do Not Place a Second Order On The Same Link Before Your Order Is Completed In The System. If You Do This, We Will Not Be Able To Fix It, Wait For The First Order To Be Completed, Then Place New Order.
+• 👉 You may only change your username or switch to private after the order has been completed.Until completion, please keep your account details unchanged for smooth delivery.
+•⚠️  If you enter a wrong / non-working link OR make changes to your username / account privacy before the order is completed → your order will immediately stop and no refund will be provided.
 
 💡 <b>Have you read all the details and agree to the terms & conditions?</b>
 
@@ -1019,102 +1057,81 @@ def get_service_packages(platform: str) -> InlineKeyboardMarkup:
     packages = {
         "instagram": [
             # Instagram Followers - Multiple Quality Options
-            ("👥 Instagram Followers - 💰 Economy (₹150/1K)", "ID:2001"),
+           # ("👥 Instagram Followers - 💰 Economy (₹150/1K)", "ID:2001"),            
             ("👥 Instagram Followers - 📈 Standard (₹250/1K)", "ID:2002"),
             ("👥 Instagram Followers - ⭐ Premium (₹375/1K)", "ID:2003"),
             ("👥 Instagram Followers - 🇮🇳 Indian Premium (₹450/1K)", "ID:2004"),
-            ("👥 Instagram Followers - 👑 VIP Elite (₹550/1K)", "ID:2005"),
+           # ("👥 Instagram Followers - 👑 VIP Elite (₹550/1K)", "ID:2005"),
 
             # Instagram Post Likes - Multiple Quality Options
-            ("❤️ Instagram Post Likes - 💰 Economy (₹18/1K)", "ID:2011"),
-            ("❤️ Instagram Post Likes - 📈 Standard (₹30/1K)", "ID:2012"),
+           # ("❤️ Instagram Post Likes - 💰 Economy (₹18/1K)", "ID:2011"),
+          #  ("❤️ Instagram Post Likes - 📈 Standard (₹30/1K)", "ID:2012"),
             ("❤️ Instagram Post Likes - ⭐ Premium (₹45/1K)", "ID:2013"),
             ("❤️ Instagram Post Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2014"),
-            ("❤️ Instagram Post Likes - 👑 VIP Elite (₹66/1K)", "ID:2015"),
-
-            # Instagram Reel Likes - Multiple Quality Options
-            ("❤️ Instagram Reel Likes - 💰 Economy (₹18/1K)", "ID:2021"),
-            ("❤️ Instagram Reel Likes - 📈 Standard (₹30/1K)", "ID:2022"),
-            ("❤️ Instagram Reel Likes - ⭐ Premium (₹45/1K)", "ID:2023"),
-            ("❤️ Instagram Reel Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2024"),
-            ("❤️ Instagram Reel Likes - 👑 VIP Elite (₹66/1K)", "ID:2025"),
-
-            # Instagram Post Views - Multiple Quality Options
-            ("👁️ Instagram Post Views - 💰 Economy (₹12/1K)", "ID:2031"),
-            ("👁️ Instagram Post Views - 📈 Standard (₹20/1K)", "ID:2032"),
-            ("👁️ Instagram Post Views - ⭐ Premium (₹30/1K)", "ID:2033"),
-            ("👁️ Instagram Post Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2034"),
-            ("👁️ Instagram Post Views - 👑 VIP Elite (₹44/1K)", "ID:2035"),
+           # ("❤️ Instagram Post Likes - 👑 VIP Elite (₹66/1K)", "ID:2015"),
 
             # Instagram Reel Views - Multiple Quality Options
-            ("👁️ Instagram Reel Views - 💰 Economy (₹12/1K)", "ID:2041"),
-            ("👁️ Instagram Reel Views - 📈 Standard (₹20/1K)", "ID:2042"),
+          #  ("👁️ Instagram Reel Views - 💰 Economy (₹12/1K)", "ID:2041"),
+           # ("👁️ Instagram Reel Views - 📈 Standard (₹20/1K)", "ID:2042"),
             ("👁️ Instagram Reel Views - ⭐ Premium (₹30/1K)", "ID:2043"),
-            ("👁️ Instagram Reel Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2044"),
+        #    ("👁️ Instagram Reel Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2044"),
             ("👁️ Instagram Reel Views - 👑 VIP Elite (₹44/1K)", "ID:2045"),
 
             # Instagram Story Views - Multiple Quality Options
-            ("📖 Instagram Story Views - 💰 Economy (₹12/1K)", "ID:2051"),
-            ("📖 Instagram Story Views - 📈 Standard (₹20/1K)", "ID:2052"),
+           # ("📖 Instagram Story Views - 💰 Economy (₹12/1K)", "ID:2051"),
+           # ("📖 Instagram Story Views - 📈 Standard (₹20/1K)", "ID:2052"),
             ("📖 Instagram Story Views - ⭐ Premium (₹30/1K)", "ID:2053"),
             ("📖 Instagram Story Views - 🇮🇳 Indian Premium (₹36/1K)", "ID:2054"),
             ("📖 Instagram Story Views - 👑 VIP Elite (₹44/1K)", "ID:2055"),
 
             # Instagram Story Likes - Multiple Quality Options
-            ("💖 Instagram Story Likes - 💰 Economy (₹18/1K)", "ID:2061"),
-            ("💖 Instagram Story Likes - 📈 Standard (₹30/1K)", "ID:2062"),
+          #  ("💖 Instagram Story Likes - 💰 Economy (₹18/1K)", "ID:2061"),
+           # ("💖 Instagram Story Likes - 📈 Standard (₹30/1K)", "ID:2062"),
             ("💖 Instagram Story Likes - ⭐ Premium (₹45/1K)", "ID:2063"),
             ("💖 Instagram Story Likes - 🇮🇳 Indian Premium (₹54/1K)", "ID:2064"),
-            ("💖 Instagram Story Likes - 👑 VIP Elite (₹66/1K)", "ID:2065"),
+          #  ("💖 Instagram Story Likes - 👑 VIP Elite (₹66/1K)", "ID:2065"),
 
             # Instagram Story Link Clicks - Multiple Quality Options
-            ("🔗 Instagram Story Link Clicks - 💰 Economy (₹90/1K)", "ID:2071"),
-            ("🔗 Instagram Story Link Clicks - 📈 Standard (₹150/1K)", "ID:2072"),
+           # ("🔗 Instagram Story Link Clicks - 💰 Economy (₹90/1K)", "ID:2071"),
+          #  ("🔗 Instagram Story Link Clicks - 📈 Standard (₹150/1K)", "ID:2072"),
             ("🔗 Instagram Story Link Clicks - ⭐ Premium (₹225/1K)", "ID:2073"),
             ("🔗 Instagram Story Link Clicks - 🇮🇳 Indian Premium (₹270/1K)", "ID:2074"),
-            ("🔗 Instagram Story Link Clicks - 👑 VIP Elite (₹330/1K)", "ID:2075"),
-
-            # Instagram Post Shares - Multiple Quality Options
-            ("📤 Instagram Post Shares - 💰 Economy (₹8/1K)", "ID:2081"),
-            ("📤 Instagram Post Shares - 📈 Standard (₹13.50/1K)", "ID:2082"),
-            ("📤 Instagram Post Shares - ⭐ Premium (₹20/1K)", "ID:2083"),
-            ("📤 Instagram Post Shares - 🇮🇳 Indian Premium (₹24/1K)", "ID:2084"),
-            ("📤 Instagram Post Shares - 👑 VIP Elite (₹30/1K)", "ID:2085"),
+           # ("🔗 Instagram Story Link Clicks - 👑 VIP Elite (₹330/1K)", "ID:2075"),
 
             # Instagram Reel Shares - Multiple Quality Options
             ("📤 Instagram Reel Shares - 💰 Economy (₹8/1K)", "ID:2091"),
-            ("📤 Instagram Reel Shares - 📈 Standard (₹13.50/1K)", "ID:2092"),
-            ("📤 Instagram Reel Shares - ⭐ Premium (₹20/1K)", "ID:2093"),
+          #  ("📤 Instagram Reel Shares - 📈 Standard (₹13.50/1K)", "ID:2092"),
+          #  ("📤 Instagram Reel Shares - ⭐ Premium (₹20/1K)", "ID:2093"),
             ("📤 Instagram Reel Shares - 🇮🇳 Indian Premium (₹24/1K)", "ID:2094"),
             ("📤 Instagram Reel Shares - 👑 VIP Elite (₹30/1K)", "ID:2095"),
 
             # Instagram Channel Members - Multiple Quality Options
-            ("👥 Instagram Channel Members - 💰 Economy (₹720/1K)", "ID:2101"),
+          #  ("👥 Instagram Channel Members - 💰 Economy (₹720/1K)", "ID:2101"),
             ("👥 Instagram Channel Members - 📈 Standard (₹1200/1K)", "ID:2102"),
             ("👥 Instagram Channel Members - ⭐ Premium (₹1800/1K)", "ID:2103"),
-            ("👥 Instagram Channel Members - 🇮🇳 Indian Premium (₹2160/1K)", "ID:2104"),
-            ("👥 Instagram Channel Members - 👑 VIP Elite (₹2640/1K)", "ID:2105"),
+        #    ("👥 Instagram Channel Members - 🇮🇳 Indian Premium (₹2160/1K)", "ID:2104"),
+          #  ("👥 Instagram Channel Members - 👑 VIP Elite (₹2640/1K)", "ID:2105"),
 
             # Instagram Random Comments - Multiple Quality Options
             ("💬 Instagram Random Comments - 💰 Economy (₹270/1K)", "ID:2111"),
             ("💬 Instagram Random Comments - 📈 Standard (₹450/1K)", "ID:2112"),
-            ("💬 Instagram Random Comments - ⭐ Premium (₹675/1K)", "ID:2113"),
-            ("💬 Instagram Random Comments - 🇮🇳 Indian Premium (₹810/1K)", "ID:2114"),
-            ("💬 Instagram Random Comments - 👑 VIP Elite (₹990/1K)", "ID:2115"),
+         #   ("💬 Instagram Random Comments - ⭐ Premium (₹675/1K)", "ID:2113"),
+         #   ("💬 Instagram Random Comments - 🇮🇳 Indian Premium (₹810/1K)", "ID:2114"),
+         #   ("💬 Instagram Random Comments - 👑 VIP Elite (₹990/1K)", "ID:2115"),
 
             # Instagram Emoji Comments - Multiple Quality Options
             ("😊 Instagram Emoji Comments - 💰 Economy (₹230/1K)", "ID:2121"),
             ("😊 Instagram Emoji Comments - 📈 Standard (₹380/1K)", "ID:2122"),
-            ("😊 Instagram Emoji Comments - ⭐ Premium (₹570/1K)", "ID:2123"),
-            ("😊 Instagram Emoji Comments - 🇮🇳 Indian Premium (₹684/1K)", "ID:2124"),
-            ("😊 Instagram Emoji Comments - 👑 VIP Elite (₹836/1K)", "ID:2125"),
+         #   ("😊 Instagram Emoji Comments - ⭐ Premium (₹570/1K)", "ID:2123"),
+           # ("😊 Instagram Emoji Comments - 🇮🇳 Indian Premium (₹684/1K)", "ID:2124"),
+          #  ("😊 Instagram Emoji Comments - 👑 VIP Elite (₹836/1K)", "ID:2125"),
 
             # Instagram Custom Comments - Multiple Quality Options
             ("💬 Instagram Custom Comments - 💰 Economy (₹240/1K)", "ID:2131"),
             ("💬 Instagram Custom Comments - 📈 Standard (₹400/1K)", "ID:2132"),
-            ("💬 Instagram Custom Comments - ⭐ Premium (₹600/1K)", "ID:2133"),
-            ("💬 Instagram Custom Comments - 🇮🇳 Indian Premium (₹720/1K)", "ID:2134"),
-            ("💬 Instagram Custom Comments - 👑 VIP Elite (₹880/1K)", "ID:2135")
+            ("💬 Instagram Custom Comments - ⭐ Premium (₹500/1K)", "ID:2133"),
+         #   ("💬 Instagram Custom Comments - 🇮🇳 Indian Premium (₹720/1K)", "ID:2134"),
+          #  ("💬 Instagram Custom Comments - 👑 VIP Elite (₹880/1K)", "ID:2135")
         ],
 
         "facebook": [
@@ -1792,7 +1809,7 @@ def register_service_handlers(dp, require_account):
             return
 
         log_activity(callback.from_user.id, "Viewed User Management Instructions")
-        
+
         instruction_text = """
 👤 <b>User Profile Management</b>
 
@@ -1801,8 +1818,8 @@ def register_service_handlers(dp, require_account):
 <code>/viewuser &lt;USER_ID&gt;</code>
 
 💡 <b>Examples:</b>
-• <code>/viewuser 7437014244</code>
-• <code>/viewuser 1234567890</code>
+• <code>/viewuser</code>
+• <code>/viewuser</code>
 
 🔍 <b>You can get User IDs from:</b>
 • User Management dashboard
@@ -1816,11 +1833,11 @@ def register_service_handlers(dp, require_account):
 • Activity history (join date)
 • Security information (access token)
 """
-        
+
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="⬅️ Back to User Management", callback_data="admin_users")]
         ])
-        
+
         await safe_edit_message(callback, instruction_text, keyboard)
         await callback.answer()
 
@@ -1979,7 +1996,7 @@ We will be launching exciting new services soon.
         elif action == "user_details":
             from main import load_data_from_json
             users_data = load_data_from_json("users.json")
-            
+
             user_list_text = "👥 **Complete User List**\n\n"
             if not users_data:
                 user_list_text += "No users found in the database."
@@ -1994,7 +2011,7 @@ We will be launching exciting new services soon.
                 [InlineKeyboardButton(text="👤 Manage a User", callback_data="admin_manage_user")],
                 [InlineKeyboardButton(text="⬅️ Back to User Menu", callback_data="admin_users")]
             ])
-            
+
             await safe_edit_message(callback, user_list_text, details_keyboard)
         elif action == "manage_user":
             # Redirect to the main admin_manage_user handler which now shows command instructions
