@@ -168,34 +168,34 @@ def init_account_handlers(main_dp, main_users_data, main_orders_data, main_requi
 
 # ========== ACCOUNT MENU BUILDERS ==========
 def get_account_menu() -> InlineKeyboardMarkup:
-    """Build my account sub-menu"""
+    """Build my account sub-menu with professional organization"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="🔄 Refill History", callback_data="refill_history"),
-            InlineKeyboardButton(text="🔑 API Key", callback_data="api_key")
+            InlineKeyboardButton(text="📊 Order History", callback_data="order_history"),
+            InlineKeyboardButton(text="💳 Payment History", callback_data="refill_history")
         ],
         [
             InlineKeyboardButton(text="✏️ Edit Profile", callback_data="edit_profile"),
-            InlineKeyboardButton(text="📊 Statistics", callback_data="user_stats")
+            InlineKeyboardButton(text="📈 Account Statistics", callback_data="user_stats")
         ],
         [
-            InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
-            InlineKeyboardButton(text="🔔 Smart Alerts", callback_data="smart_alerts")
+            InlineKeyboardButton(text="🔑 API Management", callback_data="api_key"),
+            InlineKeyboardButton(text="🔔 Notifications", callback_data="smart_alerts")
         ],
         [
-            InlineKeyboardButton(text="🌐 Language Settings", callback_data="language_settings"),
-            InlineKeyboardButton(text="🎯 Preferences", callback_data="account_preferences")
+            InlineKeyboardButton(text="🌐 Language & Region", callback_data="language_settings"),
+            InlineKeyboardButton(text="⚙️ Account Settings", callback_data="account_preferences")
         ],
         [
-            InlineKeyboardButton(text="🔐 Security Settings", callback_data="security_settings"),
-            InlineKeyboardButton(text="💳 Payment Methods", callback_data="payment_methods")
+            InlineKeyboardButton(text="🔐 Security Center", callback_data="security_settings"),
+            InlineKeyboardButton(text="💰 Payment Methods", callback_data="payment_methods")
         ],
         [
-            InlineKeyboardButton(text="🔑 Copy Access Token", callback_data="copy_access_token"),
-            InlineKeyboardButton(text="🚪 Logout Account", callback_data="logout_account")
+            InlineKeyboardButton(text="🔑 Access Token", callback_data="copy_access_token"),
+            InlineKeyboardButton(text="🚪 Sign Out", callback_data="logout_account")
         ],
         [
-            InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
+            InlineKeyboardButton(text="⬅️ Back to Dashboard", callback_data="back_main")
         ]
     ])
 
@@ -229,24 +229,36 @@ async def cb_my_account(callback: CallbackQuery):
     )
 
     text = f"""
-👤 <b>My Account Dashboard</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 👤 <b>MY ACCOUNT DASHBOARD</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👋 <b>Welcome back, {user_display_name}!</b>
+🎯 <b>Welcome back, {user_display_name}!</b>
+<i>Your personal SMM control center</i>
 
-📱 <b>Phone:</b> {user_data.get('phone_number', 'Not set')}
-📧 <b>Email:</b> {user_data.get('email', 'Not set')}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 💰 <b>WALLET OVERVIEW</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 💳 <b>Current Balance:</b> <u>{format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}</u>
+┃ • 💸 <b>Total Investment:</b> {format_currency(user_data.get('total_spent', 0.0)) if format_currency else f"₹{user_data.get('total_spent', 0.0):.2f}"}
+┃ • 🛒 <b>Orders Completed:</b> {user_data.get('orders_count', 0)} orders
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}
-📊 <b>Total Spent:</b> {format_currency(user_data.get('total_spent', 0.0)) if format_currency else f"₹{user_data.get('total_spent', 0.0):.2f}"}
-🛒 <b>Total Orders:</b> {user_data.get('orders_count', 0)}
-📅 <b>Member Since:</b> {join_date_formatted}
-🌍 <b>Your Timezone:</b> {timezone_info['name']} ({timezone_info['offset']})
-🕐 <b>Current Time:</b> {timezone_info['current_time']}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 👤 <b>PROFILE INFORMATION</b>
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ • 📱 <b>Mobile:</b> {user_data.get('phone_number', 'Not added')}
+┃ • 📧 <b>Email:</b> {user_data.get('email', 'Not added')}
+┃ • 📅 <b>Member Since:</b> {join_date_formatted}
+┃ • ⚡ <b>Status:</b> ✅ <b>Premium Active</b>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔸 <b>Account Status:</b> ✅ Active
-🔸 <b>User ID:</b> <code>{user_id}</code>
+🌍 <b>Local Time:</b> {timezone_info['current_time']}
 
-💡 <b>Choose an option below to manage your account:</b>
+💎 <b>Account Management Tools</b>
+Select any option below to manage your account settings and preferences.
+
+✨ <b>Your success is our priority!</b>
 """
 
     if safe_edit_message:
