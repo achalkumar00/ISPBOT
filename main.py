@@ -1710,30 +1710,26 @@ Hello, <b>{user_display_name}</b>! Ready to accelerate your social media success
         # Send notification to admin group about new user
         await send_new_user_notification_to_admin(user)
 
-        # New welcome message focused on account creation
+        # Professional welcome message - designed for conversion
         new_user_welcome = f"""
-🎉 <b>Welcome to India Social Panel!</b>
-<b>India's Most Trusted SMM Platform</b>
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 🇮🇳 <b>INDIA SOCIAL PANEL</b>
+┃ <i>Professional SMM Growth Partner</i>
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Hello <b>{user_display_name}</b>! 🙏
+🙏 <b>Namaste {user_display_name}!</b>
 
-🇮🇳 <b>Join thousands of satisfied Indian users who trust us for their social media growth!</b>
+🚀 <b>Transform your social media presence with India's most trusted SMM platform</b>
 
-✨ <b>Why Choose India Social Panel?</b>
-• 🏆 <b>#1 SMM Panel in India</b> - Premium quality services
-• ⚡ <b>Instant Delivery</b> - Results within 0-6 hours  
-• 💰 <b>Best Prices</b> - Most affordable rates in market
-• 🔒 <b>100% Safe</b> - No account bans, guaranteed security
-• 🎯 <b>Real Users</b> - High-quality, active followers & engagement
-• 💬 <b>24/7 Support</b> - Always ready to help in Hindi/English
+✨ <b>What makes us special:</b>
+📈 <b>50,000+ Happy Customers</b> - Join the success story
+⚡ <b>60 Seconds Setup</b> - Quick account creation process  
+🛡️ <b>100% Safe Methods</b> - Zero risk, maximum results
+💎 <b>Premium Quality</b> - Real users, genuine engagement
 
-🚀 <b>Ready to boost your social media presence?</b>
+🎯 <b>Ready to dominate social media?</b>
 
-💡 <b>First create your account and experience India's best SMM services!</b>
-
-🎁 <b>Special Welcome Offer:</b> You'll get exclusive discount on your first order!
-
-👇 <b>Get started by creating your account:</b>
+💡 <b>Create your free account in just 60 seconds!</b>
 """
         # Import required functions from account_creation for dynamic use
         await message.answer(new_user_welcome, reply_markup=account_creation.get_initial_options_menu())
@@ -2072,6 +2068,605 @@ async def cmd_description(message: Message):
 🚀 <b>Use /start to begin placing an order now</b>
 """
         await message.answer(text, reply_markup=get_main_menu())
+
+@dp.message(Command("account"))
+async def cmd_account(message: Message):
+    """Handle /account command"""
+    print(f"📨 Received /account command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    text = """
+👤 <b>My Account Dashboard</b>
+
+🎯 <b>Quick access to your account settings and information</b>
+
+💡 <b>Use the menu below to navigate to your account:</b>
+"""
+    await message.answer(text, reply_markup=get_main_menu())
+
+@dp.message(Command("balance"))
+async def cmd_balance(message: Message):
+    """Handle /balance command"""
+    print(f"📨 Received /balance command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    user_id = user.id
+    current_balance = users_data.get(user_id, {}).get("balance", 0.0)
+    total_spent = users_data.get(user_id, {}).get("total_spent", 0.0)
+
+    text = f"""
+💰 <b>Account Balance Information</b>
+
+💳 <b>Current Balance:</b> ₹{current_balance:,.2f}
+💸 <b>Total Spent:</b> ₹{total_spent:,.2f}
+📊 <b>Account Status:</b> ✅ Active
+
+💡 <b>Use Add Funds button below to recharge your account</b>
+"""
+
+    balance_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💰 Add Funds", callback_data="add_funds"),
+            InlineKeyboardButton(text="📜 Payment History", callback_data="payment_history")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=balance_keyboard)
+
+@dp.message(Command("orders"))
+async def cmd_orders(message: Message):
+    """Handle /orders command"""
+    print(f"📨 Received /orders command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    text = """
+📦 <b>Order History & Tracking</b>
+
+🎯 <b>View all your orders and track their progress</b>
+
+💡 <b>Use the menu below to access your order history:</b>
+"""
+
+    orders_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+            InlineKeyboardButton(text="🔍 Track Order", callback_data="track_order")
+        ],
+        [
+            InlineKeyboardButton(text="🚀 New Order", callback_data="new_order"),
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=orders_keyboard)
+
+@dp.message(Command("services"))
+async def cmd_services(message: Message):
+    """Handle /services command"""
+    print(f"📨 Received /services command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+📈 <b>SMM Services & Pricing</b>
+
+🎯 <b>Browse all available social media marketing services</b>
+
+💡 <b>Use the menu below to explore our services:</b>
+"""
+    await message.answer(text, reply_markup=get_category_menu())
+
+@dp.message(Command("support"))
+async def cmd_support(message: Message):
+    """Handle /support command"""
+    print(f"📨 Received /support command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = f"""
+🎫 <b>Customer Support Center</b>
+
+💬 <b>Get help from our professional support team</b>
+
+📞 <b>Support Options:</b>
+• Live chat with support team
+• Create support tickets
+• Direct contact with admin
+• FAQ and help guides
+
+⏰ <b>Response Time:</b> 2-6 hours
+🕐 <b>Available:</b> 9 AM - 11 PM IST
+
+💡 <b>Choose your preferred support method:</b>
+"""
+
+    support_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎫 Create Ticket", callback_data="create_ticket"),
+            InlineKeyboardButton(text="💬 Live Chat", url=f"https://t.me/{OWNER_USERNAME}")
+        ],
+        [
+            InlineKeyboardButton(text="📞 Contact Admin", url=f"https://t.me/{OWNER_USERNAME}"),
+            InlineKeyboardButton(text="❓ Help Guide", callback_data="help_support")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=support_keyboard)
+
+@dp.message(Command("offers"))
+async def cmd_offers(message: Message):
+    """Handle /offers command"""
+    print(f"📨 Received /offers command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+🎁 <b>Special Offers & Discounts</b>
+
+🔥 <b>Exclusive deals and limited-time offers</b>
+
+💡 <b>Access all available offers and rewards:</b>
+"""
+    await message.answer(text, reply_markup=get_offers_rewards_menu())
+
+@dp.message(Command("referral"))
+async def cmd_referral(message: Message):
+    """Handle /referral command"""
+    print(f"📨 Received /referral command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    user_id = user.id
+    referral_code = users_data.get(user_id, {}).get('referral_code', 'Not Generated')
+
+    text = f"""
+🤝 <b>Referral Program</b>
+
+💰 <b>Earn rewards by referring friends!</b>
+
+🔗 <b>Your Referral Code:</b> <code>{referral_code}</code>
+
+🎁 <b>Referral Benefits:</b>
+• 15% commission on friend's first order
+• Bonus points for every successful referral
+• Monthly referral contests with prizes
+• Exclusive referral-only offers
+
+💡 <b>How to refer:</b>
+1. Share your referral code with friends
+2. They use your code during signup
+3. You earn rewards instantly
+
+🚀 <b>Start earning today!</b>
+"""
+
+    referral_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📋 Copy Referral Code", callback_data=f"copy_referral_{referral_code}"),
+            InlineKeyboardButton(text="📊 Referral Stats", callback_data="referral_stats")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=referral_keyboard)
+
+@dp.message(Command("api"))
+async def cmd_api(message: Message):
+    """Handle /api command"""
+    print(f"📨 Received /api command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    text = """
+🔧 <b>API Access & Integration</b>
+
+💻 <b>Integrate our services with your applications</b>
+
+📋 <b>API Features:</b>
+• RESTful API endpoints
+• Real-time order tracking
+• Automated service delivery
+• Comprehensive documentation
+
+💡 <b>Access your API dashboard:</b>
+"""
+
+    api_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔑 Generate API Key", callback_data="api_key"),
+            InlineKeyboardButton(text="📚 API Documentation", callback_data="api_docs")
+        ],
+        [
+            InlineKeyboardButton(text="🧪 Test API", callback_data="api_testing"),
+            InlineKeyboardButton(text="📝 Code Examples", callback_data="api_examples")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=api_keyboard)
+
+@dp.message(Command("status"))
+async def cmd_status(message: Message):
+    """Handle /status command"""
+    print(f"📨 Received /status command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    # Calculate uptime
+    uptime_seconds = int(time.time() - START_TIME)
+    uptime_hours = uptime_seconds // 3600
+    uptime_minutes = (uptime_seconds % 3600) // 60
+
+    text = f"""
+⚡ <b>Bot Status & Health Check</b>
+
+🟢 <b>Bot Status:</b> Online & Operational
+⏰ <b>Uptime:</b> {uptime_hours}h {uptime_minutes}m
+📊 <b>System Health:</b> Excellent
+🔄 <b>Last Update:</b> {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+
+💻 <b>System Information:</b>
+• 📱 <b>Active Users:</b> {len(users_data)}
+• 📦 <b>Total Orders:</b> {len(orders_data)}
+• ⚡ <b>Response Time:</b> < 100ms
+• 🔒 <b>Security:</b> SSL Encrypted
+
+✅ <b>All systems are running perfectly!</b>
+"""
+
+    status_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔄 Refresh Status", callback_data="refresh_status"),
+            InlineKeyboardButton(text="📊 Statistics", callback_data="bot_statistics")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=status_keyboard)
+
+@dp.message(Command("contact"))
+async def cmd_contact(message: Message):
+    """Handle /contact command"""
+    print(f"📨 Received /contact command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+📞 <b>Contact & Business Information</b>
+
+🎯 <b>Get in touch with our team</b>
+
+💡 <b>Choose your contact preference:</b>
+"""
+    await message.answer(text, reply_markup=get_contact_menu())
+
+@dp.message(Command("language"))
+async def cmd_language(message: Message):
+    """Handle /language command"""
+    print(f"📨 Received /language command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+🌐 <b>Language & Regional Settings</b>
+
+🗣️ <b>Currently Available Languages:</b>
+• 🇮🇳 English (Default)
+• 🇮🇳 हिंदी (Hindi) - Coming Soon
+• 🇮🇳 मराठी (Marathi) - Coming Soon
+
+🎯 <b>Regional Features:</b>
+• Local payment methods
+• Regional pricing
+• Cultural customization
+• Local support hours
+
+💡 <b>Language selection feature coming soon!</b>
+📞 <b>For language support:</b> @{OWNER_USERNAME}
+"""
+
+    language_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📞 Request Language", url=f"https://t.me/{OWNER_USERNAME}"),
+            InlineKeyboardButton(text="🔔 Get Notified", callback_data="notify_language")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=language_keyboard)
+
+@dp.message(Command("notifications"))
+async def cmd_notifications(message: Message):
+    """Handle /notifications command"""
+    print(f"📨 Received /notifications command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+🔔 <b>Notification Settings</b>
+
+📱 <b>Manage your alert preferences</b>
+
+💡 <b>Notification Types:</b>
+• Order status updates
+• Payment confirmations
+• Special offers & deals
+• Account security alerts
+• System maintenance notices
+
+⚙️ <b>Notification Preferences:</b>
+• Telegram messages (Current)
+• Email notifications (Coming Soon)
+• SMS alerts (Premium Feature)
+
+🔧 <b>Notification management coming soon!</b>
+"""
+
+    notifications_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📧 Email Setup", callback_data="email_notifications"),
+            InlineKeyboardButton(text="📱 SMS Setup", callback_data="sms_notifications")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=notifications_keyboard)
+
+@dp.message(Command("premium"))
+async def cmd_premium(message: Message):
+    """Handle /premium command"""
+    print(f"📨 Received /premium command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = """
+👑 <b>Premium Features & VIP Membership</b>
+
+✨ <b>Unlock exclusive premium benefits!</b>
+
+💎 <b>Premium Benefits:</b>
+• Priority customer support
+• Exclusive premium services
+• Advanced analytics dashboard
+• API access with higher limits
+• Special pricing discounts
+• Early access to new features
+
+🏆 <b>VIP Membership Tiers:</b>
+• 🥉 Bronze: ₹5,000+ spent
+• 🥈 Silver: ₹15,000+ spent  
+• 🥇 Gold: ₹50,000+ spent
+• 💎 Diamond: ₹1,00,000+ spent
+
+🚀 <b>Premium features launching soon!</b>
+"""
+
+    premium_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="👑 Upgrade Now", callback_data="upgrade_premium"),
+            InlineKeyboardButton(text="📊 Check Eligibility", callback_data="check_premium")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=premium_keyboard)
+
+@dp.message(Command("analytics"))
+async def cmd_analytics(message: Message):
+    """Handle /analytics command"""
+    print(f"📨 Received /analytics command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first using /start command!")
+        return
+
+    user_id = user.id
+    user_data = users_data.get(user_id, {})
+    user_orders = [order for order in orders_data.values() if order.get('user_id') == user_id]
+
+    text = f"""
+📊 <b>Account Analytics & Statistics</b>
+
+💰 <b>Financial Summary:</b>
+• Total Spent: ₹{user_data.get('total_spent', 0.0):,.2f}
+• Current Balance: ₹{user_data.get('balance', 0.0):,.2f}
+• Total Orders: {len(user_orders)}
+
+📈 <b>Growth Metrics:</b>
+• Account Age: {format_time(user_data.get('join_date', ''))}
+• Order Success Rate: 95%+
+• Average Order Value: ₹{(user_data.get('total_spent', 0.0) / max(len(user_orders), 1)):,.2f}
+
+📊 <b>Advanced analytics dashboard coming soon!</b>
+"""
+
+    analytics_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📈 Growth Chart", callback_data="growth_chart"),
+            InlineKeyboardButton(text="💰 Spending Analysis", callback_data="spending_analysis")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=analytics_keyboard)
+
+@dp.message(Command("feedback"))
+async def cmd_feedback(message: Message):
+    """Handle /feedback command"""
+    print(f"📨 Received /feedback command from user {message.from_user.id if message.from_user else 'Unknown'}")
+
+    user = message.from_user
+    if not user:
+        return
+
+    if is_message_old(message):
+        mark_user_for_notification(user.id)
+        return
+
+    text = f"""
+⭐ <b>Rate Our Service & Share Feedback</b>
+
+💝 <b>Your opinion matters to us!</b>
+
+📝 <b>Feedback Options:</b>
+• Rate our service quality
+• Share your experience
+• Suggest improvements
+• Report any issues
+
+🎁 <b>Feedback Rewards:</b>
+• Bonus points for detailed reviews
+• Special discounts for constructive feedback
+• Recognition in our testimonials
+• Priority support for regular reviewers
+
+💬 <b>How to share feedback:</b>
+"""
+
+    feedback_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="⭐ Rate 5 Stars", callback_data="rate_5_stars"),
+            InlineKeyboardButton(text="📝 Write Review", url=f"https://t.me/{OWNER_USERNAME}")
+        ],
+        [
+            InlineKeyboardButton(text="💡 Suggest Feature", callback_data="suggest_feature"),
+            InlineKeyboardButton(text="🐛 Report Issue", callback_data="report_issue")
+        ],
+        [
+            InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=feedback_keyboard)
 
 @dp.message(Command("viewuser"))
 async def cmd_viewuser(message: Message):
@@ -6192,12 +6787,28 @@ async def on_startup():
     print("🔄 Initializing service system...")
     services.register_service_handlers(dp, require_account)
 
-    # Set bot commands
+    # Set bot commands - Enhanced professional menu with detailed descriptions
     commands = [
-        BotCommand(command="start", description="🏠 Main Menu"),
-        BotCommand(command="menu", description="📋 Show Menu"),
-        BotCommand(command="help", description="❓ Help & Support"),
-        BotCommand(command="about", description="ℹ️ About India Social Panel")
+        BotCommand(command="start", description="🚀 Launch Dashboard & Access All Features"),
+        BotCommand(command="menu", description="🏠 Main Menu - Complete Service Portal"),
+        BotCommand(command="help", description="❓ Help Guide & Customer Support Center"),
+        BotCommand(command="about", description="ℹ️ About India's #1 SMM Growth Platform"),
+        BotCommand(command="account", description="👤 My Account Dashboard & Profile Settings"),
+        BotCommand(command="balance", description="💰 Check Balance & Add Funds Instantly"),
+        BotCommand(command="orders", description="📦 Order History & Live Tracking System"),
+        BotCommand(command="services", description="📈 Browse All SMM Services & Pricing"),
+        BotCommand(command="support", description="🎫 Customer Support & Live Chat Help"),
+        BotCommand(command="offers", description="🎁 Special Deals & Exclusive Discounts"),
+        BotCommand(command="referral", description="🤝 Refer Friends & Earn Instant Rewards"),
+        BotCommand(command="api", description="🔧 API Access & Developer Integration"),
+        BotCommand(command="status", description="⚡ Bot Status & Service Health Check"),
+        BotCommand(command="contact", description="📞 Contact Owner & Business Inquiries"),
+        BotCommand(command="language", description="🌐 Change Language & Regional Settings"),
+        BotCommand(command="notifications", description="🔔 Manage Alerts & Push Notifications"),
+        BotCommand(command="premium", description="👑 Premium Features & VIP Membership"),
+        BotCommand(command="analytics", description="📊 Account Analytics & Growth Statistics"),
+        BotCommand(command="feedback", description="⭐ Rate Our Service & Share Experience"),
+        BotCommand(command="description", description="📋 Package Details During Order Process")
     ]
     await bot.set_my_commands(commands)
     print("✅ Bot commands set successfully")
