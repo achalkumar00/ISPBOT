@@ -1,1 +1,62 @@
-
+{
+  "7437014244": {
+    "user_id": 7437014244,
+    "username": "👑OWNER",
+    "first_name": "🫅🏻ACHAL",
+    "join_date": "****-**-*****:**:**.******",
+    "account_created": true
+  },
+  "7092638815": {
+    "user_id": 7092638815,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:01:49.147912",
+    "account_created": true,
+    "full_name": "Ansh",
+    "phone_number": "+916204734423",
+    "email": "achakumar0a0@gmail.com",
+    "balance": 0.0,
+    "total_spent": 0.0,
+    "orders_count": 0,
+    "referral_code": "ISPI0SX7S",
+    "referred_by": null,
+    "access_token": "Σ|0pnr114∅190.8|JpnrBGC∅AEHxcqDEE:CD|*010pnr308zqw011∅121.130:118xcq480∅148;@G1",
+    "status": "active",
+    "profile_photo": null
+  },
+  "7657003026": {
+    "user_id": 7657003026,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:05:24.997212",
+    "account_created": false
+  },
+  "7536457496": {
+    "user_id": 7536457496,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:05:55.703204",
+    "account_created": false
+  },
+  "7632402382": {
+    "user_id": 7632402382,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:07:44.658665",
+    "account_created": false
+  },
+  "7665588493": {
+    "user_id": 7665588493,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:07:53.505771",
+    "account_created": false
+  },
+  "8304319688": {
+    "user_id": 8304319688,
+    "username": "",
+    "first_name": "",
+    "join_date": "2025-09-19T10:08:47.093616",
+    "account_created": false
+  }
+}
