@@ -2157,7 +2157,7 @@ async def cb_lang_region_indian(callback: CallbackQuery):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="🇮🇳 हिंदी (Hindi)", callback_data="select_lang_hindi"),
+            InlineKeyboardButton(text="🇮🇳 Hindi", callback_data="select_lang_hindi"),
             InlineKeyboardButton(text="🇬🇧 English (India)", callback_data="select_lang_english_in")
         ],
         [
@@ -2182,7 +2182,7 @@ async def cb_lang_region_indian(callback: CallbackQuery):
         ],
         [
             InlineKeyboardButton(text="🇮🇳 অসমীয়া (Assamese)", callback_data="select_lang_assamese"),
-            InlineKeyboardButton(text="🇮🇳 संस्कृत (Sanskrit)", callback_data="select_lang_sanskrit")
+            InlineKeyboardButton(text="🇮🇳 Sanskrit", callback_data="select_lang_sanskrit")
         ],
         [
             InlineKeyboardButton(text="⬅️ Back to Language Settings", callback_data="language_settings")
@@ -2626,17 +2626,17 @@ async def cb_logout_account(callback: CallbackQuery):
 📱 <b>Phone:</b> {user_data.get('phone_number', 'N/A')}
 💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}
 
-🔴 <b>Logout करने से क्या होगा:</b>
-• Account temporarily deactivated रहेगा
-• सभी services access बंद हो जाएंगी  
+🔴 <b>What happens when you logout:</b>
+• Account will be temporarily deactivated
+• All service access will be disabled  
 • "Create Account" and "Login" options will return to main menu
 • Data will remain safe - nothing will be deleted
 • You can login again with the same phone/token
 
-💡 <b>Logout के बाद:</b>
-• Account create करने का option मिलेगा
-• पुराने account में login करने का option भी मिलेगा  
-• Access token same रहेगा
+💡 <b>After logout:</b>
+• Option to create new account will be available
+• Option to login to previous account will also be available
+• Access token will remain the same
 
 ❓ <b>Do you really want to logout?</b>
 """
