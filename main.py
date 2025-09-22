@@ -687,11 +687,318 @@ def get_offers_rewards_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="📝 Community Polls", callback_data="community_polls")
         ],
         [
+            InlineKeyboardButton(text="⏰ Limited Time Offers", callback_data="limited_time_offers")
+        ],
+        [
             InlineKeyboardButton(text="⬅️ Main Menu", callback_data="back_main")
         ]
     ])
 
 # ========== BOT HANDLERS ==========
+
+# ========== NEW COMMAND HANDLERS ==========
+
+@dp.message(Command("neworder"))
+async def cmd_neworder(message: Message):
+    """Handle /neworder command - same as New Order button"""
+    print(f"📨 Received /neworder command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return
+
+    # Check if account is created
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please complete your account setup first! Use /start to create your account.")
+        return
+
+    from services import get_services_main_menu
+
+    text = """
+🚀 <b>New Order Portal</b>
+
+Welcome! Here you can order powerful growth services for your social media accounts.
+
+Our system guarantees:
+
+<b>Choice & Variety:</b> Packages of different qualities (from Economy to VIP) to suit every budget and need.
+
+<b>Transparency:</b> Full details on each package's speed, quality, and guarantee will be clearly provided at the time of selection.
+
+<b>Security:</b> All payments and transactions are 100% safe and secure.
+
+💡 <b>Let's get started. Please choose your platform below:</b>
+"""
+
+    await message.answer(text, reply_markup=get_services_main_menu())
+
+@dp.message(Command("admin"))
+async def cmd_admin(message: Message):
+    """Handle /admin command - show admin commands list"""
+    print(f"📨 Received /admin command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return
+
+    # Check admin access
+    if not is_admin(user.id):
+        await message.answer("⚠️ Access denied. This command is for administrators only.")
+        return
+
+    text = """
+👑 <b>Admin Commands List</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 <b>Available Admin Commands:</b>
+
+🔹 <b>/broadcast &lt;message&gt;</b>
+   📢 Send message to all registered users
+   💡 Example: /broadcast Hello everyone!
+
+🔹 <b>/viewuser &lt;USER_ID&gt;</b>
+   👤 View specific user profile details
+   💡 Example: /viewuser 123456789
+
+🔹 <b>/sendtouser &lt;USER_ID&gt; &lt;message&gt;</b>
+   💬 Send direct message to specific user
+   💡 Example: /sendtouser 123456789 Your order is ready
+
+🔹 <b>/create_offer</b>
+   🎁 Start the process to create new offers
+   💡 Example: /create_offer
+
+🔹 <b>/delete_offer &lt;OFFER_ID&gt;</b>
+   🗑️ Permanently delete an offer
+   💡 Example: /delete_offer OFFER-123456789-1234
+
+🔹 <b>/restoreuser &lt;USER_ID&gt;</b>
+   🔧 Restore user back into memory
+   💡 Example: /restoreuser 123456789
+
+🔹 <b>/adminmenu</b>
+   🎛️ Open admin panel interface
+   💡 Example: /adminmenu
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ <b>Quick Access:</b> Use /adminmenu for graphical interface
+"""
+
+    await message.answer(text)
+
+@dp.message(Command("adminmenu"))
+async def cmd_adminmenu(message: Message):
+    """Handle /adminmenu command - same as Admin Panel button"""
+    print(f"📨 Received /adminmenu command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return
+
+    user_id = user.id
+
+    if not is_admin(user_id):
+        text = """
+⚠️ <b>Access Denied</b>
+
+This section is only for authorized administrators.
+
+🔒 <b>Security Notice:</b>
+Unauthorized access attempts are logged and monitored.
+
+📞 If you are an administrator, please contact the owner.
+"""
+        await message.answer(text)
+    else:
+        # Import admin menu from services.py
+        from services import get_admin_main_menu
+
+        # Show proper admin panel with all buttons
+        text = """
+👑 <b>India Social Panel - Admin Control Center</b>
+
+🎯 <b>Welcome Admin!</b> Choose your action below:
+
+🚀 <b>Full administrative access granted</b>
+📊 <b>All systems operational</b>
+"""
+
+        admin_menu = get_admin_main_menu()
+        await message.answer(text, reply_markup=admin_menu)
+
+@dp.message(Command("signout"))
+async def cmd_signout(message: Message):
+    """Handle /signout command - same as Sign Out button"""
+    print(f"📨 Received /signout command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return
+
+    # Check if account is created
+    if not is_account_created(user.id):
+        await message.answer("⚠️ Please create your account first! Use /start to create your account.")
+        return
+
+    user_id = user.id
+    user_data = users_data.get(user_id, {})
+    user_display_name = user_data.get('full_name', 'User')
+
+    text = f"""
+🚪 <b>Logout Account</b>
+
+⚠️ <b>Account Logout Confirmation</b>
+
+👤 <b>Current Account:</b> {user_display_name}
+📱 <b>Phone:</b> {user_data.get('phone_number', 'N/A')}
+💰 <b>Balance:</b> {format_currency(user_data.get('balance', 0.0)) if format_currency else f"₹{user_data.get('balance', 0.0):.2f}"}
+
+🔴 <b>What happens when you logout:</b>
+• Account will be temporarily deactivated
+• All service access will be disabled  
+• "Create Account" and "Login" options will return to main menu
+• Data will remain safe - nothing will be deleted
+• You can login again with the same phone/token
+
+💡 <b>After logout:</b>
+• Option to create new account will be available
+• Option to login to previous account will also be available
+• Access token will remain the same
+
+❓ <b>Do you really want to logout?</b>
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🚪 Yes, Logout", callback_data="confirm_logout"),
+            InlineKeyboardButton(text="❌ Cancel", callback_data="my_account")
+        ]
+    ])
+
+    await message.answer(text, reply_markup=keyboard)
+
+@dp.message(Command("userlist"))
+async def cmd_userlist(message: Message):
+    """Handle /userlist command - show all users who started the bot"""
+    print(f"📨 Received /userlist command from user {message.from_user.id if message.from_user else 'Unknown'}")
+    
+    user = message.from_user
+    if not user:
+        print("❌ No user found in message")
+        return
+
+    # Check if message is old (sent before bot restart)
+    if is_message_old(message):
+        print(f"⏰ Message is old, marking user {user.id} for notification")
+        mark_user_for_notification(user.id)
+        return
+
+    # Check admin access
+    if not is_admin(user.id):
+        await message.answer("⚠️ Access denied. This command is for administrators only.")
+        return
+
+    # Get all users from users_data
+    if not users_data:
+        await message.answer("📝 No users found in database.")
+        return
+
+    total_users = len(users_data)
+    account_created_users = sum(1 for user_data in users_data.values() if user_data.get('account_created', False))
+    
+    # Create user list with proper formatting
+    user_list_text = []
+    for idx, (user_id_str, user_data) in enumerate(users_data.items(), 1):
+        # Get user details with debug info
+        telegram_username = user_data.get('username', '').strip()
+        first_name = user_data.get('first_name', '').strip()
+        full_name = user_data.get('full_name', '').strip()
+        account_status = "✅ Created" if user_data.get('account_created', False) else "⏳ Pending"
+        join_date = user_data.get('join_date', 'Unknown')
+        
+        
+        # Format username properly - fix the logic
+        if telegram_username and telegram_username != "":
+            username_display = f"@{telegram_username}"
+        elif full_name and full_name != "":
+            username_display = f"{full_name} (Account)"
+        elif first_name and first_name != "":
+            username_display = f"{first_name} (Telegram)"
+        else:
+            username_display = "(No name set)"
+        
+        # Format join date
+        try:
+            if join_date != 'Unknown':
+                from datetime import datetime
+                join_dt = datetime.fromisoformat(join_date.replace('Z', '+00:00'))
+                formatted_date = join_dt.strftime('%d %b %Y')
+            else:
+                formatted_date = 'Unknown'
+        except:
+            formatted_date = 'Unknown'
+        
+        user_list_text.append(
+            f"<b>{idx}.</b> <code>{user_id_str}</code> | {username_display}\n"
+            f"    📅 Joined: {formatted_date} | {account_status}"
+        )
+    
+    # Split into chunks if too many users (Telegram message limit)
+    chunk_size = 50  # Show 50 users per message
+    total_chunks = (total_users + chunk_size - 1) // chunk_size
+    
+    for chunk_num in range(total_chunks):
+        start_idx = chunk_num * chunk_size
+        end_idx = min(start_idx + chunk_size, total_users)
+        chunk_users = user_list_text[start_idx:end_idx]
+        
+        header = f"""
+👥 <b>All Bot Users List</b>
+📊 <b>Statistics:</b> {total_users} Total Users | {account_created_users} Accounts Created
+
+📋 <b>Users {start_idx + 1}-{end_idx} of {total_users}:</b>
+
+"""
+        
+        chunk_text = header + "\n\n".join(chunk_users)
+        
+        if total_chunks > 1:
+            chunk_text += f"\n\n📄 <b>Page {chunk_num + 1} of {total_chunks}</b>"
+        
+        chunk_text += "\n\n💡 <b>Legend:</b> ✅ Account Created | ⏳ Account Pending"
+        
+        await message.answer(chunk_text)
+
+# ========== EXISTING ADMIN COMMANDS ==========
 
 @dp.message(Command("broadcast"))
 async def cmd_broadcast(message: Message):
@@ -1158,7 +1465,7 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
 
     choice = message.text.strip().lower()
 
-    if choice in ['yes', 'y', 'हां', 'हाँ']:
+    if choice in ['yes', 'y', 'han', 'haan']:
         # Ask for fixed quantity amount
         await state.update_data(has_fixed_quantity=True)
         await state.set_state(CreateOfferStates.getting_fixed_quantity)
@@ -1183,7 +1490,7 @@ async def handle_fixed_quantity_choice(message: Message, state: FSMContext):
 
         await message.answer(text)
 
-    elif choice in ['no', 'n', 'नहीं', 'nahi']:
+    elif choice in ['no', 'n', 'nahin', 'nahi']:
         # Complete the offer creation
         await state.update_data(has_fixed_quantity=False, fixed_quantity=None)
         await complete_offer_creation(message, state)
@@ -2453,8 +2760,8 @@ async def cmd_language(message: Message):
 
 🗣️ <b>Currently Available Languages:</b>
 • 🇮🇳 English (Default)
-• 🇮🇳 हिंदी (Hindi) - Coming Soon
-• 🇮🇳 मराठी (Marathi) - Coming Soon
+• 🇮🇳 Hindi - Coming Soon
+• 🇮🇳 Marathi - Coming Soon
 
 🎯 <b>Regional Features:</b>
 • Local payment methods
@@ -3205,6 +3512,94 @@ async def cb_offers_rewards(callback: CallbackQuery):
 
     await safe_edit_message(callback, text, get_offers_rewards_menu())
     await callback.answer()
+
+@dp.callback_query(F.data == "limited_time_offers")
+async def cb_limited_time_offers(callback: CallbackQuery):
+    """Handle limited time offers section - display active offers from admin"""
+    if not callback.message:
+        return
+
+    # Load active offers from offers.json (same as what admin sends)
+    offers = load_offers_from_json()
+    active_offers = [offer for offer in offers if offer.get('is_active', True)]
+
+    if not active_offers:
+        text = """
+⏰ <b>Limited Time Offers</b>
+
+😔 <b>No Active Offers Currently</b>
+
+📭 Currently, there are no special offers available. Our admin team is working on bringing you amazing deals soon!
+
+🔔 <b>Stay Tuned:</b>
+• Check back regularly for new offers
+• Follow our updates for instant notifications
+• Special deals are added frequently
+
+💡 <b>Tip:</b> Don't miss out - offers come and go quickly!
+"""
+        
+        back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")]
+        ])
+        
+        await safe_edit_message(callback, text, back_keyboard)
+        await callback.answer()
+        return
+
+    # Create offers display with same format as admin sends
+    text = f"""
+⏰ <b>Limited Time Offers</b>
+
+🎯 <b>Exclusive Deals Available Now!</b>
+
+📊 <b>Active Offers:</b> {len(active_offers)} Special Deals
+
+💥 <b>Don't miss these amazing opportunities:</b>
+
+"""
+
+    # Create buttons for each active offer
+    offer_buttons = []
+    for idx, offer in enumerate(active_offers, 1):
+        # Format offer details similar to send_offer_to_user function
+        offer_text = f"""
+🎯 <b>Offer #{idx}</b>
+
+{offer.get('offer_message', '')}
+
+📦 <b>Package:</b> {offer.get('package_name', 'Unknown')}
+💰 <b>Rate:</b> {offer.get('rate', 'Contact admin')}
+"""
+        
+        if offer.get('has_fixed_quantity') and offer.get('fixed_quantity'):
+            offer_text += f"🔢 <b>Quantity:</b> {offer['fixed_quantity']}\n"
+
+        text += offer_text + "\n" + "─" * 30 + "\n\n"
+        
+        # Add Order Now button for each offer (same as admin sends)
+        offer_buttons.append([
+            InlineKeyboardButton(
+                text=f"🛒 Order: {offer.get('package_name', 'Package')}",
+                callback_data=f"order_offer_{offer.get('offer_id', '')}"
+            )
+        ])
+
+    # Add back button
+    offer_buttons.append([
+        InlineKeyboardButton(text="⬅️ Offers & Rewards", callback_data="offers_rewards")
+    ])
+
+    text += """
+⚡ <b>Limited Time Only!</b>
+🛒 <b>Click below to order any package!</b>
+
+💡 <b>Note:</b> These offers are the same ones sent by our admin team. Grab them before they expire!
+"""
+
+    offers_keyboard = InlineKeyboardMarkup(inline_keyboard=offer_buttons)
+    await safe_edit_message(callback, text, offers_keyboard)
+    await callback.answer("🎯 Limited time offers loaded!")
 
 @dp.callback_query(F.data == "admin_panel")
 async def cb_admin_panel(callback: CallbackQuery):
@@ -4019,7 +4414,7 @@ async def cb_wallet_specific_order(callback: CallbackQuery):
 4. Enter amount: ₹{total_price:,.2f}
 5. Complete payment with PIN/Password
 
-⚡️ <b>Payment के बाद screenshot भेजना जरूरी है!</b>
+⚡️ <b>Screenshot submission is required after payment!</b>
 
 💡 <b>Most users prefer {name} for reliability!</b>
 """
@@ -4075,11 +4470,11 @@ async def cb_netbank_specific(callback: CallbackQuery):
 🏛️ <b>{description}</b>
 
 💳 <b>Net Banking Process:</b>
-1. आपको bank का secure login page दिखेगा
-2. अपना User ID और Password enter करें
-3. Transaction password/MPIN डालें
-4. Payment authorize करें
-5. Success message का screenshot लें
+1. You will see bank's secure login page
+2. Enter your User ID and Password
+3. Enter transaction password/MPIN
+4. Authorize the payment
+5. Take screenshot of success message
 
 🔒 <b>Security Features:</b>
 • 256-bit SSL encryption
@@ -4088,8 +4483,8 @@ async def cb_netbank_specific(callback: CallbackQuery):
 • Instant payment confirmation
 
 ⚠️ <b>Important:</b>
-• Net banking login ready रखें
-• Transaction limit check करें
+• Keep net banking login ready
+• Check transaction limit
 • Payment timeout: 15 minutes
 
 🚀 <b>Ready to proceed with {bank_name}?</b>
@@ -4174,18 +4569,18 @@ async def cb_bank_transfer_screenshot(callback: CallbackQuery):
     text = """
 📸 <b>Bank Transfer Screenshot</b>
 
-💡 <b>कृपया bank transfer का screenshot भेजें</b>
+💡 <b>Please send bank transfer screenshot</b>
 
-📋 <b>Screenshot में ये दिखना चाहिए:</b>
+📋 <b>Screenshot should show these details:</b>
 • ✅ Transfer successful message
 • 💰 Transfer amount
 • 🆔 Transaction reference number
-• 📅 Date और time
+• 📅 Date and time
 • 🏦 Beneficiary name (India Social Panel)
 
 💬 <b>Send the screenshot as an image...</b>
 
-⏰ <b>Screenshot verify होने के बाद order process हो जाएगा</b>
+⏰ <b>Order will be processed after screenshot verification</b>
 """
 
     await safe_edit_message(callback, text)
@@ -4266,7 +4661,7 @@ async def cb_payment_app(callback: CallbackQuery):
 
 🔸 <b>Method 1: Copy UPI ID</b>
 • UPI ID: <code>business@paytm</code>
-• Manual transfer करें any UPI app में
+• Manual transfer in any UPI app
 
 🔸 <b>Method 2: UPI Apps Direct</b>
 • Google Pay, PhonePe, Paytm
@@ -4279,9 +4674,9 @@ async def cb_payment_app(callback: CallbackQuery):
 3. Send ₹{total_price:,.2f}
 4. Complete payment with PIN
 5. Take screenshot
-6. Share screenshot यहाँ
+6. Share screenshot here
 
-✅ <b>Payment complete होने के बाद screenshot share करें!</b>
+✅ <b>Share screenshot after payment completion!</b>
 """
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -4456,9 +4851,9 @@ async def cb_payment_bank_method(callback: CallbackQuery):
 ⏰ <b>Processing Time:</b>
 • IMPS: Instant
 • NEFT: 2-4 hours
-• RTGS: 1-2 hours (₹2L+ के लिए)
+• RTGS: 1-2 hours (for ₹2L+)
 
-💡 <b>Transfer के बाद screenshot भेजना जरूरी है!</b>
+💡 <b>Screenshot submission is required after transfer!</b>
 """
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -4558,10 +4953,10 @@ async def cb_confirm_order(callback: CallbackQuery):
 💰 <b>Charged:</b> {format_currency(price)}
 🔄 <b>Status:</b> Processing
 
-✅ <b>Order का processing start हो गया!</b>
+✅ <b>Order processing has started!</b>
 📅 <b>Delivery:</b> 0-6 hours
 
-💡 <b>Order history में details check कर सकते हैं</b>
+💡 <b>You can check details in order history</b>
 """
 
     success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -5044,7 +5439,7 @@ async def cb_daily_reward(callback: CallbackQuery):
     text = """
 🎉 <b>Daily Reward</b>
 
-🎁 <b>Login करें और Daily Rewards पाएं!</b>
+🎁 <b>Login and get Daily Rewards!</b>
 
 📅 <b>Daily Login Streak:</b>
 • Day 1: ₹5 bonus
@@ -5141,7 +5536,7 @@ async def cb_community_polls(callback: CallbackQuery):
 • "Most wanted service?" → Instagram Reels won
 
 🎁 <b>Poll Participation Rewards:</b>
-• Vote करने पर points मिलते हैं
+• Points are earned by voting
 • Monthly poll winners get bonuses
 • Community feedback valued
 • Special recognition for active voters
@@ -5278,7 +5673,7 @@ async def cb_create_ticket(callback: CallbackQuery):
 
 📝 <b>Step 1: Subject</b>
 
-💬 <b>कृपया ticket का subject भेजें:</b>
+💬 <b>Please send the ticket subject:</b>
 
 ⚠️ <b>Examples:</b>
 • Order delivery issue
@@ -5304,15 +5699,15 @@ async def cb_view_tickets(callback: CallbackQuery):
 
     if not user_tickets:
         text = """
-📖 <b>Mere Tickets</b>
+📖 <b>My Tickets</b>
 
-📋 <b>कोई tickets नहीं मिले</b>
+📋 <b>No tickets found</b>
 
-🎫 <b>Agar koi problem hai to new ticket create karein!</b>
-➕ <b>Support team 24/7 available hai</b>
+🎫 <b>Create a new ticket if you have any problem!</b>
+➕ <b>Support team is available 24/7</b>
 """
     else:
-        text = "📖 <b>Mere Tickets</b>\n\n"
+        text = "📖 <b>My Tickets</b>\n\n"
         for i, ticket in enumerate(user_tickets[-5:], 1):  # Last 5 tickets
             status_emoji = {"open": "🔴", "replied": "🟡", "closed": "✅"}
             emoji = status_emoji.get(ticket.get('status', 'open'), "🔴")
@@ -6648,9 +7043,9 @@ async def handle_photo_input(message: Message):
         text = """
 ✅ <b>Profile Photo Updated Successfully!</b>
 
-📸 <b>आपकी profile photo update हो गयी!</b>
+📸 <b>Your profile photo has been updated!</b>
 
-💡 <b>New photo अब आपके account में visible है</b>
+💡 <b>New photo is now visible in your account</b>
 """
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -6791,6 +7186,8 @@ async def on_startup():
     commands = [
         BotCommand(command="start", description="🚀 Launch Dashboard & Access All Features"),
         BotCommand(command="menu", description="🏠 Main Menu - Complete Service Portal"),
+        BotCommand(command="neworder", description="🛒 Start New Order - Browse Services"),
+        BotCommand(command="signout", description="🚪 Sign Out Account - Logout Safely"),
         BotCommand(command="help", description="❓ Help Guide & Customer Support Center"),
         BotCommand(command="about", description="ℹ️ About India's #1 SMM Growth Platform"),
         BotCommand(command="account", description="👤 My Account Dashboard & Profile Settings"),
@@ -6808,6 +7205,9 @@ async def on_startup():
         BotCommand(command="premium", description="👑 Premium Features & VIP Membership"),
         BotCommand(command="analytics", description="📊 Account Analytics & Growth Statistics"),
         BotCommand(command="feedback", description="⭐ Rate Our Service & Share Experience"),
+        BotCommand(command="admin", description="👑 Admin Commands List (Admin Only)"),
+        BotCommand(command="adminmenu", description="🎛️ Admin Control Panel (Admin Only)"),
+        BotCommand(command="userlist", description="👥 View All Bot Users List (Admin Only)"),
         BotCommand(command="description", description="📋 Package Details During Order Process")
     ]
     await bot.set_my_commands(commands)
