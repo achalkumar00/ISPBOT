@@ -514,11 +514,12 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
 
     @main_dp.callback_query(F.data.startswith("payment_completed_"))
     async def cb_payment_completed(callback: CallbackQuery, state: FSMContext):
-        """Handle payment completion - ask for screenshot using FSM"""
+        """Handle payment completion - directly complete order (screenshot step removed)"""
         if not callback.message or not callback.from_user:
             return
 
         try:
+            from datetime import datetime
             user_id = callback.from_user.id
             transaction_id = (callback.data or "").replace("payment_completed_", "")
 
@@ -531,52 +532,74 @@ def register_payment_handlers(main_dp, main_users_data, main_user_state, main_fo
                 await state.clear()
                 return
 
-            # Set user state to waiting for screenshot using FSM
-            await state.set_state(OrderStates.waiting_screenshot)
+            # Skip screenshot step - directly complete the order
+            # Import required functions and data from main module
+            from main import orders_data, send_admin_notification, generate_order_id
+            
+            # Generate order ID
+            order_id = generate_order_id()
 
-            text = f"""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📸 <b>PAYMENT VERIFICATION REQUIRED</b>
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            # Create final order record from FSM data (same as handle_screenshot_fsm)
+            order_record = {
+                'order_id': order_id,
+                'user_id': user_id,
+                'package_name': order_data.get("package_name", "N/A"),
+                'service_id': order_data.get("service_id", "N/A"),
+                'platform': order_data.get("platform", "N/A"),
+                'link': order_data.get("link", "N/A"),
+                'quantity': order_data.get("quantity", 0),
+                'total_price': amount,
+                'status': 'processing',
+                'created_at': datetime.now().isoformat(),
+                'payment_method': 'UPI Payment Confirmed',
+                'payment_status': 'completed'
+            }
 
-🎯 <b>Payment Confirmation Step - Screenshot Submission</b>
+            # Store the final order in orders_data
+            orders_data[order_id] = order_record
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 💳 <b>PAYMENT SUMMARY</b>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Payment Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
-┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
-┃ • 📱 <b>Payment Method:</b> UPI Gateway
-┃ • ⏰ <b>Status:</b> Awaiting Verification
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            # Send notification to admin group (without screenshot)
+            await send_admin_notification(order_record, photo_file_id=None)
 
-📸 <b>SCREENSHOT SUBMISSION REQUIREMENTS:</b>
+            # Send confirmation to user
+            success_text = f"""
+🎉 <b>Order Successfully Placed!</b>
 
-┌─────────────────────────────────────┐
-│ ✅ <b>MANDATORY REQUIREMENTS:</b>           │
-│ • High-quality, clear image          │
-│ • Payment amount clearly visible     │
-│ • Transaction status shows "SUCCESS" │
-│ • Date and timestamp visible         │
-│ • UPI reference number included      │
-└─────────────────────────────────────┘
+✅ <b>Payment Confirmed Successfully!</b>
 
-⚠️ <b>CRITICAL WARNING:</b>
-<b>Screenshot submission is MANDATORY for order processing. Failure to provide valid payment proof will result in automatic order cancellation and no service delivery.</b>
+🆔 <b>Order ID:</b> <code>{order_id}</code>
+📦 <b>Package:</b> {order_record['package_name']}
+🔢 <b>Quantity:</b> {order_record['quantity']:,}
+💰 <b>Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 
-📤 <b>Upload your payment screenshot now:</b>
+📋 <b>Order Status:</b> ⏳ Processing
+🔄 <b>Payment Status:</b> ✅ Completed
 
-💡 <b>Pro Tip:</b> Take screenshot immediately after successful payment for best quality and clarity.
+⚡ <b>Your order has been confirmed and will be processed shortly!</b>
 
-🔒 <b>Your payment security is guaranteed with bank-grade verification protocols.</b>
+💡 <b>Expected Delivery:</b> 24-48 hours
+📱 <b>You will receive updates on order progress</b>
 """
 
-            await safe_edit_message(callback, text)
-            await callback.answer("📸 Please upload payment screenshot now...")
+            success_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="📜 Order History", callback_data="order_history"),
+                    InlineKeyboardButton(text="🚀 New Order", callback_data="new_order")
+                ],
+                [
+                    InlineKeyboardButton(text="🏠 Main Menu", callback_data="back_main")
+                ]
+            ])
+
+            await safe_edit_message(callback, success_text, success_keyboard)
+            await callback.answer("🎉 Order placed successfully!")
 
         except Exception as e:
             print(f"CRITICAL ERROR in cb_payment_completed: {e}")
             await callback.answer("An error occurred. Please try again.", show_alert=True)
+        finally:
+            # Clear the FSM state to finish the order process
+            await state.clear()
 
     @main_dp.callback_query(F.data.startswith("cancel_qr_order_"))
 
