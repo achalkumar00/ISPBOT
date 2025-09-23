@@ -4,7 +4,6 @@ India Social Panel - Advanced Payment System
 Professional Payment Gateway with Multiple Methods
 """
 
-import qrcode
 import io
 import os
 import time
@@ -13,7 +12,6 @@ from aiogram import F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from typing import Optional
-from states import OrderStates
 
 async def safe_edit_message(callback: CallbackQuery, text: str, reply_markup: Optional[InlineKeyboardMarkup] = None) -> bool:
     """Safely edit callback message with comprehensive error handling"""
@@ -838,7 +836,7 @@ No payment history found
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 💰 <b>PAYMENT DETAILS</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Amount:</b> {format_currency(amount)}
+┃ • 💰 <b>Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 ┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
 ┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
 ┃ • 👤 <b>Merchant:</b> {PAYMENT_CONFIG['upi_name']}
@@ -952,7 +950,7 @@ No payment history found
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 💳 <b>PAYMENT DETAILS</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Amount:</b> {format_currency(amount)}
+┃ • 💰 <b>Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 ┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
 ┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
 ┃ • 🔒 <b>Payment Method:</b> QR Code Scan
@@ -963,7 +961,7 @@ No payment history found
 🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
 🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
 🔸 <b>Step 3:</b> Scan the QR code displayed above
-🔸 <b>Step 4:</b> Verify amount: {format_currency(amount)}
+🔸 <b>Step 4:</b> Verify amount: {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 🔸 <b>Step 5:</b> Complete payment with your UPI PIN
 🔸 <b>Step 6:</b> Click "Payment Completed" button below
 
@@ -1097,7 +1095,7 @@ async def send_manual_payment_fallback(message, amount: float, transaction_id: s
         except Exception:
             await callback.message.answer(text, reply_markup=payment_keyboard)
 
-        await callback.answer("💡 UPI ID copied! Transfer ₹{amount:,}")
+        await callback.answer(f"💡 UPI ID copied! Transfer ₹{amount:,}")
 
     @main_dp.callback_query(F.data == "payment_bank")
     async def cb_payment_bank(callback: CallbackQuery):
@@ -1279,7 +1277,7 @@ async def cb_payment_qr(callback: CallbackQuery, state: FSMContext):
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 💳 <b>PAYMENT DETAILS</b>
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ • 💰 <b>Amount:</b> {format_currency(amount)}
+┃ • 💰 <b>Amount:</b> {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 ┃ • 📱 <b>UPI ID:</b> <code>{PAYMENT_CONFIG['upi_id']}</code>
 ┃ • 🆔 <b>Transaction ID:</b> <code>{transaction_id}</code>
 ┃ • 🔒 <b>Payment Method:</b> QR Code Scan
@@ -1290,7 +1288,7 @@ async def cb_payment_qr(callback: CallbackQuery, state: FSMContext):
 🔸 <b>Step 1:</b> Open any UPI app (GPay, PhonePe, Paytm, JioMoney)
 🔸 <b>Step 2:</b> Tap "Scan QR Code" or "Pay" option
 🔸 <b>Step 3:</b> Scan the QR code displayed above
-🔸 <b>Step 4:</b> Verify amount: {format_currency(amount)}
+🔸 <b>Step 4:</b> Verify amount: {format_currency(amount) if format_currency else f"₹{amount:,.2f}"}
 🔸 <b>Step 5:</b> Complete payment with your UPI PIN
 🔸 <b>Step 6:</b> Click "Payment Completed" button below
 
@@ -1369,7 +1367,7 @@ async def cb_payment_cancel(callback: CallbackQuery):
     user_id = callback.from_user.id
 
     # Clear user state
-    if user_id in user_state:
+    if user_state and user_id in user_state:
         user_state[user_id] = {"current_step": None, "data": {}}
 
     # Send order cancelled message
