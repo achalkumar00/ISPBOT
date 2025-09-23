@@ -2458,7 +2458,7 @@ async def cb_language_select(callback: CallbackQuery):
         return
 
     # Extract language from callback data
-    language_code = callback.data.replace("select_lang_", "")
+    language_code = (callback.data or "").replace("select_lang_", "")
 
     # Language mapping for display names
     language_names = {
