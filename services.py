@@ -317,104 +317,144 @@ Instagram Followers Order karne Se Pehle Ya Refill Support K liye Aapko Pehle Ja
         "2011": {
             "name": "❤️ Instagram Post Likes - 💰 Economy",
             "price": "₹18 per 1000 likes",
-            "description": """⏳ Start Time: 0–60 Minutes
+            "description": """Start small, dream big! यह package उन लोगों के लिए है जो पहली बार Instagram likes खरीद रहे हैं। असली accounts से आने वाले ये likes आपको बताएंगे कि कैसे engagement आपकी post की reach बढ़ाती है।
+
+⏳ Start Time: 0–60 Minutes
 ⚡ Speed: 20K Likes / Day 🚀
 💧 Drop Rate: 0–10% (Almost Stable)
 ♻️ Refill / Refund: ❌ Not Available
 💎 Quality: Low-Quality Realistic Engagement
-🔗 Link Required: Post / Reel / Video Link""",
+🔗 Link Required: Post / Reel / Video Link
+
+💡 Beginners के लिए perfect choice - सीखने और समझने का best तरीका!""",
         },
         "2012": {
             "name": "❤️ Instagram Post Likes - 📈 Standard",
             "price": "₹30 per 1000 likes",
-            "description": """⏳ Start Time: 0–30 Minutes
+            "description": """The sweet spot between affordability and quality! This balanced package delivers steady likes from active Instagram users who engage with diverse content. Perfect for consistent growth and maintaining good engagement rates on your regular posts.
+
+⏳ Start Time: 0–30 Minutes
 ⚡ Speed: 30K Likes / Day 🚀
 💧 Drop Rate: 0–5% (Stable)
 ♻️ Refill / Refund: ❌ Not Available
 💎 Quality: Standard Quality Realistic Engagement
-🔗 Link Required: Post / Reel / Video Link""",
+🔗 Link Required: Post / Reel / Video Link
+
+🎯 Ideal for content creators who post regularly and want reliable engagement boost.""",
         },
         "2013": {
             "name": "❤️ Instagram Post Likes - ⭐ Premium",
             "price": "₹45 per 1000 likes",
-            "description": """⏳ Start Time: 0–60 Minutes
+            "description": """Elevate your content with premium-grade likes from highly engaged Instagram users! These likes come from accounts that actively interact with trending content and follow similar niches. Watch your posts gain serious momentum and attract organic followers who discover you through increased visibility.
+
+⏳ Start Time: 0–60 Minutes
 ⚡ Speed: 50K Likes / Day 🚀
 💧 Drop Rate: 0–7% (Almost Stable)
 ♻️ Refill / Refund: ❌ Not Available
 💎 Quality: High-Quality Realistic Engagement
-🔗 Link Required: Post / Reel / Video Link""",
+🔗 Link Required: Post / Reel / Video Link
+
+🚀 Perfect for important posts, announcements, or content you want to go viral!""",
         },
         "2014": {
             "name": "❤️ Instagram Post Likes - 🇮🇳 Indian Premium",
             "price": "₹54 per 1000 likes",
-            "description": """⏳ Start Time: 0–60 Minutes
+            "description": """Connect with your local audience! Get premium likes specifically from Indian Instagram users who understand and appreciate Indian culture, trends, and content. Perfect for businesses, influencers, and creators targeting the Indian market with region-specific content.
+
+⏳ Start Time: 0–60 Minutes
 ⚡ Speed: 50K Likes / Day 🚀
 💧 Drop Rate: 0–7% (Almost Stable)
 ♻️ Refill / Refund: ❌ Not Available
 💎 Quality: High-Quality Realistic Engagement
-🔗 Link Required: Post / Reel / Video Link""",
+🔗 Link Required: Post / Reel / Video Link
+
+🇮🇳 Excellent for Hindi content, local businesses, festivals, and Indian lifestyle posts!""",
         },
         "2015": {
             "name": "❤️ Instagram Post Likes - 👑 VIP Elite",
             "price": "₹66 per 1000 likes",
-            "description": """⏳ Start Time: 0–60 Minutes
+            "description": """The ultimate Instagram likes experience! Get exclusive engagement from elite Instagram users with high follower counts and active profiles. These premium likes create a ripple effect, attracting more organic engagement and boosting your credibility significantly.
+
+⏳ Start Time: 0–60 Minutes
 ⚡ Speed: 50K Likes / Day 🚀
 💧 Drop Rate: 0–7% (Almost Stable)
 ♻️ Refill / Refund: ❌ Not Available
 💎 Quality: High-Quality Realistic Engagement
-🔗 Link Required: Post / Reel / Video Link""",
+🔗 Link Required: Post / Reel / Video Link
+
+👑 Reserved for special occasions, product launches, or when you want maximum impact!""",
         },
 
         # Instagram Reel Views - 5 Different Quality Packages
         "2041": {
             "name": "👁️ Instagram Reel Views - 💰 Economy",
             "price": "₹12 per 1000 views",
-            "description": """⏳ Start: 0–30 Minutes  
+            "description": """Kickstart your reels journey with authentic views that help your content get discovered! Perfect for testing different reel formats and understanding what resonates with audiences. These genuine views give your reels the initial push they need to start appearing in more feeds.
+
+⏳ Start: 0–30 Minutes  
 ⚡ Speed: Up to 150K Views / Day 🚀  
 💧 Drop: 0–5% (Pretty Stable)  
 ♻️ Refill / Refund: ❌ Not Applicable  
 💎 Quality: Authentic & Natural View Count  
-🔗 Link: Reel / Video / Post Link Required""",
+🔗 Link: Reel / Video / Post Link Required
+
+📈 Great for new creators learning to make viral reels and testing content strategies.""",
         },
         "2042": {
             "name": "👁️ Instagram Reel Views - 📈 Standard",
             "price": "₹20 per 1000 views",
-            "description": """⏳ Start: 0–30 Minutes  
+            "description": """Boost your reels with reliable views that create steady momentum! This balanced package helps your content consistently perform well and maintains good view counts across all your reels. Perfect for creators who want dependable engagement on their video content.
+
+⏳ Start: 0–30 Minutes  
 ⚡ Speed: Up to 150K Views / Day 🚀  
 💧 Drop: 0–5% (Pretty Stable)  
 ♻️ Refill / Refund: ❌ Not Applicable  
 💎 Quality: Authentic & Natural View Count  
-🔗 Link: Reel / Video / Post Link Required""",
+🔗 Link: Reel / Video / Post Link Required
+
+🎬 Ideal for regular reel creators who want consistent performance across all content.""",
         },
         "2043": {
             "name": "👁️ Instagram Reel Views - ⭐ Premium",
             "price": "₹30 per 1000 views",
-            "description": """⏳ Start: 0–30 Minutes  
+            "description": """Supercharge your reels with premium views that drive viral potential! These high-quality views come from engaged users who actively watch and interact with trending reels. Your content gets the algorithmic boost needed to reach the explore page and gain massive organic reach.
+
+⏳ Start: 0–30 Minutes  
 ⚡ Speed: Up to 150K Views / Day 🚀  
 💧 Drop: 0–5% (Pretty Stable)  
 ♻️ Refill / Refund: ❌ Not Applicable  
 💎 Quality: Authentic & Natural View Count  
-🔗 Link: Reel / Video / Post Link Required""",
+🔗 Link: Reel / Video / Post Link Required
+
+🔥 Perfect for trending content, challenges, or reels you want to go viral quickly!""",
         },
         "2044": {
             "name": "👁️ Instagram Reel Views - 🇮🇳 Indian Premium",
             "price": "₹36 per 1000 views",
-            "description": """⏳ Start: 0–30 Minutes  
+            "description": """Connect with the Indian audience through targeted views from local users! Get authentic engagement from viewers who understand Indian culture, trends, and language preferences. Perfect for Hindi reels, regional content, cultural celebrations, and local business promotions.
+
+⏳ Start: 0–30 Minutes  
 ⚡ Speed: Up to 150K Views / Day 🚀  
 💧 Drop: 0–5% (Pretty Stable)  
 ♻️ Refill / Refund: ❌ Not Applicable  
 💎 Quality: Authentic & Natural View Count  
-🔗 Link: Reel / Video / Post Link Required""",
+🔗 Link: Reel / Video / Post Link Required
+
+🇮🇳 Excellent for Bollywood content, festivals, Indian lifestyle, and local market targeting!""",
         },
         "2045": {
             "name": "👁️ Instagram Reel Views - 👑 VIP Elite",
             "price": "₹44 per 1000 views",
-            "description": """⏳ Start: 0–30 Minutes  
+            "description": """Experience the ultimate reel views package! Get exclusive engagement from elite Instagram users who create viral trends and drive massive interactions. These premium views guarantee maximum algorithmic boost, helping your reels achieve instant viral status and explosive organic growth.
+
+⏳ Start: 0–30 Minutes  
 ⚡ Speed: Up to 150K Views / Day 🚀  
 💧 Drop: 0–5% (Pretty Stable)  
 ♻️ Refill / Refund: ❌ Not Applicable  
 💎 Quality: Authentic & Natural View Count  
-🔗 Link: Reel / Video / Post Link Required""",
+🔗 Link: Reel / Video / Post Link Required
+
+👑 Reserve this for your most important reels, brand campaigns, or breakthrough content!""",
         },
 
         # Instagram Story Views - 5 Different Quality Packages
