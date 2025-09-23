@@ -51,3 +51,8 @@ class AdminDirectMessageStates(StatesGroup):
     waiting_for_message = State()
 
 
+class FeedbackStates(StatesGroup):
+    """States for feedback collection after order completion"""
+    waiting_feedback = State()
+
+
