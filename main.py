@@ -34,7 +34,7 @@ import services
 import account_creation
 import text_input_handler
 
-from states import OrderStates, CreateOfferStates, AdminSendOfferStates, OfferOrderStates, AdminCreateUserStates, AdminDirectMessageStates, FeedbackStates
+from states import OrderStates, CreateOfferStates, AdminSendOfferStates, OfferOrderStates, AdminCreateUserStates, AdminDirectMessageStates, FeedbackStates, MovieSearchStates
 from fsm_handlers import handle_link_input, handle_quantity_input, handle_coupon_input
 
 # ========== CONFIGURATION ==========
@@ -57,13 +57,13 @@ OWNER_USERNAME = os.getenv("OWNER_USERNAME", "tech_support_admin")
 
 # Webhook settings
 WEBHOOK_PATH = "/webhook"
-WEBHOOK_SECRET = "india_social_panel_secret_2025"
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "india_social_panel_secret_2025")
 WEBHOOK_URL = f"{BASE_WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}" if BASE_WEBHOOK_URL else None
 WEBHOOK_MODE = bool(BASE_WEBHOOK_URL)  # True if webhook URL available, False for polling
 
 # Server settings
 WEB_SERVER_HOST = "0.0.0.0"
-WEB_SERVER_PORT = int(os.getenv("PORT", 8080))
+WEB_SERVER_PORT = int(os.getenv("PORT", 5000))
 
 # Bot initialization with FSM storage
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
@@ -910,6 +910,7 @@ def get_services_tools_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="## Hashtag Generator", callback_data="hashtag_generator")
         ],
         [
+            InlineKeyboardButton(text="🎬 Movie Search", callback_data="movie_search"),
             InlineKeyboardButton(text="✨ Free Trial Service", callback_data="free_trial")
         ],
         [
@@ -8447,6 +8448,102 @@ async def on_admin_message_input(message: Message, state: FSMContext):
         await message.answer(f"❌ <b>Error Sending Message</b>\n\nFailed to send message: {str(e)}\n\n🔄 Please try again.")
         await state.clear()
 
+# ========== MOVIE LIST HANDLER (PRIORITY) ==========
+@dp.message(F.text.contains("🎬 Available Movie Files:"))
+async def handle_movie_list_from_admin(message: Message):
+    """Handle movie list messages from admin and forward to requesting users"""
+    if not message.text or not message.from_user:
+        return
+    
+    print(f"🎬 MOVIE LIST: Detected movie list from admin {message.from_user.id}")
+    
+    # Parse the message to extract movie items
+    movie_buttons = parse_movie_list_message(message.text)
+    
+    if not movie_buttons:
+        print(f"⚠️ MOVIE LIST: No valid movie items found")
+        return
+    
+    # Create inline keyboard from parsed items
+    keyboard = create_movie_list_keyboard(movie_buttons)
+    
+    # Get the latest movie request (most recent one)
+    if pending_movie_requests:
+        # Get the most recent request
+        latest_request_id = max(pending_movie_requests.keys(), 
+                              key=lambda x: pending_movie_requests[x]['timestamp'])
+        request_info = pending_movie_requests[latest_request_id]
+        
+        try:
+            # Create clean formatted message for user
+            clean_message = f"""🎬 <b>Your Movie List</b>
+
+🎯 <b>Requested Movie:</b> {request_info['movie_name']}
+📋 <b>Available Options:</b>
+
+👇 <b>Select any movie file below:</b>"""
+
+            # Send clean movie list with buttons to the requesting user
+            await bot.send_message(
+                chat_id=request_info['user_id'],
+                text=clean_message,
+                reply_markup=keyboard,
+                parse_mode="HTML"
+            )
+            
+            print(f"✅ MOVIE LIST: Sent to user {request_info['user_id']} for movie '{request_info['movie_name']}'")
+            
+            # Send confirmation to admin
+            admin_confirmation = f"""
+✅ <b>Movie List Delivered Successfully!</b>
+
+👤 <b>Sent to User:</b> {request_info['full_name']} (@{request_info['username']})
+🎬 <b>Requested Movie:</b> {request_info['movie_name']}
+🆔 <b>Request ID:</b> <code>{latest_request_id}</code>
+📱 <b>User ID:</b> <code>{request_info['user_id']}</code>
+🕐 <b>Request Time:</b> {request_info['timestamp']}
+
+📋 <b>Movie list with {len(movie_buttons)} items sent with inline buttons!</b>
+"""
+            
+            # Send confirmation to admin group
+            admin_group_id = -1003009015663
+            await bot.send_message(
+                chat_id=admin_group_id,
+                text=admin_confirmation,
+                parse_mode="HTML"
+            )
+            
+            # Also reply to admin's message with confirmation
+            await message.reply(
+                f"✅ <b>Delivered to user {request_info['full_name']} ({request_info['user_id']})</b>\n"
+                f"🎬 <b>For movie:</b> {request_info['movie_name']}\n"
+                f"📋 <b>With {len(movie_buttons)} inline buttons</b>",
+                parse_mode="HTML"
+            )
+            
+            # Remove the processed request
+            del pending_movie_requests[latest_request_id]
+            print(f"🗑️ MOVIE REQUEST: Removed processed request {latest_request_id}")
+            
+        except Exception as e:
+            print(f"❌ MOVIE LIST: Failed to send to user: {e}")
+            await message.reply(
+                f"❌ <b>Failed to deliver movie list</b>\n"
+                f"🎬 <b>Movie:</b> {request_info['movie_name']}\n"
+                f"👤 <b>User:</b> {request_info['full_name']} ({request_info['user_id']})\n"
+                f"❌ <b>Error:</b> {str(e)}",
+                parse_mode="HTML"
+            )
+    else:
+        print(f"⚠️ MOVIE LIST: No pending requests found")
+        await message.reply(
+            "⚠️ <b>No pending movie requests found</b>\n\n"
+            "📋 <b>This movie list was not sent to any user</b>\n"
+            "💡 <b>Make sure users request movies first through the bot</b>",
+            parse_mode="HTML"
+        )
+
 # ========== INPUT HANDLERS ==========
 @dp.message(F.text & ~F.text.startswith("/"))
 async def handle_text_input_wrapper(message: Message, state: FSMContext):
@@ -8464,8 +8561,63 @@ async def handle_text_input_wrapper(message: Message, state: FSMContext):
     # PRIORITY CHECK: If user is in FSM state, let FSM handlers process it
     fsm_state = await state.get_state()
     if fsm_state:
-        print(f"🔍 FSM DEBUG: User {user_id} is in FSM state: {fsm_state} - skipping generic handler")
-        return  # Let dedicated FSM handlers handle this
+        print(f"🔍 FSM DEBUG: User {user_id} is in FSM state: {fsm_state} - processing in generic handler")
+        
+        # MOVIE SEARCH: Handle movie name input
+        if fsm_state == "MovieSearchStates:waiting_movie_name":
+            print(f"🎬 MOVIE SEARCH: Processing movie name from user {user_id}: {message.text}")
+            
+            movie_name = message.text.strip()
+            user_data = users_data.get(user_id, {})
+            username = message.from_user.username or "N/A"
+            first_name = message.from_user.first_name or "N/A"
+            full_name = user_data.get('full_name', first_name)
+
+            # Forward movie request to admin group
+            admin_group_id = -1003009015663
+            
+            try:
+                admin_message = movie_name
+
+                await bot.send_message(
+                    chat_id=admin_group_id,
+                    text=admin_message,
+                    parse_mode=None
+                )
+
+                # Store the movie request for later processing
+                request_id = f"{user_id}_{int(datetime.now().timestamp())}"
+                pending_movie_requests[request_id] = {
+                    'user_id': user_id,
+                    'username': username,
+                    'full_name': full_name,
+                    'movie_name': movie_name,
+                    'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+                    'chat_id': message.chat.id
+                }
+                print(f"📋 MOVIE REQUEST: Stored request {request_id} for user {user_id}")
+
+                # Confirm to user
+                await message.answer(
+                    "⏳ <b>Please wait few seconds...</b>",
+                    parse_mode="HTML"
+                )
+
+                print(f"✅ Movie request '{movie_name}' from user {user_id} forwarded to admin group")
+
+            except Exception as e:
+                print(f"❌ Failed to forward movie request: {e}")
+                await message.answer(
+                    "❌ <b>Sorry, there was an error processing your request</b>\n\n"
+                    "📞 <b>Please contact support directly</b>",
+                    parse_mode="HTML"
+                )
+
+            # Clear FSM state
+            await state.clear()
+            return
+
+        return  # Let other dedicated FSM handlers handle this
 
     # Check if user is in account creation flow (legacy user_state)
     current_step = user_state.get(user_id, {}).get("current_step")
@@ -8740,6 +8892,370 @@ async def on_startup():
             print("🔄 Trying to continue anyway...")
 
 # ========== WEBHOOK SETUP ==========
+
+# ========== MOVIE SEARCH HANDLERS ==========
+@dp.callback_query(F.data == "movie_search")
+@require_account
+async def cb_movie_search(callback: CallbackQuery):
+    """Handle movie search button"""
+    if not callback.message:
+        return
+
+    text = """
+🎬 <b>Movie Search Service</b>
+
+📽️ <b>Find Movies Instantly!</b>
+
+💡 <b>How it works:</b>
+• Send us any movie name
+• Our admin team will help you find it
+• Get direct download links/streaming info
+• Available in multiple qualities
+
+🎯 <b>What we provide:</b>
+• Latest Bollywood movies
+• Hollywood movies with subtitles  
+• Regional cinema
+• Web series & TV shows
+• Multiple format options
+
+📤 <b>Please send the movie name you're looking for:</b>
+"""
+
+    # Set FSM state to waiting for movie name  
+    if callback.from_user and callback.message:
+        from aiogram.fsm.storage.base import StorageKey
+        key = StorageKey(bot_id=bot.id, chat_id=callback.message.chat.id, user_id=callback.from_user.id)
+        state = FSMContext(storage=storage, key=key)
+        await state.set_state(MovieSearchStates.waiting_movie_name)
+    
+    # Create back button
+    back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️ Services & Tools", callback_data="services_tools")]
+    ])
+    
+    await safe_edit_message(callback, text, back_keyboard)
+    await callback.answer("🎬 Send movie name!")
+
+@dp.message(MovieSearchStates.waiting_movie_name)
+async def handle_movie_name_input(message: Message, state: FSMContext):
+    """Handle movie name input from user"""
+    print(f"🎬 MOVIE SEARCH: Handler called for user {message.from_user.id if message.from_user else 'Unknown'}")
+    print(f"🎬 MOVIE SEARCH: Movie name received: {message.text}")
+    
+    if not message.text or not message.from_user:
+        print(f"❌ MOVIE SEARCH: Invalid input - text: {message.text}, user: {message.from_user}")
+        return
+
+    user_id = message.from_user.id
+    movie_name = message.text.strip()
+
+    # Get user information
+    user_data = users_data.get(user_id, {})
+    username = message.from_user.username or "N/A"
+    first_name = message.from_user.first_name or "N/A"
+    full_name = user_data.get('full_name', first_name)
+
+    # Forward movie request to admin group
+    admin_group_id = -1003009015663
+    
+    try:
+        admin_message = movie_name
+
+        await bot.send_message(
+            chat_id=admin_group_id,
+            text=admin_message,
+            parse_mode=None
+        )
+
+        # Store the movie request for later processing
+        request_id = f"{user_id}_{int(datetime.now().timestamp())}"
+        pending_movie_requests[request_id] = {
+            'user_id': user_id,
+            'username': username,
+            'full_name': full_name,
+            'movie_name': movie_name,
+            'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+            'chat_id': message.chat.id
+        }
+        print(f"📋 MOVIE REQUEST: Stored request {request_id} for user {user_id}")
+
+        # Confirm to user
+        await message.answer(
+            "⏳ <b>Please wait few seconds...</b>",
+            parse_mode="HTML"
+        )
+
+        print(f"✅ Movie request '{movie_name}' from user {user_id} forwarded to admin group")
+
+    except Exception as e:
+        print(f"❌ Failed to forward movie request: {e}")
+        await message.answer(
+            "❌ <b>Sorry, there was an error processing your request</b>\n\n"
+            "📞 <b>Please contact support directly</b>",
+            parse_mode="HTML"
+        )
+
+    # Clear FSM state
+    await state.clear()
+
+# Store pending movie requests
+pending_movie_requests = {}
+
+# Store active file forwarding targets (supports multiple users)
+active_forwarding_targets = {}
+
+# ========== ADMIN GROUP MESSAGE MONITORING ==========
+@dp.message(F.chat.id == -1003009015663)
+async def monitor_admin_group_messages(message: Message):
+    """Monitor admin group for movie list messages and file forwarding"""
+    print(f"🔥 DEBUG: Admin group handler fired! User: {message.from_user.id if message.from_user else 'None'}")
+    print(f"🔥 DEBUG: Message type - Text: {bool(message.text)}, Document: {bool(message.document)}, Photo: {bool(message.photo)}")
+    
+    if not message.from_user:
+        print(f"🔥 DEBUG: No from_user, returning")
+        return
+    
+    print(f"🔍 ADMIN GROUP: Message received in admin group from {message.from_user.id}")
+    
+    # Check if this is a file message (document, photo, video, audio, etc.)
+    if (message.document or message.photo or message.video or 
+        message.audio or message.voice or message.video_note):
+        
+        # Security check: Only allow admin users to forward files
+        from services import is_admin
+        if not is_admin(message.from_user.id):
+            print(f"🚫 SECURITY: Non-admin user {message.from_user.id} tried to send file in admin group")
+            await message.reply(
+                "🚫 <b>Access Denied</b>\n\n"
+                "❌ <b>Only admins can forward files to users</b>",
+                parse_mode="HTML"
+            )
+            return
+        
+        # Find the most recent active forwarding target
+        current_time = datetime.now().timestamp()
+        target_user_id = None
+        target_info = None
+        
+        # Clean expired targets (older than 10 minutes)
+        expired_users = []
+        for user_id, info in active_forwarding_targets.items():
+            if current_time - info['timestamp'] > 600:  # 10 minutes
+                expired_users.append(user_id)
+        
+        for user_id in expired_users:
+            del active_forwarding_targets[user_id]
+            print(f"🧹 CLEANUP: Removed expired forwarding target for user {user_id}")
+        
+        # Find the most recent active target
+        if active_forwarding_targets:
+            latest_timestamp = 0
+            for user_id, info in active_forwarding_targets.items():
+                if info['timestamp'] > latest_timestamp:
+                    latest_timestamp = info['timestamp']
+                    target_user_id = user_id
+                    target_info = info
+        
+        if target_user_id and target_info:
+            selection_number = target_info['selection_number']
+            username = target_info['username']
+            
+            print(f"📁 FILE FORWARDING: Admin {message.from_user.id} sent file, forwarding to user {target_user_id} (selection: {selection_number})")
+            
+            try:
+                # Forward the file to the user
+                await message.forward(chat_id=target_user_id)
+                print(f"✅ FILE FORWARDING: Successfully forwarded file to user {target_user_id}")
+                
+                # Send confirmation to admin
+                await message.reply(
+                    f"✅ <b>File forwarded successfully!</b>\n\n"
+                    f"👤 <b>Sent to User:</b> {target_user_id} (@{username})\n"
+                    f"🔢 <b>For Selection:</b> {selection_number}\n"
+                    f"📱 <b>File forwarded by:</b> Admin {message.from_user.id}",
+                    parse_mode="HTML"
+                )
+                
+                # Keep the tracking active for multiple files (don't clear immediately)
+                print(f"📋 TRACKING: Keeping target active for potential additional files")
+                
+            except Exception as e:
+                print(f"❌ FILE FORWARDING: Failed to forward file to user {target_user_id}: {e}")
+                await message.reply(
+                    f"❌ <b>Failed to forward file</b>\n\n"
+                    f"👤 <b>Target User:</b> {target_user_id} (@{username})\n"
+                    f"🔢 <b>Selection:</b> {selection_number}\n"
+                    f"❌ <b>Error:</b> {str(e)}",
+                    parse_mode="HTML"
+                )
+        else:
+            print(f"⚠️ FILE FORWARDING: No active forwarding targets found")
+            await message.reply(
+                "⚠️ <b>No target user found</b>\n\n"
+                "💡 <b>A user must select a movie button first before files can be forwarded</b>\n"
+                f"🕐 <b>Targets expire after 10 minutes</b>",
+                parse_mode="HTML"
+            )
+    
+    # Handle text messages (movie lists etc.)
+    elif message.text:
+        # Note: Movie list handling is now done by the universal handler above
+        pass
+
+def parse_movie_list_message(text: str) -> list:
+    """Parse movie list message and extract numbered movie items only"""
+    import re
+    print(f"🔍 PARSING: Starting to parse movie list message")
+    
+    lines = text.split('\n')
+    movie_items = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Look for numbered items (1., 2., 3., etc.)
+        numbered_pattern = r'^\d+\.\s*(.+)$'
+        match = re.match(numbered_pattern, line)
+        
+        if match:
+            item_text = match.group(1).strip()
+            
+            # Filter out non-movie items (pagination, help text, etc.)
+            skip_patterns = [
+                r'🗓.*?/.*?',  # Pagination like "🗓 1/3"
+                r'^(Nᴇxᴛ|Next|Previous|Prev).*?[⏩⏪]',  # Navigation buttons
+                r'^(Hᴏᴡ Tᴏ|How To|Download)',  # Help text
+                r'^(Instructions|Guide|Help)',  # Instructions
+                r'^[⏩⏪🔄↩️➡️⬅️]',  # Navigation emojis
+            ]
+            
+            # Check if this line should be skipped
+            should_skip = False
+            for skip_pattern in skip_patterns:
+                if re.search(skip_pattern, item_text, re.IGNORECASE):
+                    should_skip = True
+                    print(f"⏭️ PARSING: Skipping non-movie item: {item_text[:30]}...")
+                    break
+            
+            if not should_skip and item_text:
+                # Truncate button text to 64 characters (Telegram limit)
+                display_text = item_text[:61] + "..." if len(item_text) > 64 else item_text
+                
+                # Extract the original number from the line
+                original_number_match = re.match(r'^(\d+)\.', line)
+                original_number = original_number_match.group(1) if original_number_match else str(len(movie_items) + 1)
+                
+                movie_items.append({
+                    'text': display_text,
+                    'full_text': item_text,  # Keep full text for reference
+                    'original_number': original_number,  # Store original number (2, 3, 4...)
+                    'callback_data': f"movie_item_{original_number}"
+                })
+                print(f"📋 PARSING: Found movie item {len(movie_items)}: {display_text[:50]}...")
+    
+    print(f"✅ PARSING: Total {len(movie_items)} valid movie items extracted")
+    return movie_items
+
+def create_movie_list_keyboard(movie_items: list) -> InlineKeyboardMarkup:
+    """Create inline keyboard from movie items list"""
+    print(f"⌨️ KEYBOARD: Creating keyboard with {len(movie_items)} buttons")
+    
+    keyboard_rows = []
+    
+    for item in movie_items:
+        # Create one button per row for better readability
+        button = InlineKeyboardButton(
+            text=item['text'],
+            callback_data=item['callback_data']
+        )
+        keyboard_rows.append([button])
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_rows)
+    print(f"✅ KEYBOARD: Successfully created keyboard with {len(keyboard_rows)} rows")
+    return keyboard
+
+# Store movie items globally for callback reference
+movie_items_store = {}
+
+# ========== MOVIE ITEM BUTTON HANDLERS ==========
+@dp.callback_query(F.data.startswith("movie_item_"))
+async def handle_movie_item_selection(callback: CallbackQuery):
+    """Handle when user clicks on a movie item button"""
+    if not callback.data or not callback.from_user:
+        await callback.answer("❌ Invalid selection")
+        return
+    
+    try:
+        # Extract original number from callback data
+        original_number = callback.data.replace("movie_item_", "")
+        
+        # Get button text safely from the keyboard for user confirmation
+        button_text = "Unknown Item"
+        item_index = None
+        
+        if (callback.message and 
+            hasattr(callback.message, 'reply_markup') and 
+            callback.message.reply_markup and
+            callback.message.reply_markup.inline_keyboard):
+            
+            keyboard = callback.message.reply_markup.inline_keyboard
+            # Find which button was clicked by matching callback data
+            for idx, row in enumerate(keyboard):
+                if row and len(row) > 0 and hasattr(row[0], 'callback_data'):
+                    if row[0].callback_data == callback.data:
+                        button_text = row[0].text
+                        item_index = idx
+                        break
+        
+        print(f"🎬 MOVIE SELECTION: User {callback.from_user.id} selected item number {original_number}: {button_text}")
+        
+        # Track this selection for file forwarding (per-user tracking)
+        user_id = callback.from_user.id
+        active_forwarding_targets[user_id] = {
+            'timestamp': datetime.now().timestamp(),
+            'selection_number': original_number,
+            'username': callback.from_user.username or "N/A",
+            'first_name': callback.from_user.first_name or "N/A"
+        }
+        print(f"📋 TRACKING: Set forwarding target for user {user_id}, selection {original_number}")
+        
+        # Send original number to admin group
+        admin_group_id = -1003009015663
+        try:
+            await bot.send_message(
+                chat_id=admin_group_id,
+                text=original_number,
+                parse_mode=None
+            )
+            print(f"✅ ADMIN NOTIFICATION: Sent number '{original_number}' to admin group")
+        except Exception as admin_error:
+            print(f"❌ ADMIN NOTIFICATION: Failed to send to admin group: {admin_error}")
+        
+        # Send confirmation popup to user
+        await callback.answer(f"📥 Selected: {button_text[:25]}...")
+        
+        # Send simple confirmation to user's private chat
+        try:
+            await bot.send_message(
+                chat_id=callback.from_user.id,
+                text="✅ <b>Selection sent to admin!</b>\n\n"
+                     "⏳ <b>Please wait for download link...</b>",
+                parse_mode="HTML"
+            )
+            print(f"✅ MOVIE SELECTION: Sent confirmation to user {callback.from_user.id}")
+            
+        except Exception as dm_error:
+            print(f"⚠️ MOVIE SELECTION: Could not send DM to user {callback.from_user.id}: {dm_error}")
+                
+    except (ValueError, IndexError, AttributeError) as e:
+        print(f"❌ MOVIE SELECTION: Error processing selection: {e}")
+        await callback.answer("❌ Error processing selection")
+    except Exception as e:
+        print(f"❌ MOVIE SELECTION: Unexpected error: {e}")
+        await callback.answer("❌ Something went wrong")
 
 async def health_check(request):
     """Health check endpoint to show bot is alive"""
