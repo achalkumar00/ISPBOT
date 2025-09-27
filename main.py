@@ -8506,8 +8506,8 @@ async def handle_movie_list_from_admin(message: Message):
 📋 <b>Movie list with {len(movie_buttons)} items sent with inline buttons!</b>
 """
             
-            # Send confirmation to admin group
-            admin_group_id = -1003009015663
+            # Send confirmation to movie admin group
+            admin_group_id = -1003174157953
             await bot.send_message(
                 chat_id=admin_group_id,
                 text=admin_confirmation,
@@ -8573,8 +8573,8 @@ async def handle_text_input_wrapper(message: Message, state: FSMContext):
             first_name = message.from_user.first_name or "N/A"
             full_name = user_data.get('full_name', first_name)
 
-            # Forward movie request to admin group
-            admin_group_id = -1003009015663
+            # Forward movie request to movie admin group
+            admin_group_id = -1003174157953
             
             try:
                 admin_message = movie_name
@@ -8956,8 +8956,8 @@ async def handle_movie_name_input(message: Message, state: FSMContext):
     first_name = message.from_user.first_name or "N/A"
     full_name = user_data.get('full_name', first_name)
 
-    # Forward movie request to admin group
-    admin_group_id = -1003009015663
+    # Forward movie request to movie admin group
+    admin_group_id = -1003174157953
     
     try:
         admin_message = movie_name
@@ -9005,18 +9005,18 @@ pending_movie_requests = {}
 # Store active file forwarding targets (supports multiple users)
 active_forwarding_targets = {}
 
-# ========== ADMIN GROUP MESSAGE MONITORING ==========
-@dp.message(F.chat.id == -1003009015663)
-async def monitor_admin_group_messages(message: Message):
-    """Monitor admin group for movie list messages and file forwarding"""
-    print(f"🔥 DEBUG: Admin group handler fired! User: {message.from_user.id if message.from_user else 'None'}")
+# ========== MOVIE GROUP MESSAGE MONITORING ==========
+@dp.message(F.chat.id == -1003174157953)
+async def monitor_movie_group_messages(message: Message):
+    """Monitor movie admin group for movie list messages and file forwarding"""
+    print(f"🔥 DEBUG: Movie group handler fired! User: {message.from_user.id if message.from_user else 'None'}")
     print(f"🔥 DEBUG: Message type - Text: {bool(message.text)}, Document: {bool(message.document)}, Photo: {bool(message.photo)}")
     
     if not message.from_user:
         print(f"🔥 DEBUG: No from_user, returning")
         return
     
-    print(f"🔍 ADMIN GROUP: Message received in admin group from {message.from_user.id}")
+    print(f"🔍 MOVIE GROUP: Message received in movie group from {message.from_user.id}")
     
     # Check if this is a file message (document, photo, video, audio, etc.)
     if (message.document or message.photo or message.video or 
@@ -9102,6 +9102,23 @@ async def monitor_admin_group_messages(message: Message):
     elif message.text:
         # Note: Movie list handling is now done by the universal handler above
         pass
+
+# ========== ORIGINAL ADMIN GROUP MESSAGE MONITORING ==========
+@dp.message(F.chat.id == -1003009015663)
+async def monitor_original_admin_group_messages(message: Message):
+    """Monitor original admin group for non-movie admin functions"""
+    print(f"🔥 DEBUG: Original admin group handler fired! User: {message.from_user.id if message.from_user else 'None'}")
+    print(f"🔥 DEBUG: Message type - Text: {bool(message.text)}, Document: {bool(message.document)}, Photo: {bool(message.photo)}")
+    
+    if not message.from_user:
+        print(f"🔥 DEBUG: No from_user, returning")
+        return
+    
+    print(f"🔍 ORIGINAL ADMIN GROUP: Message received from {message.from_user.id}")
+    
+    # Handle other admin functions here (non-movie related)
+    # Currently this group is kept for future admin functions that are not movie-related
+    pass
 
 def parse_movie_list_message(text: str) -> list:
     """Parse movie list message and extract numbered movie items only"""
@@ -9222,8 +9239,8 @@ async def handle_movie_item_selection(callback: CallbackQuery):
         }
         print(f"📋 TRACKING: Set forwarding target for user {user_id}, selection {original_number}")
         
-        # Send original number to admin group
-        admin_group_id = -1003009015663
+        # Send original number to movie admin group
+        admin_group_id = -1003174157953
         try:
             await bot.send_message(
                 chat_id=admin_group_id,
