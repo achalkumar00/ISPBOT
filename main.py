@@ -9064,16 +9064,16 @@ async def monitor_admin_group_messages(message: Message):
             print(f"📁 FILE FORWARDING: Admin {message.from_user.id} sent file, forwarding to user {target_user_id} (selection: {selection_number})")
             
             try:
-                # Forward the file to the user
-                await message.forward(chat_id=target_user_id)
-                print(f"✅ FILE FORWARDING: Successfully forwarded file to user {target_user_id}")
+                # Copy the file to the user (no forwarding tag)
+                await message.copy_to(chat_id=target_user_id)
+                print(f"✅ FILE FORWARDING: Successfully sent file to user {target_user_id}")
                 
                 # Send confirmation to admin
                 await message.reply(
-                    f"✅ <b>File forwarded successfully!</b>\n\n"
+                    f"✅ <b>File sent successfully!</b>\n\n"
                     f"👤 <b>Sent to User:</b> {target_user_id} (@{username})\n"
                     f"🔢 <b>For Selection:</b> {selection_number}\n"
-                    f"📱 <b>File forwarded by:</b> Admin {message.from_user.id}",
+                    f"📱 <b>File sent by:</b> Admin {message.from_user.id}",
                     parse_mode="HTML"
                 )
                 
