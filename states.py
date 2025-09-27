@@ -56,3 +56,8 @@ class FeedbackStates(StatesGroup):
     waiting_feedback = State()
 
 
+class MovieSearchStates(StatesGroup):
+    """States for movie search functionality"""
+    waiting_movie_name = State()
+
+
