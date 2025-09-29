@@ -1,62 +1,55 @@
 {
   "7437014244": {
     "user_id": 7437014244,
-    "username": "👑OWNER",
-    "first_name": "🫅🏻ACHAL",
-    "join_date": "****-**-*****:**:**.******",
-    "account_created": true
-  },
-  "7092638815": {
-    "user_id": 7092638815,
-    "username": "",
-    "first_name": "",
-    "join_date": "2025-09-19T10:01:49.147912",
+    "username": "achalkumar",
+    "first_name": "Achal",
+    "join_date": "2025-09-29T07:48:19.841249",
     "account_created": true,
-    "full_name": "Ansh",
-    "phone_number": "+916204734423",
-    "email": "achakumar0a0@gmail.com",
-    "balance": 0.0,
-    "total_spent": 0.0,
-    "orders_count": 0,
-    "referral_code": "ISPI0SX7S",
-    "referred_by": null,
-    "access_token": "Σ|0pnr114∅190.8|JpnrBGC∅AEHxcqDEE:CD|*010pnr308zqw011∅121.130:118xcq480∅148;@G1",
-    "status": "active",
-    "profile_photo": null
+    "full_name": "Achal",
+    "email": "admin@indiasocialpanel.com",
+    "phone_number": "+91XXXXXXXXXX"
   },
-  "7657003026": {
-    "user_id": 7657003026,
+  "6162285879": {
+    "user_id": 6162285879,
     "username": "",
     "first_name": "",
-    "join_date": "2025-09-19T10:05:24.997212",
-    "account_created": false
+    "join_date": "2025-09-29T07:49:27.463021",
+    "account_created": true,
+    "full_name": "SURAJ",
+    "phone_number": "919798770835",
+    "email": "TOLUKUMAR9798@gmail.com",
+    "access_token": "Σ|1pnr921;180pnr110xcq|JB;JHJ.IHH*AID.F|2;015.122zqw111∅211:301zqw185mbs755.575mbs6@G.1",
+    "status": "active"
   },
   "7536457496": {
     "user_id": 7536457496,
     "username": "",
     "first_name": "",
-    "join_date": "2025-09-19T10:05:55.703204",
-    "account_created": false
+    "join_date": "2025-09-29T07:50:50.116727",
+    "account_created": true,
+    "full_name": "ANUP",
+    "phone_number": "917261015522",
+    "email": "ANUPKUMAR44590@gmail.com",
+    "access_token": "Σ|0xcq114;211;6|J:BHC:GBApnrBFF*CC|.011mbs421mbs161zqw121;130.118:525∅253:574mbs8@G.1",
+    "status": "active"
   },
-  "7632402382": {
-    "user_id": 7632402382,
+  "7727033055": {
+    "user_id": 7727033055,
     "username": "",
     "first_name": "",
-    "join_date": "2025-09-19T10:07:44.658665",
-    "account_created": false
-  },
-  "7665588493": {
-    "user_id": 7665588493,
-    "username": "",
-    "first_name": "",
-    "join_date": "2025-09-19T10:07:53.505771",
-    "account_created": false
+    "join_date": "2025-09-29T07:52:09.370664",
+    "account_created": true,
+    "full_name": "ARYAN",
+    "phone_number": "917091063599",
+    "email": "7091063599VISHAL@gmail.com",
+    "access_token": "|01mbs182*501:14|xcqJBH.AJB;AGDmbsFJJzqw|55zqw485mbs749.485mbs451mbs535.757zqw220∅919zqw080;112xcq@G1",
+    "status": "active"
   },
   "8304319688": {
     "user_id": 8304319688,
     "username": "",
     "first_name": "",
-    "join_date": "2025-09-19T10:08:47.093616",
+    "join_date": "2025-09-29T07:53:10.478737",
     "account_created": false
   }
 }
